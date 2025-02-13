@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('kode');
             $table->boolean('is_original');
             $table->string('part_number');
+            $table->decimal('komisi_admin', 20, 2);
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->foreignId('updated_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }
