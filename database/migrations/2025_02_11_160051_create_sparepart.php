@@ -15,11 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('kode');
+            $table->string('keterangan')->nullable();
             $table->boolean('is_original');
-            $table->string('part_number');
+            $table->string('part_number')->nullable();
             $table->decimal('komisi_admin', 20, 2);
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
-            $table->foreignId('updated_by')->constrained('users')->onDelete('cascade');
+            $table->foreignId('updated_by')->constrained('users')->onDelete('cascade')->nullable();
             $table->timestamps();
         });
     }
