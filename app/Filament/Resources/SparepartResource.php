@@ -78,7 +78,7 @@ class SparepartResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\SatuansRelationManager::class,
         ];
     }
 

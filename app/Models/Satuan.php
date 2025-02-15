@@ -8,7 +8,6 @@ class Satuan extends Model
 {
     protected $fillable = [
         'name',
-        'kode',
-        'is_satuan_terkecil'
+        'kode'
     ];
 }

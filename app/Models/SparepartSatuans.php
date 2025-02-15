@@ -2,23 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 
-class Customer extends Model
+class SparepartSatuans extends Model
 {
-    use HasFactory;
     protected $fillable = [
+        'satuan_id',
+        'sparepart_id',
         'name',
         'kode',
-        'keterangan',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-        'created_at',
-        'updated_at',
-        'nomor_telepon'
+        'harga',
+        'is_satuan_terkecil',
+        'konversi'
     ];
 
     protected static function boot()
@@ -34,8 +31,9 @@ class Customer extends Model
         });
     }
 
-    public function serviceHistories()
+
+    public function satuan(): BelongsTo
     {
-        return $this->hasMany(ServiceSchedule::class);
+        return $this->belongsTo(Satuan::class);
     }
 }

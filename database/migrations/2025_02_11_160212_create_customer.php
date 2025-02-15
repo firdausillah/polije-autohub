@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('kode');
-            $table->string('nomor_telepon');
-            $table->string('keterangan');
-            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
-            $table->foreignId('updated_by')->constrained('users')->onDelete('cascade');
+            $table->string('name')->nullable();
+            $table->string('kode')->nullable();
+            $table->string('nomor_telepon')->nullable();
+            $table->string('keterangan')->nullable();
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade')->nullable();
+            $table->foreignId('updated_by')->constrained('users')->onDelete('cascade')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

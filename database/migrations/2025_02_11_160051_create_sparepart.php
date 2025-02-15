@@ -13,14 +13,15 @@ return new class extends Migration
     {
         Schema::create('spareparts', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('kode');
+            $table->string('name')->nullable();
+            $table->string('kode')->nullable();
             $table->string('keterangan')->nullable();
-            $table->boolean('is_original');
+            $table->boolean('is_original')->nullable();
             $table->string('part_number')->nullable();
-            $table->decimal('komisi_admin', 20, 2);
-            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->decimal('komisi_admin', 20, 2)->nullable();
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade')->nullable();
             $table->foreignId('updated_by')->constrained('users')->onDelete('cascade')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
