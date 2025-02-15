@@ -33,7 +33,6 @@ class CustomerResource extends Resource
                 ->default(CodeGenerator::generateSimpleCode('P', 'customers', 'kode'))
                 ->readOnly(),
                 TextInput::make('nomor_telepon')
-                ->minLength(8)
                 ->maxLength(20)
                 ->numeric()
                 ->required(),
