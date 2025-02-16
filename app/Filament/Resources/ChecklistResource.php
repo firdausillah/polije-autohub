@@ -6,9 +6,12 @@ use App\Filament\Resources\ChecklistResource\Pages;
 use App\Filament\Resources\ChecklistResource\RelationManagers;
 use App\Models\Checklist;
 use Filament\Forms;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -23,7 +26,9 @@ class ChecklistResource extends Resource
     {
         return $form
             ->schema([
-                //
+                TextInput::make('name')
+                ->required(),
+                Textarea::make('keterangan')
             ]);
     }
 
@@ -31,7 +36,8 @@ class ChecklistResource extends Resource
     {
         return $table
             ->columns([
-                //
+                TextColumn::make('name'),
+                TextColumn::make('keterangan'),
             ])
             ->filters([
                 //
