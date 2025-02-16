@@ -33,7 +33,7 @@ class SparepartResource extends Resource
                 TextInput::make('name')
                 ->required(),
                 TextInput::make('kode')
-                ->default(CodeGenerator::generateSimpleCode('S', 'spareparts', 'kode'))
+                ->default(fn () => CodeGenerator::generateSimpleCode('SP', 'spareparts', 'kode'))
                 ->readOnly(),
                 Select::make('is_original')
                 ->label('Original part')

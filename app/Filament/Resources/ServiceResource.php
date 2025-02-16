@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\CustomerResource\Pages;
-use App\Filament\Resources\CustomerResource\RelationManagers;
+use App\Filament\Resources\ServiceResource\Pages;
+use App\Filament\Resources\ServiceResource\RelationManagers;
 use App\Helpers\CodeGenerator;
-use App\Models\Customer;
+use App\Models\Service;
 use Filament\Forms;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -17,9 +17,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class CustomerResource extends Resource
+class ServiceResource extends Resource
 {
-    protected static ?string $model = Customer::class;
+    protected static ?string $model = Service::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -30,12 +30,21 @@ class CustomerResource extends Resource
                 TextInput::make('name')
                 ->required(),
                 TextInput::make('kode')
-                ->default(fn () => CodeGenerator::generateSimpleCode('P', 'customers', 'kode'))
+                ->default(fn () => CodeGenerator::generateSimpleCode('SV', 'services', 'kode'))
                 ->readOnly(),
-                TextInput::make('nomor_telepon')
-                ->maxLength(20)
+                TextInput::make('harga')
+                ->label('Biaya')
+                ->prefix('Rp ')
                 ->numeric()
                 ->required(),
+                TextInput::make('komisi_mekanik')
+                ->required()
+                ->suffix('%')
+                ->numeric(),
+                TextInput::make('estimasi_waktu_pengerjaan')
+                ->suffix('menit')
+                ->required()
+                ->numeric(),
                 Textarea::make('keterangan')
             ]);
     }
@@ -43,14 +52,18 @@ class CustomerResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Customer::withCount('serviceHistories'))
             ->columns([
                 TextColumn::make('name'),
                 TextColumn::make('kode'),
-                TextColumn::make('nomor_telepon'),
-                TextColumn::make('service_histories_count')
-                ->label('Jumlah Kedatangan')
-                ->sortable(),
+                TextColumn::make('harga')
+                ->label('Biaya')
+                ->money('IDR', locale: 'id_ID'),
+                TextColumn::make('komisi_mekanik')
+                ->suffix('%')
+                ->alignCenter(),
+                TextColumn::make('estimasi_waktu_pengerjaan')
+                ->suffix(' menit')
+                ->alignCenter(),
             ])
             ->filters([
                 //
@@ -75,9 +88,9 @@ class CustomerResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListCustomers::route('/'),
-            'create' => Pages\CreateCustomer::route('/create'),
-            'edit' => Pages\EditCustomer::route('/{record}/edit'),
+            'index' => Pages\ListServices::route('/'),
+            'create' => Pages\CreateService::route('/create'),
+            'edit' => Pages\EditService::route('/{record}/edit'),
         ];
     }
 }

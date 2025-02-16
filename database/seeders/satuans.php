@@ -15,7 +15,7 @@ class satuans extends Seeder
     {
         Satuan::firstOrCreate(
             ['name' => 'Pcs/Unit', 'kode' => 'pcs'],
-            ['name' => 'Box', 'kode' => 'box'],
+            ['name' => 'Box/Karton', 'kode' => 'box'],
             ['name' => 'Kilogam', 'kode' => 'kg'],
             ['name' => 'Liter', 'kode' => 'lt'],
         );
