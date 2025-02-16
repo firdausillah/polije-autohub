@@ -14,10 +14,10 @@ class satuans extends Seeder
     public function run(): void
     {
         Satuan::firstOrCreate(
-            ['name' => 'Pcs/Unit', 'kode' => 'pcs'],
-            ['name' => 'Box/Karton', 'kode' => 'box'],
-            ['name' => 'Kilogam', 'kode' => 'kg'],
-            ['name' => 'Liter', 'kode' => 'lt'],
+            ['created_by'=> 1, 'name' => 'Pcs/Unit', 'kode' => 'pcs'],
+            ['created_by'=> 1, 'name' => 'Box/Karton', 'kode' => 'box'],
+            ['created_by'=> 1, 'name' => 'Kilogam', 'kode' => 'kg'],
+            ['created_by'=> 1, 'name' => 'Liter', 'kode' => 'lt'],
         );
 
     }

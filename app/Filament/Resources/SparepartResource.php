@@ -90,4 +90,12 @@ class SparepartResource extends Resource
             'edit' => Pages\EditSparepart::route('/{record}/edit'),
         ];
     }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
+    }
 }
