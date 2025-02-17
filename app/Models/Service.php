@@ -19,7 +19,6 @@ class service extends Model
         'created_at',
         'updated_at',
         'harga',
-        'komisi_mekanik',
         'estimasi_waktu_pengerjaan'
     ];
 

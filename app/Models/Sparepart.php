@@ -21,7 +21,7 @@ class Sparepart extends Model
         'updated_at',
         'is_original',
         'part_number',
-        'komisi_admin'
+        'margin'
     ];
 
     protected static function boot()

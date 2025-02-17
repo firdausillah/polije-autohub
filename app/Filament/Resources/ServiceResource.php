@@ -37,10 +37,6 @@ class ServiceResource extends Resource
                 ->prefix('Rp ')
                 ->numeric()
                 ->required(),
-                TextInput::make('komisi_mekanik')
-                ->required()
-                ->suffix('%')
-                ->numeric(),
                 TextInput::make('estimasi_waktu_pengerjaan')
                 ->suffix('menit')
                 ->required()
@@ -58,9 +54,6 @@ class ServiceResource extends Resource
                 TextColumn::make('harga')
                 ->label('Biaya')
                 ->money('IDR', locale: 'id_ID'),
-                TextColumn::make('komisi_mekanik')
-                ->suffix('%')
-                ->alignCenter(),
                 TextColumn::make('estimasi_waktu_pengerjaan')
                 ->suffix(' menit')
                 ->alignCenter(),

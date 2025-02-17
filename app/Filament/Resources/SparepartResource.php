@@ -44,8 +44,7 @@ class SparepartResource extends Resource
                 ]),
                 TextInput::make('part_number')
                 ->numeric(),
-                TextInput::make('komisi_admin')
-                ->label('Komisi admin (%)')
+                TextInput::make('margin')
                 ->numeric()
                 ->required(),
                 Textarea::make('keterangan'),
@@ -59,8 +58,7 @@ class SparepartResource extends Resource
                 TextColumn::make('name'),
                 TextColumn::make('kode'),
                 TextColumn::make('is_original'),
-                TextColumn::make('komisi_admin')
-                ->suffix('%')
+                TextColumn::make('margin')
             ])
             ->filters([
                 //
