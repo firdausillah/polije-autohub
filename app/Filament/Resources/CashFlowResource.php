@@ -177,7 +177,7 @@ class CashFlowResource extends Resource
                         ->when($data['to'], fn ($query) => $query->whereDate('created_at', '<=', $data['to']));
                 })
                 ->indicateUsing(function (array $data) {
-                    return 'Menampilkan Data Bulan Ini';
+                    return 'Data Bulan Ini';
                 }),
             ])
             ->actions([
