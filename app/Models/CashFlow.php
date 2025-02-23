@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
 class CashFlow extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $fillable = [
         'account_debit_id',
         'account_kredit_id',
@@ -21,14 +22,13 @@ class CashFlow extends Model
         'deleted_at',
         'created_at',
         'updated_at',
-        'transaksi_type_debit',
-        'transaksi_type_kredit',
         'is_approve',
         'total',
-        'account_debit_nama',
-        'account_kredit_nama',
+        'account_debit_name',
+        'account_kredit_name',
         'account_debit_kode',
-        'account_kredit_kode'
+        'account_kredit_kode',
+        'tanggal_transaksi'
     ];
 
     protected static function boot()
