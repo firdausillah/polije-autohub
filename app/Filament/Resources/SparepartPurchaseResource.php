@@ -7,7 +7,9 @@ use App\Filament\Resources\SparepartPurchaseResource\RelationManagers;
 use App\Filament\Resources\SparepartPurchaseResource\RelationManagers\SparepartDPurchaseRelationManager;
 use App\Helpers\CodeGenerator;
 use App\Models\Account;
+use App\Models\Inventory;
 use App\Models\Jurnal;
+use App\Models\SparepartDPurchase;
 use App\Models\SparepartPurchase;
 use Carbon\Carbon;
 use DateTime;
@@ -43,22 +45,26 @@ class SparepartPurchaseResource extends Resource
     public static function InsertJurnal($record, $status): void
     {
         if ($status == 'approved') {
+
+
+            // jurnal begin
             // debit
+            $account_debit = Account::find(11);
             Jurnal::create([
                 'transaksi_h_id'    => $record->id,
                 'transaksi_d_id'    => $record->id,
-                'account_id'    => $record->account_debit_id,
+                'account_id'    => $account_debit->id,//
 
                 'keterangan'    => $record->keterangan,
                 'kode'  => $record->kode,
                 'tanggal_transaksi' => $record->tanggal_transaksi,
 
-                'relation_nama' => '',
-                'relation_nomor_telepon'    => '',
+                'relation_name' => $record->supplier_name,
+                'relation_nomor_telepon'    => $record->supplier_nomor_telepon,
 
-                'account_name'  => $record->account_debit_name,
-                'account_kode'  => $record->account_debit_kode,
-                'transaction_type'  => 'jurnal umum',
+                'account_name'  => $account_debit->name, //
+                'account_kode'  => $account_debit->kode,//
+                'transaction_type'  => 'pembelian sparepart',
 
                 'debit' => $record->total,
                 'kredit'    => 0,
@@ -68,24 +74,63 @@ class SparepartPurchaseResource extends Resource
             Jurnal::create([
                 'transaksi_h_id'    => $record->id,
                 'transaksi_d_id'    => $record->id,
-                'account_id'    => $record->account_kredit_id,
+                'account_id'    => $record->account_id,
 
                 'keterangan'    => $record->keterangan,
                 'kode'  => $record->kode,
                 'tanggal_transaksi' => $record->tanggal_transaksi,
 
-                'relation_nama' => '',
-                'relation_nomor_telepon'    => '',
+                'relation_name' => $record->supplier_name,
+                'relation_nomor_telepon'    => $record->supplier_nomor_telepon,
 
-                'account_name'  => $record->account_kredit_name,
-                'account_kode'  => $record->account_kredit_kode,
-                'transaction_type'  => 'jurnal umum',
+                'account_name'  => $record->account_name,
+                'account_kode'  => $record->account_kode,
+                'transaction_type'  => 'pembelian sparepart',
 
                 'debit' => 0,
                 'kredit'    => $record->total,
             ]);
+            // jurnal end
+
+            // inventory begin
+            $SparepartDPurchases = SparepartDPurchase::where('sparepart_purchase_id', $record->id)->get();
+            foreach ($SparepartDPurchases as $val) {
+                Inventory::create([
+                    'transaksi_h_id' => $record->id,
+                    'transaksi_d_id' => $val->id,
+                    'sparepart_id' => $val->sparepart_id,
+                    'satuan_id' => $val->satuan_id,
+
+                    'name' => '',
+                    'kode' => $record->kode,
+                    'keterangan' => $record->keterangan,
+                    'tanggal_transaksi' => $record->tanggal_transaksi,
+                    'transaksi_h_kode' => $record->kode,
+
+                    'sparepart_name' => $val->sparepart_name,
+                    'sparepart_kode' => $val->sparepart_kode,
+
+                    'satuan_terkecil_name' => $val->satuan_terkecil_name,
+                    'satuan_terkecil_kode' => $val->satuan_terkecil_kode,
+                    
+                    'movement_type' => 'IN-PUR',
+
+                    'jumlah_unit' => $val->jumlah_unit,
+                    'jumlah_konversi' => $val->jumlah_konversi,
+                    'jumlah_terkecil' => $val->jumlah_terkecil,
+
+                    'harga_unit' => $val->harga_unit,
+                    'harga_terkecil' => $val->harga_terkecil,
+                    'harga_subtotal' => $val->harga_subtotal,
+                    
+                    'relation_name' => $record->supplier_name,
+                    'relation_nomor_telepon' => $record->supplier_nomor_telepon
+                ]);
+            }
+            // inventory end
         } else {
-            Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'jurnal umum'])->delete();
+            Inventory::where(['transaksi_h_id' => $record->id, 'movement_type' => 'IN-PUR'])->delete();
+            Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'pembelian sparepart'])->delete();
         }
     }
 
@@ -99,12 +144,23 @@ class SparepartPurchaseResource extends Resource
                 ->default(NOW()),
                 TextInput::make('kode')
                 ->readOnly(),
-                TextInput::make('supplier_nama')
+                TextInput::make('supplier_name')
                 ->required(),
                 TextInput::make('supplier_nomor_telepon'),
                 TextInput::make('purchase_receipt')
                 ->label('Nota Pembelian'),
+                Select::make('account_id')
+                ->relationship('account', 'name')
+                ->live()
+                ->afterStateUpdated(function(Set $set, $state){
+                    $account = Account::find($state);
+                    $set('account_name', $account->name);
+                    $set('account_kode', $account->kode);
+                }),
                 Textarea::make('keterangan'),
+
+                Hidden::make('account_name'),
+                Hidden::make('account_kode'),
             ]);
     }
 
@@ -123,7 +179,10 @@ class SparepartPurchaseResource extends Resource
                     'approved' => 'success',
                     'rejected' => 'danger',
                 }),
-                TextColumn::make('supplier_nama'),
+                TextColumn::make('supplier_name')
+                ->label('supplier'),
+                TextColumn::make('account_name')
+                ->label('account'),
                 TextColumn::make('total')->money('IDR', locale: 'id_ID'),
 
             ])
@@ -148,7 +207,7 @@ class SparepartPurchaseResource extends Resource
                     Tables\Actions\Action::make('approve')
                     ->action(function (SparepartPurchase $record) {
                         if (empty($record->kode)) {
-                            $record->kode = CodeGenerator::generateTransactionCode('CFL', 'sparepart_purchases', 'kode');
+                            $record->kode = CodeGenerator::generateTransactionCode('SPS', 'sparepart_purchases', 'kode');
                         }
 
                         $isApproving = in_array($record->is_approve, ['pending', 'rejected']);

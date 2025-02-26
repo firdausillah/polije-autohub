@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
@@ -34,5 +35,10 @@ class SparepartPurchase extends Model
     public function SparepartDPurchase(): HasMany
     {
         return $this->hasMany(SparepartDPurchase::class);
+    }
+
+    public function account(): BelongsTo
+    {
+        return $this->belongsTo(Account::class)->where('type', 'Aset');
     }
 }

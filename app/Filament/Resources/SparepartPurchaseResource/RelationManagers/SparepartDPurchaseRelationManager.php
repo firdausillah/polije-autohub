@@ -38,7 +38,7 @@ class SparepartDPurchaseRelationManager extends RelationManager
                 Select::make('satuan_id')
                 ->options(
                     fn (Get $get) =>
-                    Sparepart::find($get('sparepart_id'))?->sparepartSatuan()->pluck('satuan_name', 'id') ?? [],
+                    Sparepart::find($get('sparepart_id'))?->sparepartSatuan()->pluck('satuan_name', 'satuan_id') ?? [],
                 )
                 ->live()
                 ->searchable()

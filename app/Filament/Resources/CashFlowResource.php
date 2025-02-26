@@ -54,7 +54,7 @@ class CashFlowResource extends Resource
                 'kode'  => $record->kode,
                 'tanggal_transaksi' => $record->tanggal_transaksi,
 
-                'relation_nama' => '',
+                'relation_name' => '',
                 'relation_nomor_telepon'    => '',
 
                 'account_name'  => $record->account_debit_name,
@@ -75,7 +75,7 @@ class CashFlowResource extends Resource
                 'kode'  => $record->kode,
                 'tanggal_transaksi' => $record->tanggal_transaksi,
 
-                'relation_nama' => '',
+                'relation_name' => '',
                 'relation_nomor_telepon'    => '',
 
                 'account_name'  => $record->account_kredit_name,
