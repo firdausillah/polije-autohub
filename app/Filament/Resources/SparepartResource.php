@@ -55,8 +55,10 @@ class SparepartResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name'),
-                TextColumn::make('kode'),
+                TextColumn::make('name')
+                ->searchable(),
+                TextColumn::make('kode')
+                ->searchable(),
                 TextColumn::make('is_original'),
                 TextColumn::make('margin')
             ])

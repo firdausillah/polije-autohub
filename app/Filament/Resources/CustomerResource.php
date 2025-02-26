@@ -28,11 +28,14 @@ class CustomerResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
+                ->searchable()
                 ->required(),
                 TextInput::make('kode')
+                ->searchable()
                 ->default(fn () => CodeGenerator::generateSimpleCode('P', 'customers', 'kode'))
                 ->readOnly(),
                 TextInput::make('nomor_telepon')
+                ->searchable()
                 ->maxLength(20)
                 ->numeric()
                 ->required(),

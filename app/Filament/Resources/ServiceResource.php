@@ -49,8 +49,10 @@ class ServiceResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name'),
-                TextColumn::make('kode'),
+                TextColumn::make('name')
+                ->searchable(),
+                TextColumn::make('kode')
+                ->searchable(),
                 TextColumn::make('harga')
                 ->label('Biaya')
                 ->money('IDR', locale: 'id_ID'),

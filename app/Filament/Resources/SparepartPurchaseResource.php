@@ -170,7 +170,8 @@ class SparepartPurchaseResource extends Resource
             ->columns([
                 TextColumn::make('tanggal_transaksi')
                 ->label('Tanggal'),
-                TextColumn::make('kode'),
+                TextColumn::make('kode')
+                ->searchable(),
                 TextColumn::make('is_approve')
                 ->label('Status')
                 ->badge()
@@ -180,8 +181,10 @@ class SparepartPurchaseResource extends Resource
                     'rejected' => 'danger',
                 }),
                 TextColumn::make('supplier_name')
+                ->searchable()
                 ->label('supplier'),
                 TextColumn::make('account_name')
+                ->searchable()
                 ->label('account'),
                 TextColumn::make('total')->money('IDR', locale: 'id_ID'),
 
