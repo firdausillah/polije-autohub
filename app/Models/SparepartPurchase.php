@@ -7,24 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
-class Sparepart extends Model
+class SparepartPurchase extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $fillable = [
-        'name',
-        'kode',
-        'keterangan',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-        'created_at',
-        'updated_at',
-        'is_original',
-        'part_number',
-        'margin'
-    ];
+    protected $guarded;
 
     protected static function boot()
     {
@@ -42,5 +29,10 @@ class Sparepart extends Model
     public function sparepartSatuan(): HasMany
     {
         return $this->hasMany(SparepartSatuans::class);
+    }
+
+    public function SparepartDPurchase(): HasMany
+    {
+        return $this->hasMany(SparepartDPurchase::class);
     }
 }

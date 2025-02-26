@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\SparepartResource\RelationManagers;
 
+use App\Models\Satuan;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -26,11 +28,19 @@ class SatuansRelationManager extends RelationManager
             ->schema([
                 Select::make('satuan_id')
                 ->required()
-                ->relationship('satuan', 'name'),
+                ->relationship('satuan', 'name')
+                ->live()
+                ->afterStateUpdated(
+                    function (Set $set, $state){
+                        $satuan = Satuan::find($state);
+                        $set('satuan_name', $satuan->name);
+                        $set('satuan_kode', $satuan->kode);
+                    }
+                ),
                 TextInput::make('harga')
                 ->prefix('Rp ')
                 ->required(),
-                TextInput::make('konversi')
+                TextInput::make('jumlah_konversi')
                 ->required()
                 ->numeric()
                 ->default('1'),
@@ -39,7 +49,11 @@ class SatuansRelationManager extends RelationManager
                 ->options([
                     true => 'Iya',
                     false => 'Tidak'
-                ])
+                ]),
+                TextInput::make('satuan_name')
+                ->hidden(),
+                TextInput::make('satuan_kode')
+                ->hidden()
             ]);
     }
 
@@ -52,7 +66,7 @@ class SatuansRelationManager extends RelationManager
                 TextColumn::make('harga')
                 ->label('Harga')
                 ->money('IDR', locale: 'id_ID'),
-                Tables\Columns\TextColumn::make('konversi'),
+                Tables\Columns\TextColumn::make('jumlah_konversi'),
                 Tables\Columns\IconColumn::make('is_satuan_terkecil')
                 ->boolean()
                 ->trueColor('success')
