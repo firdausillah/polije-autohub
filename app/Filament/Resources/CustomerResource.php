@@ -28,14 +28,11 @@ class CustomerResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
-                ->searchable()
                 ->required(),
                 TextInput::make('kode')
-                ->searchable()
                 ->default(fn () => CodeGenerator::generateSimpleCode('P', 'customers', 'kode'))
                 ->readOnly(),
                 TextInput::make('nomor_telepon')
-                ->searchable()
                 ->maxLength(20)
                 ->numeric()
                 ->required(),
@@ -48,9 +45,12 @@ class CustomerResource extends Resource
         return $table
             ->query(Customer::withCount('serviceHistories'))
             ->columns([
-                TextColumn::make('name'),
-                TextColumn::make('kode'),
-                TextColumn::make('nomor_telepon'),
+                TextColumn::make('name')
+                ->searchable(),
+                TextColumn::make('kode')
+                ->searchable(),
+                TextColumn::make('nomor_telepon')
+                ->searchable(),
                 TextColumn::make('service_histories_count')
                 ->label('Jumlah Kedatangan')
                 ->sortable(),
@@ -61,6 +61,7 @@ class CustomerResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make()
             ])
+            
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
