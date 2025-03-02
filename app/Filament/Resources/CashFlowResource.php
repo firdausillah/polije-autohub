@@ -13,6 +13,7 @@ use Filament\Actions\ActionGroup;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -24,6 +25,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup as TablesActionsActionGroup;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
@@ -131,6 +133,9 @@ class CashFlowResource extends Resource
                 ->numeric()
                 ->required(),
                 Textarea::make('keterangan'),
+                FileUpload::make('photo')
+                ->image()
+                ->resize(50),
 
                 Hidden::make('account_debit_name'),
                 Hidden::make('account_kredit_name'),
@@ -161,20 +166,21 @@ class CashFlowResource extends Resource
                 TextColumn::make('account_kredit_name')
                 ->label('Akun kredit')
                 ->searchable(),
+                // ImageColumn::make('photo'),
                 TextColumn::make('total')->money('IDR', locale: 'id_ID'),
 
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
-                Filter::make('created_at')
+                Filter::make('tanggal_transaksi')
                 ->form([
                     DatePicker::make('from')->default(Carbon::now()->startOfMonth()),
                     DatePicker::make('to')->default(Carbon::now()->endOfMonth()),
                 ])
                 ->query(function (Builder $query, array $data): Builder {
                     return $query
-                        ->when($data['from'], fn ($query) => $query->whereDate('created_at', '>=', $data['from']))
-                        ->when($data['to'], fn ($query) => $query->whereDate('created_at', '<=', $data['to']));
+                        ->when($data['from'], fn ($query) => $query->whereDate('tanggal_transaksi', '>=', $data['from']))
+                        ->when($data['to'], fn ($query) => $query->whereDate('tanggal_transaksi', '<=', $data['to']));
                 })
                 ->indicateUsing(function (array $data) {
                     return 'Data Bulan Ini';

@@ -17,6 +17,7 @@ use DeepCopy\Filter\Filter;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -158,6 +159,9 @@ class SparepartPurchaseResource extends Resource
                     $set('account_kode', $account->kode);
                 }),
                 Textarea::make('keterangan'),
+                FileUpload::make('photo')
+                ->image()
+                ->resize(50),
 
                 Hidden::make('account_name'),
                 Hidden::make('account_kode'),

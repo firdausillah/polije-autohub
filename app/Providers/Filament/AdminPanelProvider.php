@@ -28,9 +28,10 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Emerald,
+                'primary' => Color::Green,
             ])
-            ->brandName('Polije Garage')
+            ->brandLogo(asset('logo autohub sm.png'))
+            ->brandName('Polije Autohub')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([

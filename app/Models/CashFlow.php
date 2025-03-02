@@ -28,7 +28,8 @@ class CashFlow extends Model
         'account_kredit_name',
         'account_debit_kode',
         'account_kredit_kode',
-        'tanggal_transaksi'
+        'tanggal_transaksi',
+        'photo'
     ];
 
     protected static function boot()
