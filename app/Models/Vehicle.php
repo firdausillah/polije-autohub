@@ -7,20 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
-class Customer extends Model
+class Vehicle extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $fillable = [
-        'name',
-        'kode',
-        'keterangan',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-        'created_at',
-        'updated_at',
-        'nomor_telepon'
-    ];
+    protected $guarded;
 
     protected static function boot()
     {

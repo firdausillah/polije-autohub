@@ -141,7 +141,7 @@ class CashFlowResource extends Resource
                 Hidden::make('account_kredit_name'),
                 Hidden::make('account_debit_kode'),
                 Hidden::make('account_kredit_kode'),
-            ]);
+            ])->disabled(fn ($record) => $record && $record->is_approve === 'approved');
     }
 
     public static function table(Table $table): Table
@@ -249,5 +249,10 @@ class CashFlowResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public static function canDelete($record): bool
+    {
+        return $record->is_approve !== 'approved';
     }
 }

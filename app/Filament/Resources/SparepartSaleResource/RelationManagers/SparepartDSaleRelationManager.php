@@ -1,11 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\SparepartPurchaseResource\RelationManagers;
+namespace App\Filament\Resources\SparepartSaleResource\RelationManagers;
 
-use App\Models\Satuan;
 use App\Models\Sparepart;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -15,14 +12,13 @@ use Filament\Forms\Set;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Columns\Summarizers\Sum;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class SparepartDPurchaseRelationManager extends RelationManager
+class SparepartDSaleRelationManager extends RelationManager
 {
-    protected static string $relationship = 'SparepartDPurchase';
+    protected static string $relationship = 'SparepartDSale';
 
     public function form(Form $form): Form
     {
@@ -30,33 +26,32 @@ class SparepartDPurchaseRelationManager extends RelationManager
             ->schema([
                 Select::make('sparepart_id')
                 ->relationship('spareparts', 'name')
-                ->live() // Trigger update saat berubah
-                ->afterStateUpdated(
-                    function (Set $set, $state){
-                        $set('satuan_id', null); // Reset satuan_id saat sparepart berubah
-                    }
-                ),
+                    ->live() // Trigger update saat berubah
+                    ->afterStateUpdated(
+                        function (Set $set, $state) {
+                            $set('satuan_id', null); // Reset satuan_id saat sparepart berubah
+                        }
+                    ),
 
                 Select::make('satuan_id')
                 ->options(
                     fn (Get $get) =>
                     Sparepart::find($get('sparepart_id'))?->sparepartSatuan()->pluck('satuan_name', 'satuan_id') ?? [],
                 )
-                ->live()
-                ->searchable()
-                ->disabled(fn (Get $get) => !$get('sparepart_id')),
+                    ->live()
+                    ->searchable()
+                    ->disabled(fn (Get $get) => !$get('sparepart_id')),
                 TextInput::make('jumlah_unit')
                 ->required()
-                ->gt(0),
+                    ->gt(0),
                 TextInput::make('harga_unit')
                 ->label('Harga satuan')
                 ->gt(0)
-                ->prefix('Rp ')
-                ->numeric()
-                ->required()  
+                    ->prefix('Rp ')
+                    ->numeric()
+                    ->required()
             ]);
     }
-
 
     public function table(Table $table): Table
     {
@@ -71,11 +66,11 @@ class SparepartDPurchaseRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('harga_subtotal')
                 ->summarize(
                     Sum::make()
+                        ->money('IDR', locale: 'id_ID')
+                        ->label('Total')
+                )
                     ->money('IDR', locale: 'id_ID')
-                    ->label('Total')
-                    )
-                ->money('IDR', locale: 'id_ID')
-                
+
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -86,7 +81,7 @@ class SparepartDPurchaseRelationManager extends RelationManager
             ->actions([
                 Tables\Actions\EditAction::make()->hidden(fn () => $this->getOwnerRecord()->is_approve === 'approved'),
                 Tables\Actions\DeleteAction::make()->hidden(fn () => $this->getOwnerRecord()->is_approve === 'approved'),
-                
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

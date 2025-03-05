@@ -6,27 +6,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
-class SparepartSatuans extends Model
+class SparepartSale extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $fillable = [
-        'satuan_id',
-        'sparepart_id',
-        'name',
-        'kode',
-        'harga',
-        'is_satuan_terkecil',
-        'konversi'
-    ];
+    protected $guarded;
 
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($model) {
+            $model->tanggal_transaksi = NOW();
             $model->created_by = Auth::id();
         });
 
@@ -35,13 +29,13 @@ class SparepartSatuans extends Model
         });
     }
 
-    public function satuan(): BelongsTo
+    public function SparepartDSale(): HasMany
     {
-        return $this->belongsTo(Satuan::class);
+        return $this->hasMany(SparepartDSale::class);
     }
 
-    public function sparepart(): BelongsTo
+    public function account(): BelongsTo
     {
-        return $this->belongsTo(Sparepart::class);
+        return $this->belongsTo(Account::class)->where('type', 'Aset');
     }
 }

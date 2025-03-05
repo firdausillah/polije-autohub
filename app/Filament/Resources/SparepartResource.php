@@ -13,6 +13,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -39,8 +40,15 @@ class SparepartResource extends Resource
                 ->label('Original part')
                 ->required()
                 ->options([
-                    true => 'Iya',
-                    false => 'Tidak'
+                    1 => 'Iya',
+                    0 => 'Tidak'
+                ]),
+                Select::make('is_pajak')
+                ->label('Pajak 11%')
+                ->required()
+                ->options([
+                    1 => 'Iya',
+                    0 => 'Tidak'
                 ]),
                 TextInput::make('part_number')
                 ->numeric(),
@@ -59,7 +67,16 @@ class SparepartResource extends Resource
                 ->searchable(),
                 TextColumn::make('kode')
                 ->searchable(),
-                TextColumn::make('is_original'),
+                IconColumn::make('is_original')
+                ->label('Original')
+                ->boolean()
+                ->trueColor('success')
+                ->falseColor('danger'),
+                IconColumn::make('is_pajak')
+                ->label('Pajak 11%')
+                ->boolean()
+                ->trueColor('success')
+                ->falseColor('danger'),
                 TextColumn::make('margin')
             ])
             ->filters([

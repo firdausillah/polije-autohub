@@ -6,11 +6,14 @@ use App\Filament\Resources\SparepartPurchaseResource\Pages;
 use App\Filament\Resources\SparepartPurchaseResource\RelationManagers;
 use App\Filament\Resources\SparepartPurchaseResource\RelationManagers\SparepartDPurchaseRelationManager;
 use App\Helpers\CodeGenerator;
+use App\Helpers\Round;
 use App\Models\Account;
+use App\Models\Hpp;
 use App\Models\Inventory;
 use App\Models\Jurnal;
 use App\Models\SparepartDPurchase;
 use App\Models\SparepartPurchase;
+use App\Models\SparepartSatuans;
 use Carbon\Carbon;
 use DateTime;
 use DeepCopy\Filter\Filter;
@@ -33,7 +36,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\ActionGroup as TablesActionsActionGroup;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
+use Illuminate\Support\Facades\DB;
 
 class SparepartPurchaseResource extends Resource
 {
@@ -46,7 +51,6 @@ class SparepartPurchaseResource extends Resource
     public static function InsertJurnal($record, $status): void
     {
         if ($status == 'approved') {
-
 
             // jurnal begin
             // debit
@@ -95,6 +99,7 @@ class SparepartPurchaseResource extends Resource
 
             // inventory begin
             $SparepartDPurchases = SparepartDPurchase::where('sparepart_purchase_id', $record->id)->get();
+            $hpp = '';
             foreach ($SparepartDPurchases as $val) {
                 Inventory::create([
                     'transaksi_h_id' => $record->id,
@@ -127,11 +132,36 @@ class SparepartPurchaseResource extends Resource
                     'relation_name' => $record->supplier_name,
                     'relation_nomor_telepon' => $record->supplier_nomor_telepon
                 ]);
+
+                // hpp begin
+                $hpp = SparepartDPurchase::where('sparepart_id', $val->sparepart_id)
+                    ->leftJoin('sparepart_purchases as b', 'sparepart_d_purchases.sparepart_purchase_id', '=', 'b.id')
+                    ->where('b.is_approve', 'approved')
+                    ->orderBy('sparepart_d_purchases.created_at', 'desc')
+                    ->selectRaw('SUM(sparepart_d_purchases.harga_subtotal) / SUM(sparepart_d_purchases.jumlah_terkecil) AS hpp')
+                    ->groupBy('sparepart_id')
+                    ->limit(3)
+                    ->value('hpp');
+
+                Hpp::create([
+                    'transaksi_h_id' => $record->id,
+                    'transaksi_d_id' => $val->id,
+                    'tanggal_transaksi' => $record->tanggal_transaksi,
+                    'sparepart_id' => $val->sparepart_id,
+                    'hpp' => round($hpp, 2),
+                    'keterangan' => 'pembelian sparepart'
+                ]);
+                // hpp end
+
+                // update harga sparepart
+                $new_harga = Round::roundToNearest(ceil($hpp));
+                SparepartSatuans::where('sparepart_id', $val->sparepart_id)->update(['harga' => DB::raw('jumlah_konversi * ' . $new_harga)]);
             }
             // inventory end
         } else {
             Inventory::where(['transaksi_h_id' => $record->id, 'movement_type' => 'IN-PUR'])->delete();
             Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'pembelian sparepart'])->delete();
+            Hpp::where(['transaksi_h_id' => $record->id, 'keterangan' => 'pembelian sparepart'])->delete();
         }
     }
 
@@ -149,9 +179,11 @@ class SparepartPurchaseResource extends Resource
                 ->required(),
                 TextInput::make('supplier_nomor_telepon'),
                 TextInput::make('purchase_receipt')
+                ->required()
                 ->label('Nota Pembelian'),
                 Select::make('account_id')
                 ->relationship('account', 'name')
+                ->required()
                 ->live()
                 ->afterStateUpdated(function(Set $set, $state){
                     $account = Account::find($state);
@@ -174,6 +206,7 @@ class SparepartPurchaseResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('tanggal_transaksi')
+                ->sortable('desc')
                 ->label('Tanggal'),
                 TextColumn::make('kode')
                 ->searchable(),
@@ -221,10 +254,10 @@ class SparepartPurchaseResource extends Resource
                         $isApproving = in_array($record->is_approve, ['pending', 'rejected']);
                         $status = $isApproving ? 'approved' : 'rejected';
 
-                        self::InsertJurnal($record, $status);
                         $record->is_approve = $status;
                         $record->approved_by = FacadesAuth::id();
                         $record->save();
+                        self::InsertJurnal($record, $status);
 
                         Notification::make()
                             ->title("Sparepart Purchase $status")
@@ -274,4 +307,10 @@ class SparepartPurchaseResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+    public static function canDelete($record): bool
+    {
+        return $record->is_approve !== 'approved';
+    }
+
 }
