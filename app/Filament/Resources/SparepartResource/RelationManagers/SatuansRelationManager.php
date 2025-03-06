@@ -4,6 +4,7 @@ namespace App\Filament\Resources\SparepartResource\RelationManagers;
 
 use App\Models\Satuan;
 use Filament\Forms;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -37,9 +38,9 @@ class SatuansRelationManager extends RelationManager
                         $set('satuan_kode', $satuan->kode);
                     }
                 ),
-                TextInput::make('harga')
-                ->prefix('Rp ')
-                ->required(),
+                // TextInput::make('harga')
+                // ->prefix('Rp ')
+                // ->required(),
                 TextInput::make('jumlah_konversi')
                 ->required()
                 ->numeric()
@@ -50,10 +51,8 @@ class SatuansRelationManager extends RelationManager
                     true => 'Iya',
                     false => 'Tidak'
                 ]),
-                TextInput::make('satuan_name')
-                ->hidden(),
-                TextInput::make('satuan_kode')
-                ->hidden()
+                Hidden::make('satuan_name'),
+                Hidden::make('satuan_kode'),
             ]);
     }
 

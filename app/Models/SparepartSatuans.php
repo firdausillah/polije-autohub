@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\priceFix;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,15 +13,7 @@ use Illuminate\Support\Facades\Auth;
 class SparepartSatuans extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $fillable = [
-        'satuan_id',
-        'sparepart_id',
-        'name',
-        'kode',
-        'harga',
-        'is_satuan_terkecil',
-        'konversi'
-    ];
+    protected $guarded;
 
     protected static function boot()
     {
@@ -32,6 +25,11 @@ class SparepartSatuans extends Model
 
         static::updating(function ($model) {
             $model->updated_by = Auth::id();
+        });
+
+        static::saved(function ($model) {
+            // update harga sparepart
+            priceFix::priceFixer($model->sparepart_id);
         });
     }
 

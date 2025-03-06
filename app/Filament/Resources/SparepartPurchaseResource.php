@@ -149,6 +149,7 @@ class SparepartPurchaseResource extends Resource
                     'transaksi_d_id' => $val->id,
                     'tanggal_transaksi' => $record->tanggal_transaksi,
                     'sparepart_id' => $val->sparepart_id,
+                    'transaksi_h_kode' => $record->kode,
                     'hpp' => round($hpp, 2),
                     'keterangan' => 'pembelian sparepart'
                 ]);

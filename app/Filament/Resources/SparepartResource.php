@@ -54,6 +54,7 @@ class SparepartResource extends Resource
                 ->numeric(),
                 TextInput::make('margin')
                 ->numeric()
+                ->suffix('%')
                 ->required(),
                 Textarea::make('keterangan'),
             ]);
@@ -98,6 +99,7 @@ class SparepartResource extends Resource
     {
         return [
             RelationManagers\SatuansRelationManager::class,
+            RelationManagers\HppsRelationManager::class,
         ];
     }
 
