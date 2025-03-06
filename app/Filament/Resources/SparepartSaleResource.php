@@ -44,9 +44,9 @@ class SparepartSaleResource extends Resource
 {
     protected static ?string $model = SparepartSale::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationGroup = 'POS & Cash Flow';
+    // protected static ?string $navigationGroup = 'POS & Cash Flow';
 
     public static function updateSubtotal($get, $set): void
     {
@@ -131,8 +131,31 @@ class SparepartSaleResource extends Resource
                 'transaction_type'  => 'penjualan sparepart',
 
                 'debit' => 0,
-                'kredit'    => $record->total,
+                'kredit'    => $record->total - $record->pajak_total,
             ]);
+
+            if($record->pajak_total){
+                $account_kredit_pajak = Account::find(15);
+                Jurnal::create([
+                    'transaksi_h_id'    => $record->id,
+                    'transaksi_d_id'    => $record->id,
+                    'account_id'    => $account_kredit_pajak->id,
+    
+                    'keterangan'    => $record->keterangan,
+                    'kode'  => $record->kode,
+                    'tanggal_transaksi' => $record->tanggal_transaksi,
+    
+                    'relation_name' => $record->customer_name,
+                    'relation_nomor_telepon'    => $record->customer_nomor_telepon,
+    
+                    'account_name'  => $account_kredit_pajak->name,
+                    'account_kode'  => $account_kredit_pajak->kode,
+                    'transaction_type'  => 'penjualan sparepart',
+    
+                    'debit' => 0,
+                    'kredit'    => $record->pajak_total,
+                ]);
+            }
             // jurnal end
 
             // inventory begin
@@ -156,7 +179,7 @@ class SparepartSaleResource extends Resource
                     'satuan_terkecil_name' => $val->satuan_terkecil_name,
                     'satuan_terkecil_kode' => $val->satuan_terkecil_kode,
 
-                    'movement_type' => 'IN-PUR',
+                    'movement_type' => 'OUT-SAL',
 
                     'jumlah_unit' => $val->jumlah_unit,
                     'jumlah_konversi' => $val->jumlah_konversi,
@@ -172,7 +195,7 @@ class SparepartSaleResource extends Resource
             }
             // inventory end
         } else {
-            Inventory::where(['transaksi_h_id' => $record->id, 'movement_type' => 'IN-PUR'])->delete();
+            Inventory::where(['transaksi_h_id' => $record->id, 'movement_type' => 'OUT-SAL'])->delete();
             Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'penjualan sparepart'])->delete();
         }
     }

@@ -45,9 +45,9 @@ class SparepartPurchaseResource extends Resource
 {
     protected static ?string $model = SparepartPurchase::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
 
-    protected static ?string $navigationGroup = 'Sparepart';
+    // protected static ?string $navigationGroup = 'Sparepart';
 
     public static function InsertJurnal($record, $status): void
     {

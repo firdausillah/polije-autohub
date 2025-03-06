@@ -39,9 +39,9 @@ class CashFlowResource extends Resource
 {
     protected static ?string $model = CashFlow::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
-    protected static ?string $navigationGroup = 'POS & Cash Flow';
+    // protected static ?string $navigationGroup = 'POS & Cash Flow';
 
     public static function InsertJurnal($record, $status): void
     {
