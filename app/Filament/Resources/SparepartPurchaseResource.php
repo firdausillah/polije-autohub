@@ -6,6 +6,7 @@ use App\Filament\Resources\SparepartPurchaseResource\Pages;
 use App\Filament\Resources\SparepartPurchaseResource\RelationManagers;
 use App\Filament\Resources\SparepartPurchaseResource\RelationManagers\SparepartDPurchaseRelationManager;
 use App\Helpers\CodeGenerator;
+use App\Helpers\priceFix;
 use App\Helpers\Round;
 use App\Models\Account;
 use App\Models\Hpp;
@@ -154,8 +155,7 @@ class SparepartPurchaseResource extends Resource
                 // hpp end
 
                 // update harga sparepart
-                $new_harga = Round::roundToNearest(ceil($hpp));
-                SparepartSatuans::where('sparepart_id', $val->sparepart_id)->update(['harga' => DB::raw('jumlah_konversi * ' . $new_harga)]);
+                priceFix::priceFixer($val->sparepart_id);
             }
             // inventory end
         } else {
