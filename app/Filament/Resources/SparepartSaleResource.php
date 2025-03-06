@@ -54,45 +54,37 @@ class SparepartSaleResource extends Resource
 
         $harga_subtotal = floatval($sparepart_satuan->harga) * floatval(($get('jumlah_unit')));
 
-        // dd($sparepart);
-
-        $is_pajak = $sparepart_satuan->sparepart->is_pajak;
+        $is_pajak = Sparepart::find($sparepart_satuan->sparepart_id)->is_pajak;
         if ($is_pajak == 1) {
             $pajak = $harga_subtotal * 0.11;
             $set('pajak', $pajak);
-        }else{
+        } else {
             $pajak = 0;
             $set('pajak', 0);
         }
 
+        $set('harga_unit', $sparepart_satuan->harga);
         $set('harga_subtotal', $harga_subtotal);
-
+        $set('sparepart_id', $sparepart_satuan->sparepart_id);
+        $set('satuan_id', $sparepart_satuan->satuan_id);
     }
 
     public static function updatedTotals($get, $set): void
     {
         $selectedSparepart = collect($get('SparepartDSale'))->filter(fn ($item) => !empty($item['sparepart_satuan_id']));
-        $detail_harga = SparepartSatuans::whereIn('id', $selectedSparepart->pluck('sparepart_satuan_id'))->with('sparepart')->get();
-        // dd($detail_harga->pluck('harga', 'id'));
-        // dd($detail_harga->pluck('sparepart.is_pajak', 'id'));
+        $detail_harga = SparepartSatuans::whereIn('id', $selectedSparepart->pluck('sparepart_satuan_id'))->with('sparepart')->get()->keyBy('id');
 
-        // $harga = 
-        // $pajak = ($detail_harga->sparepart->is_pajak==0?$detail_harga->harga*0.11:0);
+        $harga_subtotal = $selectedSparepart->map(function ($item) use ($detail_harga) {
+            return $item['jumlah_unit'] * $detail_harga[$item['sparepart_satuan_id']]->harga;
+        })->sum();
 
-        // $harga_subtotal = 0;
-        // $pajak = 0;
-        $subtotal = $selectedSparepart->reduce(function ($subtotal, $item) use ($detail_harga) {
-            return $subtotal + ($detail_harga[$item['home_service_id']] * 1);
-        }, 0);
-        // $pajak = $selectedSparepart->reduce(function ($subtotal, $item) use ($detail_harga) {
-        //     return $subtotal + ($detail_harga[$item['home_service_id']] * 1);
-        // }, 0);
-        dd($subtotal);
-        // $selectedSparepart = collect($livewire->data['SparepartDSale'] ?? [])->filter(fn ($item) => !empty($item['sparepart_satuan_id']));
+        $total_pajak = $selectedSparepart->map(function ($item) use ($detail_harga) {
+            return ($detail_harga[$item['sparepart_satuan_id']]->sparepart->is_pajak? ($item['jumlah_unit'] * $detail_harga[$item['sparepart_satuan_id']]->harga)*0.11:0);
+        })->sum();
         
-        $set('sub_total', $selectedSparepart->sum('harga_subtotal'));
-        $set('total', $selectedSparepart->sum('harga_subtotal') + $selectedSparepart->sum('pajak'));
-        $set('pajak_total', $selectedSparepart->sum('pajak'));
+        
+        $set('total', $harga_subtotal);
+        $set('pajak_total', $total_pajak);
     }
 
     public static function InsertJurnal($record, $status): void
@@ -114,7 +106,7 @@ class SparepartSaleResource extends Resource
 
                 'account_name'  => $record->account_name, //
                 'account_kode'  => $record->account_kode, //
-                'transaction_type'  => 'pembelian sparepart',
+                'transaction_type'  => 'penjualan sparepart',
 
                 'debit' => $record->total,
                 'kredit'    => 0,
@@ -136,7 +128,7 @@ class SparepartSaleResource extends Resource
 
                 'account_name'  => $account_kredit->name,
                 'account_kode'  => $account_kredit->kode,
-                'transaction_type'  => 'pembelian sparepart',
+                'transaction_type'  => 'penjualan sparepart',
 
                 'debit' => 0,
                 'kredit'    => $record->total,
@@ -181,7 +173,7 @@ class SparepartSaleResource extends Resource
             // inventory end
         } else {
             Inventory::where(['transaksi_h_id' => $record->id, 'movement_type' => 'IN-PUR'])->delete();
-            Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'pembelian sparepart'])->delete();
+            Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'penjualan sparepart'])->delete();
         }
     }
 
@@ -197,7 +189,7 @@ class SparepartSaleResource extends Resource
                             ->relationship('SparepartDSale')
                             ->columns([
                                 // 'sm' =>1,
-                                'md' =>2,
+                                'md' =>3,
                                 // 'lg' =>3
                                 ])
                             ->schema([
@@ -206,18 +198,14 @@ class SparepartSaleResource extends Resource
                                 ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name} ({$record->harga})")
                                 ->searchable()
                                 ->preload()
-                                ->live() // Trigger update saat berubah
-                                ->afterStateUpdated(
-                                    function (Get $get, Set $set, $state) {
-                                        $set('jumlah_unit', 0);
-                                        // $set('pajak', 0);
-                                        // $set('harga_subtotal', 0);
-                                        self::updateSubtotal($get, $set);
-                                    }
-                                ),
+                                ->live(),
+
+                                Hidden::make('sparepart_id'),
+                                Hidden::make('satuan_id'),
+                                Hidden::make('harga_unit'),
+                                Hidden::make('pajak'),
 
                                 TextInput::make('jumlah_unit')
-                                    // ->default(1)
                                     ->required()
                                     ->numeric()
                                     ->live()
@@ -229,13 +217,6 @@ class SparepartSaleResource extends Resource
                                     )
                                     ->gt(0)
                                     ->disabled(fn (Get $get) => !$get('sparepart_satuan_id')),
-                                TextInput::make('pajak')
-                                ->live()
-                                ->label('Pajak')
-                                ->gt(0)
-                                ->prefix('Rp ')
-                                ->numeric()
-                                ->readOnly(),
                                 TextInput::make('harga_subtotal')
                                 ->required()
                                 ->live()
@@ -251,13 +232,8 @@ class SparepartSaleResource extends Resource
                             }),
 
                         Grid::make()
-                            ->columns('3')
+                            ->columns('2')
                             ->schema([
-                                TextInput::make('sub_total')
-                                    ->gt(0)
-                                    ->prefix('Rp ')
-                                    ->numeric()
-                                    ->readOnly(),
                                 TextInput::make('total')
                                     ->gt(0)
                                     ->prefix('Rp ')
@@ -310,6 +286,7 @@ class SparepartSaleResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('tanggal_transaksi')
+                ->sortable('desc')
                 ->label('Tanggal'),
                 TextColumn::make('kode')
                     ->searchable(),
