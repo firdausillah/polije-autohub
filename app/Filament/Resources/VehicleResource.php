@@ -29,11 +29,22 @@ class VehicleResource extends Resource
 
     protected static ?string $navigationGroup = 'Master';
 
+    public static function getModelLabel(): string
+    {
+        return 'Kendaraan';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Kendaraan';
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 TextInput::make('registration_number')
+                ->label('Nomor Polisi')
                 ->required(),
                 TextInput::make('kode')
                     ->default(fn () => CodeGenerator::generateSimpleCode('V', 'vehicles', 'kode'))
@@ -130,7 +141,8 @@ class VehicleResource extends Resource
         return $table
             ->query(Vehicle::withCount('serviceHistories'))
             ->columns([
-                TextColumn::make('name')
+                TextColumn::make('registration_number')
+                    ->label('Nomor Polisi')
                     ->searchable(),
                 TextColumn::make('kode')
                     ->searchable(),
