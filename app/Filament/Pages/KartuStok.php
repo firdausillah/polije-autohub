@@ -2,7 +2,9 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\Inventory;
+use App\Models\JsonData;
+use App\Models\Sparepart;
+use Carbon\Carbon;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
 use Filament\Tables\Contracts\HasTable;
@@ -22,60 +24,74 @@ class KartuStok extends Page implements HasForms, HasTable
     use InteractsWithTable;
     use InteractsWithForms;
 
-    protected static ?string $model = Inventory::class;
-
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
     protected static string $view = 'filament.pages.kartu-stok';
 
-    use InteractsWithTable;
-    use InteractsWithForms;
+    protected static ?string $navigationGroup = 'Laporan';
+
+    public ?array $filters = [];
+
+    public function mount(): void
+    {
+        $this->filters = [
+            'sparepart_id' => null,
+            'tanggal_awal' => now()->startOfMonth()->toDateString(),
+            'tanggal_akhir' => now()->endOfMonth()->toDateString(),
+        ];
+    }
+
+    public function updatedTableFilters(): void
+    {
+        JsonData::setFilters(
+            $this->filters['sparepart_id'] ?? null,
+            $this->filters['tanggal_awal'] ?? null,
+            $this->filters['tanggal_akhir'] ?? null
+        );
+    }
 
     public function table(Table $table): Table
     {
+
+        dd($this->filters);
+        // JsonData::setFilters(
+        //     $this->filters['sparepart_id'] ?? null,
+        //     $this->filters['tanggal_awal'] ?? null,
+        //     $this->filters['tanggal_akhir'] ?? null
+        // );
+
         return $table
-        ->query(
-            Inventory::kartuStok() // Hasilnya array of objects
-        )
-        ->defaultGroup('sparepart')
-        ->columns([
-            TextColumn::make('tanggal_transaksi'),
-            TextColumn::make('transaksi_kode'),
-            TextColumn::make('sparepart_name'),
-            TextColumn::make('sparepart_kode'),
-            TextColumn::make('qty_masuk')
-                    ->label('Qty Masuk')
-                    ->formatStateUsing(fn ($record) => $record->movement_type === 'IN-PUR' ? $record->jumlah_terkecil : 0),
-            TextColumn::make('qty_keluar')
-                    ->label('Qty Keluar')
-                    ->formatStateUsing(fn ($record) => $record->movement_type === 'OUT-SAL' ? $record->jumlah_terkecil : 0),
-            TextColumn::make('saldo'),
-        ])
-        ->filters([
-            SelectFilter::make('sparepart_id')
-            ->label('Sparepart')
-                ->relationship('sparepart', 'name'),
-            Filter::make('tanggal')
+            ->query(JsonData::getFilteredQuery())
+            ->columns([
+                TextColumn::make('tanggal_transaksi')
+                ->formatStateUsing(fn ($state) => Carbon::parse($state)->translatedFormat('d M Y')),
+                TextColumn::make('transaksi_kode'),
+                TextColumn::make('satuan'),
+                TextColumn::make('qty_masuk'),
+                TextColumn::make('qty_keluar'),
+                TextColumn::make('saldo'),
+            ])
+            ->filters([
+                SelectFilter::make('sparepart_id')
+                ->options(fn () => \App\Models\Sparepart::pluck('name', 'id')->toArray())
+                ->query(function ($state) {
+                // return $query
+                $this->filters['sparepart_id'] = $state['value'];
+                // dd($this->filters);
+                // return $state['value'] ? $query->where('sparepart_id', $state['value']) : $query;
+                }),
+                Filter::make('tanggal')
                 ->form([
-                    DatePicker::make('start_date')->label('Dari Tanggal'),
-                    DatePicker::make('end_date')->label('Sampai Tanggal'),
-                ])
-                ->query(function ($query, array $data) {
-                    if ($data['start_date'] ?? null) {
-                        $query->whereDate('tanggal_transaksi', '>=', $data['start_date']);
-                    }
-                    if ($data['end_date'] ?? null) {
-                        $query->whereDate('tanggal_transaksi', '<=', $data['end_date']);
-                    }
-                })
-        ])
+                    DatePicker::make('tanggal_awal')->live(),
+                    DatePicker::make('tanggal_akhir')->live(),
+                ]),
+            ]);
+    }
 
-        ->actions([
-            // ...
-        ])
-        ->bulkActions([
-            // ...
-        ]);
 
+    private function applyFilter(string $key, $value): void
+    {
+        $this->filters[$key] = $value;
+        $this->updatedFilters();
     }
 }

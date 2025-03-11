@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "bezhansalleh/filament-shield": "^3.3",
+        "calebporzio/sushi": "^2.4",
         "filament/filament": "^3.2",
         "joshembling/image-optimizer": "^1.5",
         "laravel/framework": "^11.31",

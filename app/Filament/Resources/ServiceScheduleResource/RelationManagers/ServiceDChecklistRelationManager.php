@@ -26,35 +26,6 @@ class ServiceDChecklistRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Group::make(function(): array{
-                    $chekclists = Checklist::get();
-                    $chekclistsBoxes = [];
-                    // dd($chekclists);
-                    
-                    foreach ($chekclists as $key => $value) {
-                        $chekclistsBoxes[] = Checkbox::make('checklist_id')
-                            ->label($value->name);
-                    }
-
-                    return $chekclistsBoxes;
-
-
-
-                })
-                // Forms\Components\TextInput::make('name')
-                //     ->required()
-                //     ->maxLength(255),
-                // function() {
-                // }
-                // CheckboxList::make('checklists')
-                //     ->label('Checklist')
-                //     ->relationship('checklists', 'name') // Pastikan ini sesuai relasi
-                //     ->columns(2), // Biar lebih rapi
-                // CheckboxList::make('checklists')
-                //     ->label('Checklist')
-                //     ->relationship('checklists', 'name') // Pastikan ini sesuai relasi
-                //     ->columns(2), // Biar lebih rapi
-
             ]);
     }
 
@@ -63,22 +34,24 @@ class ServiceDChecklistRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('checklist.name'),
+                Tables\Columns\CheckboxColumn::make('checklist_hasil'),
+                Tables\Columns\TextInputColumn::make('keterangan'),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                // Tables\Actions\CreateAction::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                // Tables\Actions\EditAction::make(),
+                // Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                // Tables\Actions\BulkActionGroup::make([
+                //     Tables\Actions\DeleteBulkAction::make(),
+                // ]),
             ]);
     }
 }

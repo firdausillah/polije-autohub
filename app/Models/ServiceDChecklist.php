@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 
@@ -25,8 +26,8 @@ class ServiceDChecklist extends Model
     }
 
 
-    public function checklists(): HasMany
+    public function checklist(): BelongsTo
     {
-        return $this->hasMany(Checklist::class);
+        return $this->belongsTo(Checklist::class);
     }
 }

@@ -160,6 +160,21 @@ class ServiceScheduleResource extends Resource
                         $set('mekanik_name', $mekanik);
                     }
                 ),
+                TextInput::make('total_estimasi_waktu')
+                ->suffix(' Menit')
+                ->readOnly(),
+                Grid::make(3)
+                ->schema([
+                    TextInput::make('service_total')
+                    ->prefix('Rp')
+                    ->readOnly(),
+                    TextInput::make('sparepart_total')
+                    ->prefix('Rp')
+                    ->readOnly(),
+                    TextInput::make('total')
+                    ->prefix('Rp')
+                    ->readOnly(),
+                ]),
 
                 Hidden::make('mekanik_name'),
             ]);

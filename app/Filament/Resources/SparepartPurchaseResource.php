@@ -207,6 +207,7 @@ class SparepartPurchaseResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('tanggal_transaksi')
+                ->formatStateUsing(fn ($state) => Carbon::parse($state)->translatedFormat('d M Y H:i:s'))
                 ->sortable('desc')
                 ->label('Tanggal'),
                 TextColumn::make('kode')

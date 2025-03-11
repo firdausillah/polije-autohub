@@ -21,6 +21,14 @@ class ServiceSchedule extends Model
 
         static::creating(function ($model) {
             $model->created_by = Auth::id();
+            
+            $checklists = Checklist::get();
+            foreach ($checklists as $key => $value) {
+                ServiceDChecklist::create([
+                    'service_schedule_id' => $model->id,
+                    'checklist_id' => $value->id,
+                ]);
+            }
         });
 
         static::updating(function ($model) {
