@@ -47,7 +47,15 @@ class SparepartPurchaseResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
 
-    // protected static ?string $navigationGroup = 'Sparepart';
+    public static function getModelLabel(): string
+    {
+        return 'Pembelian Sparepart';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Pembelian Sparepart';
+    }
 
     public static function InsertJurnal($record, $status): void
     {

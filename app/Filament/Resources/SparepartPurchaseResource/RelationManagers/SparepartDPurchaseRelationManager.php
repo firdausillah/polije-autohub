@@ -24,6 +24,10 @@ class SparepartDPurchaseRelationManager extends RelationManager
 {
     protected static string $relationship = 'SparepartDPurchase';
 
+    protected static ?string $title = 'Detail Sparepart';
+    protected static ?string $pluralLabel = 'Detail Sparepart';
+    protected static ?string $modelLabel = 'Detail Sparepart';
+
     public function form(Form $form): Form
     {
         return $form
