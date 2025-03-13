@@ -18,6 +18,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Http\Request;
 
 class KartuStok extends Page implements HasForms, HasTable
 {
@@ -41,25 +42,8 @@ class KartuStok extends Page implements HasForms, HasTable
         ];
     }
 
-    public function updatedTableFilters(): void
-    {
-        JsonData::setFilters(
-            $this->filters['sparepart_id'] ?? null,
-            $this->filters['tanggal_awal'] ?? null,
-            $this->filters['tanggal_akhir'] ?? null
-        );
-    }
-
     public function table(Table $table): Table
     {
-
-        dd($this->filters);
-        // JsonData::setFilters(
-        //     $this->filters['sparepart_id'] ?? null,
-        //     $this->filters['tanggal_awal'] ?? null,
-        //     $this->filters['tanggal_akhir'] ?? null
-        // );
-
         return $table
             ->query(JsonData::getFilteredQuery())
             ->columns([
@@ -73,25 +57,13 @@ class KartuStok extends Page implements HasForms, HasTable
             ])
             ->filters([
                 SelectFilter::make('sparepart_id')
-                ->options(fn () => \App\Models\Sparepart::pluck('name', 'id')->toArray())
-                ->query(function ($state) {
-                // return $query
-                $this->filters['sparepart_id'] = $state['value'];
-                // dd($this->filters);
-                // return $state['value'] ? $query->where('sparepart_id', $state['value']) : $query;
-                }),
+                ->options(fn () => \App\Models\Sparepart::pluck('name', 'id')->toArray()),
                 Filter::make('tanggal')
                 ->form([
                     DatePicker::make('tanggal_awal')->live(),
                     DatePicker::make('tanggal_akhir')->live(),
                 ]),
             ]);
-    }
 
-
-    private function applyFilter(string $key, $value): void
-    {
-        $this->filters[$key] = $value;
-        $this->updatedFilters();
     }
 }

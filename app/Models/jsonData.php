@@ -20,20 +20,8 @@ class JsonData extends Model
     protected static ?string $tanggal_awal = null;
     protected static ?string $tanggal_akhir = null;
 
-    // Setter untuk filter dari Filament
-    public static function setFilters($sparepart_id, $tanggal_awal, $tanggal_akhir)
-    {
-        dd(self::$filters);
-        self::$sparepart_id = $sparepart_id;
-        self::$tanggal_awal = $tanggal_awal;
-        self::$tanggal_akhir = $tanggal_akhir;
-    }
-
     public static function getFilteredQuery()
     {
-
-        // dd(self::$sparepart_id->value);
-        // dd(self::$filters);
         return self::query()
             ->when(self::$sparepart_id, fn ($query) => $query->where('sparepart_id', self::$sparepart_id))
             ->when(self::$tanggal_awal, fn ($query) => $query->whereDate('tanggal_transaksi', '>=', self::$tanggal_awal))
@@ -44,6 +32,7 @@ class JsonData extends Model
 
     public function getRows(): array
     {
+
         // Ambil filter dari static variable
         $sparepart_id = static::$filters['sparepart_id'];
         $tanggal_awal = static::$filters['tanggal_awal'];
