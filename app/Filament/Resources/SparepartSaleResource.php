@@ -46,7 +46,15 @@ class SparepartSaleResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    // protected static ?string $navigationGroup = 'POS & Cash Flow';
+    public static function getModelLabel(): string
+    {
+        return 'Penjualan Sparepart';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Penjualan Sparepart';
+    }
 
     public static function updateSubtotal($get, $set): void
     {
