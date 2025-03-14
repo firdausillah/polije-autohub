@@ -10,6 +10,7 @@ use App\Filament\Resources\ServiceScheduleResource\RelationManagers\ServiceDSpar
 use App\Helpers\CodeGenerator;
 use App\Models\ServiceSchedule;
 use App\Models\User;
+use App\Models\UserRole;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Hidden;
@@ -23,15 +24,13 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ServiceScheduleResource extends Resource
 {
     protected static ?string $model = ServiceSchedule::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-wrench-screwdriver';
-
+    
     public static function form(Form $form): Form
     {
         return $form
@@ -182,6 +181,7 @@ class ServiceScheduleResource extends Resource
 
     public static function table(Table $table): Table
     {
+
         return $table
             ->columns([
                 TextColumn::make('vehicle.registration_number')
@@ -232,4 +232,5 @@ class ServiceScheduleResource extends Resource
             'edit' => Pages\EditServiceSchedule::route('/{record}/edit'),
         ];
     }
+    
 }

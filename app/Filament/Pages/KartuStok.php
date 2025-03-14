@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\JsonData;
 use App\Models\Sparepart;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Carbon\Carbon;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
@@ -24,6 +25,7 @@ class KartuStok extends Page implements HasForms, HasTable
 {
     use InteractsWithTable;
     use InteractsWithForms;
+    use HasPageShield;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 

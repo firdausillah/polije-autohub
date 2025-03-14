@@ -219,9 +219,7 @@ class SparepartSaleResource extends Resource
                             ->label('Order Sparepart')
                             ->relationship('SparepartDSale')
                             ->columns([
-                                // 'sm' =>1,
                                 'md' =>3,
-                                // 'lg' =>3
                                 ])
                             ->schema([
                                 Select::make('sparepart_satuan_id')
