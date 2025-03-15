@@ -10,33 +10,67 @@ class JsonData extends Model
 {
     use Sushi;
 
-    protected static $filters = [
-        'sparepart_id' => null,
-        'tanggal_awal' => null,
-        'tanggal_akhir' => null,
-    ];
 
-    protected static ?string $sparepart_id = null;
-    protected static ?string $tanggal_awal = null;
-    protected static ?string $tanggal_akhir = null;
+    // public static function getFilteredQuery()
+    // {
+    //     $filters = $this->filters ?? [];
+
+    //     $sparepart_id = $filters['sparepart_id'] ?? null;
+    //     $tanggal_awal = $filters['tanggal_awal'] ?? now()->startOfMonth()->toDateString();
+    //     $tanggal_akhir = $filters['tanggal_akhir'] ?? now()->endOfMonth()->toDateString();
+
+    //     $saldo_awal = DB::table('view_saldo_awal')
+    //         ->where('sparepart_id', $sparepart_id)
+    //         ->value('saldo_awal') ?? 0;
+
+    //     $transaksi = DB::table('view_transaksi')
+    //         ->where('sparepart_id', $sparepart_id)
+    //         ->whereBetween('tanggal_transaksi', [$tanggal_awal, $tanggal_akhir])
+    //         ->get()
+    //         ->toArray();
+
+    //     // Hitung saldo berjalan
+    //     $saldo = $saldo_awal;
+    //     foreach ($transaksi as &$row) {
+    //         if ($row->movement_type === 'IN-PUR') {
+    //             $saldo += $row->jumlah;
+    //         } elseif ($row->movement_type === 'OUT-SAL') {
+    //             $saldo -= $row->jumlah;
+    //         }
+    //         $row->saldo = $saldo;
+    //     }
+
+    //     return collect($transaksi);
+    // }
+
+    // protected static $filters = [
+    //     'sparepart_id' => null,
+    //     'tanggal_awal' => null,
+    //     'tanggal_akhir' => null,
+    // ];
+
+    // protected static ?string $sparepart_id = null;
+    // protected static ?string $tanggal_awal = null;
+    // protected static ?string $tanggal_akhir = null;
 
     public static function getFilteredQuery()
     {
-        return self::query()
-            ->when(self::$sparepart_id, fn ($query) => $query->where('sparepart_id', self::$sparepart_id))
-            ->when(self::$tanggal_awal, fn ($query) => $query->whereDate('tanggal_transaksi', '>=', self::$tanggal_awal))
-            ->when(self::$tanggal_akhir, fn ($query) => $query->whereDate('tanggal_transaksi', '<=', self::$tanggal_akhir));
+        // return self::query();
+        // ->when(self::$sparepart_id, fn ($query) => $query->where('sparepart_id', self::$sparepart_id))
+        // ->when(self::$tanggal_awal, fn ($query) => $query->whereDate('tanggal_transaksi', '>=', self::$tanggal_awal))
+        // ->when(self::$tanggal_akhir, fn ($query) => $query->whereDate('tanggal_transaksi', '<=', self::$tanggal_akhir));
     }
-
-
 
     public function getRows(): array
     {
-
+        // dd($query);
         // Ambil filter dari static variable
-        $sparepart_id = static::$filters['sparepart_id'];
-        $tanggal_awal = static::$filters['tanggal_awal'];
-        $tanggal_akhir = static::$filters['tanggal_akhir'];
+        $sparepart_id = null;
+        $tanggal_awal = null;
+        $tanggal_akhir = null;
+        // $sparepart_id = static::$filters['sparepart_id'];
+        // $tanggal_awal = static::$filters['tanggal_awal'];
+        // $tanggal_akhir = static::$filters['tanggal_akhir'];
 
         if (!$sparepart_id || !$tanggal_awal || !$tanggal_akhir) {
             return []; // Jika filter kosong, return array kosong
@@ -56,6 +90,7 @@ class JsonData extends Model
                 ), 0) AS saldo_awal
             ")
             ->first();
+        // dd($saldo_awal)->toSql();
 
         // Query transaksi dalam rentang tanggal
         $transaksi = DB::table('inventories')
@@ -91,7 +126,7 @@ class JsonData extends Model
             }
             $row->saldo = $saldo; // Tambahkan saldo ke tiap transaksi
         }
-
+        // dd(json_encode($transaksi));
         return json_decode(json_encode($transaksi), true); // Ubah jadi array
     }
 }
