@@ -4,11 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
+use App\Models\Payroll;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
@@ -39,6 +42,21 @@ class UserResource extends Resource
                 Select::make('role')
                 ->relationship('roles', 'name')
                 ->required()
+                ->live() // Trigger update saat berubah
+                ->afterStateUpdated(
+                    function (Set $set, $state) {
+                        $set('payroll_id', null); // Reset satuan_id saat sparepart berubah
+                    }
+                ),
+                Select::make('payroll_id')
+                ->options(
+                    fn (Get $get) =>
+                    Payroll::where('role_id', $get('role'))?->pluck('name', 'id') ?? [],
+                )
+                ->live()
+                ->searchable()
+                ->required()
+                ->disabled(fn (Get $get) => !$get('role')),
             ]);
     }
 
@@ -49,13 +67,14 @@ class UserResource extends Resource
                 TextColumn::make('name')
                 ->searchable(),
                 TextColumn::make('email'),
-                TextColumn::make('roles.name')
+                TextColumn::make('roles.name'),
+                TextColumn::make('payroll.name')
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

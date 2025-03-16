@@ -6,6 +6,7 @@ use App\Filament\Resources\PayrollResource\Pages;
 use App\Filament\Resources\PayrollResource\RelationManagers;
 use App\Models\Payroll;
 use Filament\Forms;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -19,7 +20,7 @@ use Spatie\Permission\Models\Role;
 
 class PayrollResource extends Resource
 {
-    protected static ?string $model = Role::class;
+    protected static ?string $model = Payroll::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -38,6 +39,10 @@ class PayrollResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                 ->readOnly(),
+                Select::make('role_id')
+                ->label('Role')
+                ->required()
+                ->relationship('role', 'name'),
                 TextInput::make('gaji_pokok')
                 ->prefix('Rp ')
                 ->numeric(),
@@ -62,7 +67,8 @@ class PayrollResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->label('Role Name'),
+                Tables\Columns\TextColumn::make('role.name')->label('Role Name'),
+                Tables\Columns\TextColumn::make('name')->label('Payroll Name'),
                 Tables\Columns\TextColumn::make('gaji_pokok')->money('IDR', locale: 'id_ID'),
                 Tables\Columns\TextColumn::make('sumber_pendapatan'),
             ])

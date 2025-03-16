@@ -46,6 +46,11 @@ class ServiceSchedule extends Model
         return $this->belongsTo(UserRole::class)->where('role_name', 'like', 'Mekanik%');
     }
 
+    public function kepalaMekanik(): BelongsTo
+    {
+        return $this->belongsTo(UserRole::class)->where('role_name', 'like', 'Kepala Mekanik%');
+    }
+
     public function ServiceDChecklist(): HasMany
     {
         return $this->hasMany(ServiceDChecklist::class);

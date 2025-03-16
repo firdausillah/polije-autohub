@@ -20,10 +20,17 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Auth\Events\Authenticated;
+use Illuminate\Support\Facades\Auth;
 
 class ServiceScheduleResource extends Resource
 {
@@ -159,11 +166,22 @@ class ServiceScheduleResource extends Resource
                         $set('mekanik_name', $mekanik);
                     }
                 ),
-                TextInput::make('total_estimasi_waktu')
-                ->suffix(' Menit')
-                ->readOnly(),
-                Grid::make(3)
+                Select::make('kepala_mekanik_id')
+                ->label('Kepala Mekanik')
+                ->relationship('kepalaMekanik', 'user_name')
+                ->disabled()
+                ->live()
+                ->afterStateUpdated(
+                    function(Set $set, $state){
+                        $mekanik = User::find($state)->name;
+                        $set('mekanik_name', $mekanik);
+                    }
+                ),
+                Grid::make(4)
                 ->schema([
+                    TextInput::make('total_estimasi_waktu')
+                    ->suffix(' Menit')
+                    ->readOnly(),
                     TextInput::make('service_total')
                     ->prefix('Rp')
                     ->readOnly(),
@@ -206,8 +224,47 @@ class ServiceScheduleResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    Action::make('Kerjakan')
+                    ->action(function (ServiceSchedule $record) {
+
+                        dd(auth()->user()->roles[0]->name);
+                        
+                        $isApproving = in_array($record->is_approve, ['pending', 'rejected']);
+                        $status = $isApproving ? 'approved' : 'rejected';
+
+                        $record->is_approve = $status;
+                        $record->approved_by = Auth::id();
+                        $record->save();
+
+                        Notification::make()
+                            ->title("Sparepart Purchase $status")
+                            ->success()
+                            ->body("Sparepart Purchase has been $status.")
+                            ->send();
+                    })
+                    ->color('warning')
+                    ->icon('heroicon-o-clipboard-document-check')
+                    // ->requiresConfirmation()
+                    ->visible(function (ServiceSchedule $record){
+                        $status = true;
+                        // dd(Auth::role_name());
+                        // if ($record->kepala_mekanik_id == null && Auth::role_name()) {
+                            
+                        // }
+                        return $record->kepala_mekanik_id === null?true:false;
+                    }),
+                    ViewAction::make(),
+                    EditAction::make()
+                    ->visible(function (ServiceSchedule $record){
+                        
+                        return $record->kepala_mekanik_id === null?true:false;
+                    }),
+                ]),
+                // Tables\Actions\EditAction::make(),
             ])
+            ->recordAction(Tables\Actions\ViewAction::class)
+            ->recordUrl(null)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
@@ -230,6 +287,7 @@ class ServiceScheduleResource extends Resource
             'index' => Pages\ListServiceSchedules::route('/'),
             'create' => Pages\CreateServiceSchedule::route('/create'),
             'edit' => Pages\EditServiceSchedule::route('/{record}/edit'),
+            // 'view' => Pages\ViewServiceSchedule::route('/{record}'),
         ];
     }
     
