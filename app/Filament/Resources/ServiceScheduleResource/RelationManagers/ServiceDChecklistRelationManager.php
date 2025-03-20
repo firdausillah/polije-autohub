@@ -2,25 +2,32 @@
 
 namespace App\Filament\Resources\ServiceScheduleResource\RelationManagers;
 
-use App\Models\Checklist;
-use Filament\Forms;
-use Filament\Forms\Components\Checkbox;
-use Filament\Forms\Components\CheckboxList;
-use Filament\Forms\Components\Group;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Guava\FilamentModalRelationManagers\Concerns\CanBeEmbeddedInModals;
+use Illuminate\Database\Eloquent\Model;
 
 class ServiceDChecklistRelationManager extends RelationManager
 {
+    use CanBeEmbeddedInModals;
     protected static string $relationship = 'ServiceDChecklist';
 
     protected static ?string $title = 'Checklist';
     protected static ?string $pluralLabel = 'Checklist';
     protected static ?string $modelLabel = 'Checklist';
+
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        // Jika modal, tetap izinkan akses
+        if (request()->boolean('embedded')) {
+            return true;
+        }
+
+        // Hanya 'admin' yang bisa melihat di tampilan utama
+        return auth()->user()->hasRole('admin');
+    }
 
     public function form(Form $form): Form
     {
@@ -54,4 +61,6 @@ class ServiceDChecklistRelationManager extends RelationManager
                 // ]),
             ]);
     }
+
+
 }

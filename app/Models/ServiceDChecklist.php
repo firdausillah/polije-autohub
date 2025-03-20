@@ -25,7 +25,6 @@ class ServiceDChecklist extends Model
         });
     }
 
-
     public function checklist(): BelongsTo
     {
         return $this->belongsTo(Checklist::class);

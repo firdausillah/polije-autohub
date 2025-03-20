@@ -21,7 +21,14 @@ class ServiceSchedule extends Model
 
         static::creating(function ($model) {
             $model->created_by = Auth::id();
-            
+
+        });
+
+        static::updating(function ($model) {
+            $model->updated_by = Auth::id();
+        });
+
+        static::created(function ($model){
             $checklists = Checklist::get();
             foreach ($checklists as $key => $value) {
                 ServiceDChecklist::create([
@@ -29,10 +36,6 @@ class ServiceSchedule extends Model
                     'checklist_id' => $value->id,
                 ]);
             }
-        });
-
-        static::updating(function ($model) {
-            $model->updated_by = Auth::id();
         });
     }
 
@@ -51,17 +54,17 @@ class ServiceSchedule extends Model
         return $this->belongsTo(UserRole::class)->where('role_name', 'like', 'Kepala Mekanik%');
     }
 
-    public function ServiceDChecklist(): HasMany
+    public function serviceDChecklist(): HasMany
     {
-        return $this->hasMany(ServiceDChecklist::class);
+        return $this->hasMany(ServiceDChecklist::class, 'service_schedule_id');
     }
 
-    public function ServiceDServices(): HasMany
+    public function serviceDServices(): HasMany
     {
         return $this->hasMany(ServiceDServices::class);
     }
 
-    public function ServiceDSparepart(): HasMany
+    public function serviceDSparepart(): HasMany
     {
         return $this->hasMany(ServiceDSparepart::class);
     }

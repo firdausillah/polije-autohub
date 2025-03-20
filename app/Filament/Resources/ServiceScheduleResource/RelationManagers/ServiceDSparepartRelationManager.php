@@ -16,6 +16,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ServiceDSparepartRelationManager extends RelationManager
@@ -30,16 +31,7 @@ class ServiceDSparepartRelationManager extends RelationManager
     {
         $sparepart_satuan = SparepartSatuans::where(['id' => $get('sparepart_satuan_id')])->with('sparepart')->first();
 
-        $harga_subtotal = floatval($sparepart_satuan->harga) * floatval(($get('jumlah_unit')));
-
-        $is_pajak = Sparepart::find($sparepart_satuan->sparepart_id)->is_pajak;
-        if ($is_pajak == 1) {
-            $pajak = $harga_subtotal * 0.11;
-            $set('pajak', $pajak);
-        } else {
-            $pajak = 0;
-            $set('pajak', 0);
-        }
+        $harga_subtotal = floatval($sparepart_satuan->harga) * floatval(($get('jumlah_unit')??0));
 
         $set('harga_unit', $sparepart_satuan->harga);
         $set('harga_subtotal', $harga_subtotal);
@@ -56,7 +48,12 @@ class ServiceDSparepartRelationManager extends RelationManager
                 ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name} ({$record->harga})")
                 ->searchable()
                 ->preload()
-                ->live(),
+                ->live()
+                ->afterStateUpdated(
+                    function(Set $set, Get $get){
+                        self::updateSubtotal($get, $set);
+                    }
+                ),
 
                 Hidden::make('sparepart_id'),
                 Hidden::make('satuan_id'),
@@ -65,6 +62,7 @@ class ServiceDSparepartRelationManager extends RelationManager
 
                 TextInput::make('jumlah_unit')
                     ->required()
+                    ->default(1)
                     ->numeric()
                     ->live()
                     ->afterStateUpdated(
@@ -75,13 +73,8 @@ class ServiceDSparepartRelationManager extends RelationManager
                     ->gt(0)
                     ->disabled(fn (Get $get) => !$get('sparepart_satuan_id')),
                 TextInput::make('harga_subtotal')
-                    ->required()
-                    ->live()
-                    ->label('Harga subtotal')
-                    ->gt(0)
-                    ->prefix('Rp ')
-                    ->numeric()
-                    ->readOnly(),
+                ->prefix('Rp')
+                ->readOnly(),
             ]);
     }
 
@@ -94,9 +87,13 @@ class ServiceDSparepartRelationManager extends RelationManager
                 ->searchable(),
                 Tables\Columns\TextColumn::make('satuan_name'),
                 Tables\Columns\TextColumn::make('jumlah_unit'),
+                Tables\Columns\CheckboxColumn::make('checklist_hasil'),
+                Tables\Columns\TextInputColumn::make('keterangan'),
                 Tables\Columns\TextColumn::make('harga_unit')
+                ->visible(auth()->user()->hasRole(['Kepala Mekanik', 'super_admin', 'manager']))
                     ->money('IDR', locale: 'id_ID'),
                 Tables\Columns\TextColumn::make('harga_subtotal')
+                ->visible(auth()->user()->hasRole(['Kepala Mekanik', 'super_admin', 'manager']))
                     ->summarize(
                         Sum::make()
                             ->money('IDR', locale: 'id_ID')
@@ -120,5 +117,15 @@ class ServiceDSparepartRelationManager extends RelationManager
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public function canCreate(): bool
+    {
+        return auth()->user()->hasRole(['Kepala Mekanik', 'super_admin', 'manager']);
+    }
+
+    public function canDelete(Model $record): bool
+    {
+        return auth()->user()->hasRole(['Kepala Mekanik', 'super_admin', 'manager']);
     }
 }

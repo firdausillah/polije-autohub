@@ -8,12 +8,15 @@ use App\Filament\Resources\ServiceScheduleResource\RelationManagers\ServiceDChec
 use App\Filament\Resources\ServiceScheduleResource\RelationManagers\ServiceDServicesRelationManager;
 use App\Filament\Resources\ServiceScheduleResource\RelationManagers\ServiceDSparepartRelationManager;
 use App\Helpers\CodeGenerator;
+use App\Models\Checklist;
 use App\Models\ServiceSchedule;
 use App\Models\User;
 use App\Models\UserRole;
 use Filament\Forms;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -29,11 +32,15 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Guava\FilamentModalRelationManagers\Actions\Table\RelationManagerAction as TableRelationManagerAction;
+use Guava\FilamentModalRelationManagers\Concerns\CanBeEmbeddedInModals;
 use Illuminate\Auth\Events\Authenticated;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 
 class ServiceScheduleResource extends Resource
-{
+{    
     protected static ?string $model = ServiceSchedule::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-wrench-screwdriver';
@@ -45,6 +52,7 @@ class ServiceScheduleResource extends Resource
                 Select::make('vehicle_id')
                 ->relationship('vehicle', 'registration_number')
                 ->searchable()
+                ->preload()
                 ->label('Kendaraan')
                 ->createOptionForm([
                     Grid::make()
@@ -194,13 +202,18 @@ class ServiceScheduleResource extends Resource
                 ]),
 
                 Hidden::make('mekanik_name'),
-            ]);
+            ])->disabled(auth()->user()->hasRole(['super_admin', 'Manager']) ? false:true);
     }
 
     public static function table(Table $table): Table
     {
 
         return $table
+            ->modifyQueryUsing(function (EloquentBuilder $query) {
+                if (!auth()->user()->hasRole(['super_admin', 'Kepala Mekanik'])) {
+                    $query->where('mekanik_id', auth()->id());
+                }
+            })
             ->columns([
                 TextColumn::make('vehicle.registration_number')
                 ->label('Nopol'),
@@ -215,8 +228,8 @@ class ServiceScheduleResource extends Resource
                 ->badge()
                 ->color(fn (string $state): string => match ($state) {
                     'Daftar' => 'info',
-                    'Proses' => 'warning',
-                    'Cancel' => 'danger',
+                    'Proses Pengerjaan' => 'warning',
+                    'Batal' => 'danger',
                     'Selesai' => 'success',
                 })
             ])
@@ -227,39 +240,38 @@ class ServiceScheduleResource extends Resource
                 ActionGroup::make([
                     Action::make('Kerjakan')
                     ->action(function (ServiceSchedule $record) {
-
-                        dd(auth()->user()->roles[0]->name);
+                        $kepala_mekanik_name = User::find(Auth::id())->name;
                         
-                        $isApproving = in_array($record->is_approve, ['pending', 'rejected']);
-                        $status = $isApproving ? 'approved' : 'rejected';
-
-                        $record->is_approve = $status;
-                        $record->approved_by = Auth::id();
+                        $record->service_status = 'Proses Pengerjaan'; //daftar, proses pengerjaan, batal, selesai
+                        $record->kepala_mekanik_name = $kepala_mekanik_name;
+                        $record->kepala_mekanik_id = Auth::id();
                         $record->save();
 
                         Notification::make()
-                            ->title("Sparepart Purchase $status")
+                            ->title("Service dalam Proses Pengerjaan")
                             ->success()
-                            ->body("Sparepart Purchase has been $status.")
+                            ->body("Service Sedang dikerjakan.")
                             ->send();
                     })
                     ->color('warning')
                     ->icon('heroicon-o-clipboard-document-check')
                     // ->requiresConfirmation()
                     ->visible(function (ServiceSchedule $record){
-                        $status = true;
-                        // dd(Auth::role_name());
-                        // if ($record->kepala_mekanik_id == null && Auth::role_name()) {
-                            
-                        // }
-                        return $record->kepala_mekanik_id === null?true:false;
+                        if ($record->kepala_mekanik_id == null && auth()->user()->hasRole('Kepala Mekanik')) {
+                            return true;
+                        }
                     }),
                     ViewAction::make(),
                     EditAction::make()
                     ->visible(function (ServiceSchedule $record){
-                        
-                        return $record->kepala_mekanik_id === null?true:false;
-                    }),
+                    if (auth()->user()->hasRole(['super_admin', 'Manager']) OR ($record->kepala_mekanik_id != null && auth()->user()->hasRole(['Kepala Mekanik', 'Mekanik']))) {
+                        return true;
+                    }else{
+                        return false;
+                    }}),
+                    TableRelationManagerAction::make('serviceDChecklist-relation-manager')
+                    ->label('View checklist')
+                    ->relationManager(ServiceDChecklistRelationManager::make()),
                 ]),
                 // Tables\Actions\EditAction::make(),
             ])
