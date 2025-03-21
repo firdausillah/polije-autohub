@@ -225,8 +225,9 @@ class ServiceScheduleResource extends Resource
                 if (!auth()->user()->hasRole(['super_admin', 'Kepala Mekanik'])) {
                     $query->where('mekanik_id', auth()->id());
                 }
+                $query->where('created_at', now()->toDateString());
             })
-            // ->poll('2s')
+            ->poll('2s')
             ->columns([
                 TextColumn::make('vehicle.registration_number')
                 ->label('Nopol')
@@ -252,20 +253,7 @@ class ServiceScheduleResource extends Resource
             ])
             ->defaultSort('id', 'desc')
             ->filters([
-                Filter::make('created_at')
-                ->form([
-                    DatePicker::make('start_date')
-                    ->label('Tanggal')
-                    ->disabled()
-                    ->default(now()->toDateString()),
-                ])
-                ->query(function (Builder $query, array $data): Builder {
-                    return $query
-                    ->when(
-                        $data['start_date'],
-                        fn (Builder $query, $date): Builder => $query->whereDate('created_at', '=', $date),
-                    );
-                })
+                //
             ])
             ->actions([
                 ActionGroup::make([
