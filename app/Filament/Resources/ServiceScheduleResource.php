@@ -67,8 +67,9 @@ class ServiceScheduleResource extends Resource
                 ->preload()
                 ->label('Kendaraan')
                 ->createOptionForm([
-                    Grid::make()
-                    ->columns(2)
+                    Grid::make([
+                        'sm' => 2,
+                    ])
                     ->schema([
                         TextInput::make('registration_number')
                             ->label('Nomor Polisi')
@@ -161,7 +162,22 @@ class ServiceScheduleResource extends Resource
                             ]),
                         Textarea::make('keterangan'),
                     ])
-                ]),
+                ])
+                ->live()
+                ->afterStateUpdated(
+                    function ($state, Set $set) {
+                        $riwayat_service = ServiceSchedule::where('vehicle_id', $state)->first();
+
+                        if ($riwayat_service !== null) {
+                            $set('customer_name', $riwayat_service->customer_name);
+                            $set('nomor_telepon', $riwayat_service->nomor_telepon);
+                        } else{
+                            $set('customer_name', '');
+                            $set('nomor_telepon', '');
+
+                        }
+                    }
+                ),
                 TextInput::make('kode')
                 ->default(fn () => CodeGenerator::generateTransactionCode('SSJ', 'service_schedules', 'kode'))
                 ->readOnly(),
@@ -178,6 +194,7 @@ class ServiceScheduleResource extends Resource
                 ->required(),
                 Select::make('mekanik_id')
                 ->label('Mekanik')
+                ->required()
                 ->relationship('mekanik', 'user_name')
                 ->live()
                 ->afterStateUpdated(
@@ -197,7 +214,9 @@ class ServiceScheduleResource extends Resource
                         $set('mekanik_name', $mekanik);
                     }
                 ),
-                Grid::make(4)
+                Grid::make([
+                    'sm' => 4,
+                ])
                 ->schema([
                     TextInput::make('total_estimasi_waktu')
                     ->suffix(' Menit')
@@ -214,18 +233,22 @@ class ServiceScheduleResource extends Resource
                 ]),
 
                 Hidden::make('mekanik_name'),
-            ])->disabled(auth()->user()->hasRole(['super_admin', 'Manager']) ? false:true);
+            ])
+            ->disabled(auth()->user()->hasRole(['super_admin', 'Manager']) ? false:true)
+            ->columns([
+                'sm' => 2,
+            ]);
     }
 
     public static function table(Table $table): Table
     {
-
+        // dd(now()->toDateString());
         return $table
             ->modifyQueryUsing(function (Builder $query) {
                 if (!auth()->user()->hasRole(['super_admin', 'Kepala Mekanik'])) {
                     $query->where('mekanik_id', auth()->id());
                 }
-                $query->where('created_at', now()->toDateString());
+                $query->where('created_at','like', (now()->toDateString().'%'));
             })
             ->poll('2s')
             ->columns([

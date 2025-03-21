@@ -21,15 +21,9 @@ class ListServiceSchedules extends ListRecords
 
     public function __construct() {
         $request = request();
-        $startDate = $request['start_date'] ?? now()->endOfMonth()->toDateString();
-        $endDate = $request['end_date'] ?? now()->endOfMonth()->toDateString();
-        // dd($startDate);
-
-        // $startDate = request()->query('start_date', now()->startOfMonth()->toDateString());
-        // $endDate = request()->query('end_date', now()->endOfMonth()->toDateString());
         
         $this->serviceScheduleByStatuses = ServiceSchedule::select('service_status', DB::raw('count(*) as status_count'))
-            ->whereBetween('created_at', [$startDate, $endDate]) // 🔥 Filter by date
+            ->where('created_at', 'like', (now()->toDateString()."%")) // 🔥 Filter by date
             ->groupBy('service_status')
             ->pluck('status_count', 'service_status');
             
@@ -47,31 +41,36 @@ class ListServiceSchedules extends ListRecords
     {
         return [
             'daftar' => Tab::make()
-            ->badge($this->serviceScheduleByStatuses['Daftar']??0)
+            // ->badge($this->serviceScheduleByStatuses['Daftar']??0)
             ->badgeColor('info')
+            ->badge(ServiceSchedule::query()->where('service_status', 'Daftar')->where('created_at', 'like', (now()->toDateString()."%"))->count())
             ->modifyQueryUsing(fn (Builder $query) =>
                 $query->where('service_status', 'Daftar')
             ),
             'proses_pengerjaan' => Tab::make()
-            ->badge($this->serviceScheduleByStatuses['Proses Pengerjaan']??0)
+            // ->badge($this->serviceScheduleByStatuses['Proses Pengerjaan']??0)
             ->badgeColor('warning')
+            ->badge(ServiceSchedule::query()->where('service_status', 'Proses Pengerjaan')->where('created_at', 'like', (now()->toDateString()."%"))->count())
             ->modifyQueryUsing(fn (Builder $query) =>
                 $query->where('service_status', 'Proses Pengerjaan')
             ),
             'batal' => Tab::make()
-            ->badge($this->serviceScheduleByStatuses['Batal']??0)
+            // ->badge($this->serviceScheduleByStatuses['Batal']??0)
             ->badgeColor('danger')
+            ->badge(ServiceSchedule::query()->where('service_status', 'Batal')->where('created_at', 'like', (now()->toDateString()."%"))->count())
             ->modifyQueryUsing(fn (Builder $query) =>
                 $query->where('service_status', 'Batal')
             ),
             'selesai' => Tab::make()
-            ->badge($this->serviceScheduleByStatuses['Selesai']??0)
+            // ->badge($this->serviceScheduleByStatuses['Selesai']??0)
             ->badgeColor('success')
+            ->badge(ServiceSchedule::query()->where('service_status', 'Selesai')->where('created_at', 'like', (now()->toDateString()."%"))->count())
             ->modifyQueryUsing(fn (Builder $query) =>
                 $query->where('service_status', 'Selesai')
             ),
             'semua' => Tab::make()
-                ->badge($this->serviceScheduleByStatuses->sum()),
+            ->badge(ServiceSchedule::query()->where('created_at', 'like', (now()->toDateString()."%"))->count())
+                // ->badge($this->serviceScheduleByStatuses->sum()),
         ];
     }
 }
