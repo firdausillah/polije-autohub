@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\UserRole;
 use Filament\Forms;
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -31,19 +32,30 @@ use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Guava\FilamentModalRelationManagers\Actions\Table\RelationManagerAction as TableRelationManagerAction;
 use Guava\FilamentModalRelationManagers\Concerns\CanBeEmbeddedInModals;
 use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Builder;
 
 class ServiceScheduleResource extends Resource
 {    
     protected static ?string $model = ServiceSchedule::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-wrench-screwdriver';
+
+    public static function getModelLabel(): string
+    {
+        return 'Layanan Service';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Layanan Service';
+    }
     
     public static function form(Form $form): Form
     {
@@ -209,22 +221,27 @@ class ServiceScheduleResource extends Resource
     {
 
         return $table
-            ->modifyQueryUsing(function (EloquentBuilder $query) {
+            ->modifyQueryUsing(function (Builder $query) {
                 if (!auth()->user()->hasRole(['super_admin', 'Kepala Mekanik'])) {
                     $query->where('mekanik_id', auth()->id());
                 }
             })
+            // ->poll('2s')
             ->columns([
                 TextColumn::make('vehicle.registration_number')
-                ->label('Nopol'),
-                TextColumn::make('kode'),
+                ->label('Nopol')
+                ->searchable(),
+                TextColumn::make('kode')
+                ->searchable(),
                 TextColumn::make('customer_name')
+                ->searchable()
                 ->label('Customer'),
                 TextColumn::make('mekanik_name')
                 ->label('Mekanik'),
                 TextColumn::make('kepala_mekanik_name')
                 ->label('Kepala Mekanik'),
                 TextColumn::make('service_status')
+                ->label('Status')
                 ->badge()
                 ->color(fn (string $state): string => match ($state) {
                     'Daftar' => 'info',
@@ -233,8 +250,22 @@ class ServiceScheduleResource extends Resource
                     'Selesai' => 'success',
                 })
             ])
+            ->defaultSort('id', 'desc')
             ->filters([
-                //
+                Filter::make('created_at')
+                ->form([
+                    DatePicker::make('start_date')
+                    ->label('Tanggal')
+                    ->disabled()
+                    ->default(now()->toDateString()),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return $query
+                    ->when(
+                        $data['start_date'],
+                        fn (Builder $query, $date): Builder => $query->whereDate('created_at', '=', $date),
+                    );
+                })
             ])
             ->actions([
                 ActionGroup::make([
