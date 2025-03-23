@@ -20,13 +20,7 @@ class ServiceDChecklistRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        // Jika modal, tetap izinkan akses
-        if (request()->boolean('embedded')) {
-            return true;
-        }
-
-        // Hanya 'admin' yang bisa melihat di tampilan utama
-        return auth()->user()->hasRole('admin');
+        return request()->boolean('embedded')??true;
     }
 
     public function form(Form $form): Form
@@ -40,6 +34,7 @@ class ServiceDChecklistRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('name')
+            ->poll('2s')
             ->columns([
                 Tables\Columns\TextColumn::make('checklist.name'),
                 Tables\Columns\CheckboxColumn::make('checklist_hasil'),

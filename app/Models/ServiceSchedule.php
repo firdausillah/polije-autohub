@@ -39,6 +39,7 @@ class ServiceSchedule extends Model
         });
     }
 
+    // Belongsto
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
@@ -54,6 +55,7 @@ class ServiceSchedule extends Model
         return $this->belongsTo(UserRole::class)->where('role_name', 'like', 'Kepala Mekanik%');
     }
 
+    // HasMany
     public function serviceDChecklist(): HasMany
     {
         return $this->hasMany(ServiceDChecklist::class, 'service_schedule_id');
@@ -67,5 +69,10 @@ class ServiceSchedule extends Model
     public function serviceDSparepart(): HasMany
     {
         return $this->hasMany(ServiceDSparepart::class);
+    }
+
+    public function serviceDPayment(): HasMany
+    {
+        return $this->hasMany(ServiceDPayment::class);
     }
 }

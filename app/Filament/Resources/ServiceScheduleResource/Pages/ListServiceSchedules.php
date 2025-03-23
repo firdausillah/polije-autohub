@@ -37,40 +37,46 @@ class ListServiceSchedules extends ListRecords
         ];
     }
 
+    function generateTab(string $status, string $color): Tab
+    {
+        return Tab::make()
+            ->badgeColor($color)
+            ->badge(
+                ServiceSchedule::query()
+                    ->where('service_status', $status)
+                    ->when(
+                        auth()->user()->hasRole('Mekanik'),
+                        fn ($query) =>
+                        $query->where('mekanik_id', auth()->id())
+                    )
+                    ->whereDate('created_at', now()->toDateString())
+                    ->count()
+            )
+            ->modifyQueryUsing(
+                fn (Builder $query) =>
+                $query->where('service_status', $status)
+            );
+    }
+
     public function getTabs(): array
     {
         return [
-            'daftar' => Tab::make()
-            // ->badge($this->serviceScheduleByStatuses['Daftar']??0)
-            ->badgeColor('info')
-            ->badge(ServiceSchedule::query()->where('service_status', 'Daftar')->where('created_at', 'like', (now()->toDateString()."%"))->count())
-            ->modifyQueryUsing(fn (Builder $query) =>
-                $query->where('service_status', 'Daftar')
-            ),
-            'proses_pengerjaan' => Tab::make()
-            // ->badge($this->serviceScheduleByStatuses['Proses Pengerjaan']??0)
-            ->badgeColor('warning')
-            ->badge(ServiceSchedule::query()->where('service_status', 'Proses Pengerjaan')->where('created_at', 'like', (now()->toDateString()."%"))->count())
-            ->modifyQueryUsing(fn (Builder $query) =>
-                $query->where('service_status', 'Proses Pengerjaan')
-            ),
-            'batal' => Tab::make()
-            // ->badge($this->serviceScheduleByStatuses['Batal']??0)
-            ->badgeColor('danger')
-            ->badge(ServiceSchedule::query()->where('service_status', 'Batal')->where('created_at', 'like', (now()->toDateString()."%"))->count())
-            ->modifyQueryUsing(fn (Builder $query) =>
-                $query->where('service_status', 'Batal')
-            ),
-            'selesai' => Tab::make()
-            // ->badge($this->serviceScheduleByStatuses['Selesai']??0)
-            ->badgeColor('success')
-            ->badge(ServiceSchedule::query()->where('service_status', 'Selesai')->where('created_at', 'like', (now()->toDateString()."%"))->count())
-            ->modifyQueryUsing(fn (Builder $query) =>
-                $query->where('service_status', 'Selesai')
-            ),
+            'daftar' => $this->generateTab('Daftar', 'info'),
+            'proses_pengerjaan' => $this->generateTab('Proses Pengerjaan', 'warning'),
+            'batal' => $this->generateTab('Batal', 'danger'),
+            'pembayaran' => $this->generateTab('Menunggu Pembayaran', 'warning'),
+            'selesai' => $this->generateTab('Selesai', 'success'),
             'semua' => Tab::make()
-            ->badge(ServiceSchedule::query()->where('created_at', 'like', (now()->toDateString()."%"))->count())
-                // ->badge($this->serviceScheduleByStatuses->sum()),
+                ->badge(
+                    ServiceSchedule::query()
+                        ->when(
+                            auth()->user()->hasRole('Mekanik'),
+                            fn ($query) =>
+                            $query->where('mekanik_id', auth()->id())
+                        )
+                        ->whereDate('created_at', now()->toDateString())
+                        ->count()
+                ),
         ];
     }
 }

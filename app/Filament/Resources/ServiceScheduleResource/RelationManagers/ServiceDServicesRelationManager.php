@@ -21,8 +21,6 @@ class ServiceDServicesRelationManager extends RelationManager
 {
     protected static string $relationship = 'ServiceDServices';
 
-    
-
     protected static ?string $title = 'Services';
     protected static ?string $pluralLabel = 'Services';
     protected static ?string $modelLabel = 'Services';
@@ -90,6 +88,7 @@ class ServiceDServicesRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('service_name')
+            ->poll('2s')
             ->columns([
                 Tables\Columns\TextColumn::make('service_name'),
                 Tables\Columns\TextColumn::make('jumlah'),
@@ -118,7 +117,7 @@ class ServiceDServicesRelationManager extends RelationManager
                         ->label('Total')
                         ->suffix(' Menit'),
                 )
-            ->suffix(' Menit'),
+                ->suffix(' Menit'),
             ])
             ->filters([
                 //

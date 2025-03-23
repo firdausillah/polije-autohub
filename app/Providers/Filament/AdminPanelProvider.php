@@ -31,6 +31,7 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Green,
             ])
             ->brandLogo(asset('logo autohub sm.png'))
+            ->brandLogoHeight('3rem')
             ->favicon(asset('logogram autohub sm (Small).png'))
             ->brandName('Polije Autohub')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
