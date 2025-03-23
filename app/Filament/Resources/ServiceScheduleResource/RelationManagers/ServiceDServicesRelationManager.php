@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\ServiceScheduleResource\RelationManagers;
 
-use App\Models\service;
+use App\Models\Service;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Hidden;
