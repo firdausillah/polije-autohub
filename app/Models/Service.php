@@ -10,18 +10,7 @@ use Illuminate\Support\Facades\Auth;
 class Service extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $fillable = [
-        'name',
-        'kode',
-        'keterangan',
-        'created_by',
-        'updated_by',
-        'deleted_at',
-        'created_at',
-        'updated_at',
-        'harga',
-        'estimasi_waktu_pengerjaan'
-    ];
+    protected $guarded;
 
 
     protected static function boot()

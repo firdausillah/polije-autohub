@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Auth;
 
 class ServiceDServices extends Model
@@ -45,8 +46,8 @@ class ServiceDServices extends Model
     }
 
     
-    public function services(): HasMany
+    public function services(): HasOne
     {
-        return $this->hasMany(Service::class);
+        return $this->hasOne(Service::class);
     }
 }

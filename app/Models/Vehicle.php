@@ -27,6 +27,6 @@ class Vehicle extends Model
 
     public function serviceHistories()
     {
-        return $this->hasMany(ServiceSchedule::class);
+        return $this->hasMany(ServiceSchedule::class)->where('service_status', 'Selesai');
     }
 }
