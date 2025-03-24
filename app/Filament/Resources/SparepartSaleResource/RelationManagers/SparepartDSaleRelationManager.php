@@ -29,7 +29,7 @@ class SparepartDSaleRelationManager extends RelationManager
         return $form
             ->schema([
                 Select::make('sparepart_id')
-                ->relationship('spareparts', 'name')
+                ->relationship('sparepart', 'name')
                     ->live() // Trigger update saat berubah
                     ->afterStateUpdated(
                         function (Set $set, $state) {
