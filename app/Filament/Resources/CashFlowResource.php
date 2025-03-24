@@ -41,7 +41,15 @@ class CashFlowResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
-    // protected static ?string $navigationGroup = 'POS & Cash Flow';
+    public static function getModelLabel(): string
+    {
+        return 'Jurnal Umum';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Jurnal Umum';
+    }
 
     public static function InsertJurnal($record, $status): void
     {

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
@@ -45,8 +46,8 @@ class CashFlow extends Model
         });
     }
 
-    public function accounts(): HasOne
+    public function account(): BelongsTo
     {
-        return $this->hasOne(Account::class);
+        return $this->belongsTo(Account::class);
     }
 }
