@@ -44,13 +44,13 @@ class ServiceDServices extends Model
         static::deleted(fn ($model) => $model->updateServiceTotal());
     }
 
-    public function services()
-    {
-        return $this->belongsTo(Service::class);
-    }
-    
-    // public function services(): HasMany
+    // public function services()
     // {
-    //     return $this->hasMany(Service::class);
+    //     return $this->belongsTo(Service::class);
     // }
+    
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class);
+    }
 }
