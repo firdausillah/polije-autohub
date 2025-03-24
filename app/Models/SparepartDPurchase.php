@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Helpers\SparepartDetailUpdate;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -48,8 +49,8 @@ class SparepartDPurchase extends Model
         return $this->belongsTo(SparepartPurchase::class, 'parent_id');
     }
 
-    public function sparepart(): HasOne
+    public function sparepart(): BelongsTo
     {
-        return $this->hasOne(Sparepart::class);
+        return $this->belongsTo(Sparepart::class);
     }
 }
