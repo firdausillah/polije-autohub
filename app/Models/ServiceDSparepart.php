@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Helpers\SparepartDetailUpdate;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 
@@ -47,8 +48,8 @@ class ServiceDSparepart extends Model
     }
 
 
-    public function sparepartSatuan(): HasMany
+    public function sparepartSatuan(): BelongsTo
     {
-        return $this->hasMany(SparepartSatuans::class)->with('sparepart');
+        return $this->BelongsTo(SparepartSatuans::class)->with('sparepart');
     }
 }
