@@ -111,7 +111,7 @@ class CashFlowResource extends Resource
                 TextInput::make('kode')
                 ->readOnly(),
                 Select::make('account_debit_id')
-                ->relationship('accounts', 'name')
+                ->relationship('account', 'name')
                 ->getOptionLabelFromRecordUsing(fn($record) => "{$record->kode} ({$record->type}) - {$record->name}")
                 ->searchable()
                 ->preload()
@@ -124,7 +124,7 @@ class CashFlowResource extends Resource
                     $set('account_debit_kode', $debit->kode);
                 }),
                 Select::make('account_kredit_id')
-                ->relationship('accounts', 'name')
+                ->relationship('account', 'name')
                 ->getOptionLabelFromRecordUsing(fn($record) => "{$record->kode} ({$record->type}) - {$record->name}")
                 ->searchable()
                 ->preload()
