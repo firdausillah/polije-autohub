@@ -29,7 +29,7 @@ class SparepartSale extends Model
         });
     }
 
-    public function SparepartDSale(): HasMany
+    public function sparepartDSale(): HasMany
     {
         return $this->hasMany(SparepartDSale::class);
     }

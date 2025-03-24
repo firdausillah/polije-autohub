@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
-class SparepartSatuans extends Model
+class  SparepartSatuans extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded;

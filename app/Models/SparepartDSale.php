@@ -44,9 +44,9 @@ class SparepartDSale extends Model
         static::restored(fn ($model) => $model->updateSparepartSaleTotal());
     }
 
-    public function sparepartSatuan(): HasMany
+    public function sparepartSatuan(): BelongsTo
     {
-        return $this->hasMany(SparepartSatuans::class)->with('sparepart');
+        return $this->belongsTo(SparepartSatuans::class)->with('sparepart');
     }
     
     public function sparepartSale()

@@ -167,8 +167,8 @@ class SparepartSaleResource extends Resource
             // jurnal end
 
             // inventory begin
-            $SparepartDSales = SparepartDSale::where('sparepart_sale_id', $record->id)->get();
-            foreach ($SparepartDSales as $val) {
+            $sparepartDSales = SparepartDSale::where('sparepart_sale_id', $record->id)->get();
+            foreach ($sparepartDSales as $val) {
                 Inventory::create([
                     'transaksi_h_id' => $record->id,
                     'transaksi_d_id' => $val->id,
@@ -215,9 +215,9 @@ class SparepartSaleResource extends Resource
                 Wizard::make([
                     Wizard\Step::make('Order')
                     ->schema([
-                        Repeater::make('SparepartDSale')
+                        Repeater::make('sparepartDSale')
                             ->label('Order Sparepart')
-                            ->relationship('SparepartDSale')
+                            ->relationship('sparepartDSale')
                             ->columns([
                                 'md' =>3,
                                 ])
