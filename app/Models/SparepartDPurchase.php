@@ -48,7 +48,7 @@ class SparepartDPurchase extends Model
         return $this->belongsTo(SparepartPurchase::class, 'parent_id');
     }
 
-    public function Spareparts(): HasOne
+    public function sparepart(): HasOne
     {
         return $this->hasOne(Sparepart::class);
     }
