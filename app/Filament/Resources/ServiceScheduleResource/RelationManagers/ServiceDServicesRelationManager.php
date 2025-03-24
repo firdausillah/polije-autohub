@@ -45,7 +45,7 @@ class ServiceDServicesRelationManager extends RelationManager
         return $form
             ->schema([
                 Select::make('service_id')
-                ->relationship('services', 'name')
+                ->relationship('service', 'name')
                 ->required()
                 ->preload()
                 ->live()
