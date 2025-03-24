@@ -25,4 +25,9 @@ class Service extends Model
             $model->updated_by = Auth::id();
         });
     }
+
+    public function serviceDServices()
+    {
+        return $this->hasMany(ServiceDServices::class);
+    }
 }

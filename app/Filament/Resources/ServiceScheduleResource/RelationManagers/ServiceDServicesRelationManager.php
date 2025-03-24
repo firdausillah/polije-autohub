@@ -28,7 +28,7 @@ class ServiceDServicesRelationManager extends RelationManager
 
     public static function updateSubtotal($get, $set): void
     {
-        $service = Service::find($get('service_id'));
+        $service = Service::find($get('services_id'));
         
         $harga_subtotal = floatval($service->harga ?? 0) * floatval($get('jumlah') ?? 0);
         $estimasi_waktu_pengerjaan = ($service->estimasi_waktu_pengerjaan ?? 0) * floatval(($get('jumlah') ?? 0));
@@ -44,7 +44,7 @@ class ServiceDServicesRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Select::make('service_id')
+                Select::make('services_id')
                 ->relationship('services', 'name')
                 ->required()
                 ->preload()

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Auth;
 
 class ServiceDServices extends Model
@@ -45,9 +44,13 @@ class ServiceDServices extends Model
         static::deleted(fn ($model) => $model->updateServiceTotal());
     }
 
-    
-    public function services(): HasOne
+    public function services()
     {
-        return $this->hasOne(Service::class);
+        return $this->belongsTo(Service::class);
     }
+    
+    // public function services(): HasMany
+    // {
+    //     return $this->hasMany(Service::class);
+    // }
 }
