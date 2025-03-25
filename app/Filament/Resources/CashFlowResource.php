@@ -120,6 +120,7 @@ class CashFlowResource extends Resource
                 ->live()
                 ->afterStateUpdated(function (Set $set, $state) {
                     $debit = Account::find($state);
+                    dd($debit);
                     $set('account_debit_name', $debit->name);
                     $set('account_debit_kode', $debit->kode);
                 }),
@@ -145,10 +146,10 @@ class CashFlowResource extends Resource
                 ->image()
                 ->resize(50),
 
-                Hidden::make('account_debit_name'),
-                Hidden::make('account_kredit_name'),
-                Hidden::make('account_debit_kode'),
-                Hidden::make('account_kredit_kode'),
+                TextInput::make('account_debit_name'),
+                TextInput::make('account_kredit_name'),
+                TextInput::make('account_debit_kode'),
+                TextInput::make('account_kredit_kode'),
             ])->disabled(fn ($record) => $record && $record->is_approve === 'approved');
     }
 
