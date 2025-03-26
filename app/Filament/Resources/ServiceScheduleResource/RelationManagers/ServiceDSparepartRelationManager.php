@@ -88,7 +88,8 @@ class ServiceDSparepartRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('satuan_name'),
                 Tables\Columns\TextColumn::make('jumlah_unit'),
                 Tables\Columns\CheckboxColumn::make('checklist_hasil'),
-                Tables\Columns\TextInputColumn::make('keterangan'),
+                Tables\Columns\TextInputColumn::make('keterangan')
+                ->visible(auth()->user()->hasRole(['Kepala Mekanik', 'Mekanik'])),
                 Tables\Columns\TextColumn::make('harga_unit')
                 ->visible(auth()->user()->hasRole(['Kepala Mekanik', 'super_admin', 'manager']))
                     ->money('IDR', locale: 'id_ID'),

@@ -6,6 +6,7 @@ use App\Filament\Resources\CashFlowResource\Pages;
 use App\Filament\Resources\CashFlowResource\RelationManagers;
 use App\Helpers\CodeGenerator;
 use App\Models\Account;
+use App\Models\CashDFlow;
 use App\Models\CashFlow;
 use App\Models\Jurnal;
 use Carbon\Carbon;
@@ -51,52 +52,68 @@ class CashFlowResource extends Resource
         return 'Jurnal Umum';
     }
 
-    public static function InsertJurnal($record, $status): void
+    public static function insertJurnalDetail($record, $table_type, $account_type, $data_prepare){
+        Jurnal::create([
+            'transaksi_h_id'    => $data_prepare['header_id'],
+            'transaksi_d_id'    => $record->id,
+            'account_id'    => $record->account_id,
+
+            'keterangan'    => $record->keterangan,
+            'kode'  => $data_prepare['kode'],
+            'tanggal_transaksi' => $data_prepare['tanggal'],
+
+            'relation_name' => '',
+            'relation_nomor_telepon'    => '',
+
+            'account_name'  => $record->account_name,
+            'account_kode'  => $record->account_kode,
+            'transaction_type'  => 'jurnal umum',
+
+            'debit' => ($account_type == 'debit')
+                        ? (($table_type == 'header')
+                            ? $record->total
+                            : (($table_type == 'detail') ? $record->jumlah : 0))
+                        : 0,
+            'kredit'=>($account_type == 'kredit')
+                        ? (($table_type == 'header')
+                            ? $record->total
+                            : (($table_type == 'detail') ? $record->jumlah : 0))
+                        : 0,
+        ]);
+    }
+
+    public static function InsertJurnal($record, $status)
     {
         if($status == 'approved'){
-            // debit
-            Jurnal::create([
-                'transaksi_h_id'    => $record->id,
-                'transaksi_d_id'    => $record->id,
-                'account_id'    => $record->account_debit_id,
+            $detail = CashDFlow::where('cash_flow_id', $record->id)->get();
 
-                'keterangan'    => $record->keterangan,
-                'kode'  => $record->kode,
-                'tanggal_transaksi' => $record->tanggal_transaksi,
+            if($record->total != $detail->sum('jumlah')){
+                return ['title' =>'Approval Gagal', 'body' =>'total harus sama dengan total jumlah di detail', 'status' => 'warning'];
+            }
 
-                'relation_name' => '',
-                'relation_nomor_telepon'    => '',
+            $data_prepare = [
+                'header_id' => $record->id,
+                'kode' => $record->kode,
+                'tanggal' => $record->tanggal_transaksi,
+            ];
+            
+            if($record->account_type == 'Debit'){
+                Self::insertJurnalDetail($record, 'header', 'debit', $data_prepare);
+                foreach($detail as $val){
+                    Self::insertJurnalDetail($val, 'detail', 'kredit', $data_prepare);
+                }
+            }else{
+                foreach($detail as $val){
+                    Self::insertJurnalDetail($val, 'detail', 'debit', $data_prepare);
+                }
+                Self::insertJurnalDetail($record, 'header', 'kredit', $data_prepare);
+            }
 
-                'account_name'  => $record->account_debit_name,
-                'account_kode'  => $record->account_debit_kode,
-                'transaction_type'  => 'jurnal umum',
-
-                'debit' => $record->total,
-                'kredit'    => 0,
-            ]);
-
-            // kredit
-            Jurnal::create([
-                'transaksi_h_id'    => $record->id,
-                'transaksi_d_id'    => $record->id,
-                'account_id'    => $record->account_kredit_id,
-
-                'keterangan'    => $record->keterangan,
-                'kode'  => $record->kode,
-                'tanggal_transaksi' => $record->tanggal_transaksi,
-
-                'relation_name' => '',
-                'relation_nomor_telepon'    => '',
-
-                'account_name'  => $record->account_kredit_name,
-                'account_kode'  => $record->account_kredit_kode,
-                'transaction_type'  => 'jurnal umum',
-
-                'debit' => 0,
-                'kredit'    => $record->total,
-            ]);
+            return ['title' => 'Approval Berhasil', 'body' => 'Cash Flow Berhasil Diapprove', 'status' => 'success'];
         } else {
             Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'jurnal umum'])->delete();
+
+            return ['title' => 'Reject Berhasil', 'body' => 'Cash Flow Berhasil Direject', 'status' => 'success'];
         }
     }
 
@@ -110,48 +127,39 @@ class CashFlowResource extends Resource
                 ->default(NOW()),
                 TextInput::make('kode')
                 ->readOnly(),
-                Select::make('account_debit_id')
-                ->relationship('account', 'name')
-                ->getOptionLabelFromRecordUsing(fn($record) => "{$record->kode} ({$record->type}) - {$record->name}")
-                ->searchable()
-                ->preload()
-                ->label('Akun Debit')
+                Select::make('account_type')
+                ->label('Jenis Akun')
                 ->required()
-                ->live()
-                ->afterStateUpdated(function (Set $set, $state) {
-                    $debit = Account::find($state);
-                    $set('account_debit_name', $debit->name);
-                    $set('account_debit_kode', $debit->kode);
-                }),
-                Select::make('account_kredit_id')
+                ->default('Debit')
+                ->options([
+                   'Debit' => 'Debit', 
+                   'Kredit' => 'Kredit' 
+                ]),
+                Select::make('account_id')
                 ->relationship('account', 'name')
                 ->getOptionLabelFromRecordUsing(fn($record) => "{$record->kode} ({$record->type}) - {$record->name}")
                 ->searchable()
                 ->preload()
-                ->label('Akun Kredit')
+                ->label('Akun')
                 ->required()
                 ->live()
                 ->afterStateUpdated(function (Set $set, $state) {
                     $kredit = Account::find($state);
-                    $set('account_kredit_name', $kredit->name);
-                    $set('account_kredit_kode', $kredit->kode);
+                    $set('account_name', $kredit->name);
+                    $set('account_kode', $kredit->kode);
                 }),
                 TextInput::make('total')
                 ->prefix('Rp ')
                 ->numeric()
                 ->required(),
                 Textarea::make('keterangan'),
-                FileUpload::make('photo')
-                ->image()
-                ->resize(50),
+                // FileUpload::make('photo')
+                // ->image()
+                // ->resize(50),
 
-                Hidden::make('account_debit_name')
+                Hidden::make('account_name')
                 ->required(),
-                Hidden::make('account_kredit_name')
-                ->required(),
-                Hidden::make('account_debit_kode')
-                ->required(),
-                Hidden::make('account_kredit_kode')
+                Hidden::make('account_kode')
                 ->required(),
             ])->disabled(fn ($record) => $record && $record->is_approve === 'approved');
     }
@@ -172,11 +180,11 @@ class CashFlowResource extends Resource
                     'approved' => 'success',
                     'rejected' => 'danger',
                 }),
-                TextColumn::make('account_debit_name')
-                ->label('Akun debit')
+                TextColumn::make('account_name')
+                ->label('Akun')
                 ->searchable(),
-                TextColumn::make('account_kredit_name')
-                ->label('Akun kredit')
+                TextColumn::make('account_type')
+                ->label('Jenis Akun')
                 ->searchable(),
                 // ImageColumn::make('photo'),
                 TextColumn::make('total')->money('IDR', locale: 'id_ID'),
@@ -209,15 +217,17 @@ class CashFlowResource extends Resource
                             $isApproving = in_array($record->is_approve, ['pending', 'rejected']);
                             $status = $isApproving ? 'approved' : 'rejected';
 
-                            self::InsertJurnal($record, $status);
-                            $record->is_approve = $status;
-                            $record->approved_by = FacadesAuth::id();
-                            $record->save();
-
+                            $message = self::InsertJurnal($record, $status);
+                            if($message['status'] == 'success'){
+                                $record->is_approve = $status;
+                                $record->approved_by = FacadesAuth::id();
+                                $record->save();
+                            }
+                            
                             Notification::make()
-                                ->title("Cash Flow $status")
-                                ->success()
-                                ->body("Cash flow has been $status.")
+                                ->title($message['title'])
+                                ->{($message['status'] == 'success' ? 'success' : 'warning')}()
+                                ->body($message['body'])
                                 ->send();
                         })
                         ->color(fn (CashFlow $record) => $record->is_approve === 'approved' ? 'danger' : 'info')
@@ -242,7 +252,7 @@ class CashFlowResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\CashDFlowRelationManager::class,
         ];
     }
 

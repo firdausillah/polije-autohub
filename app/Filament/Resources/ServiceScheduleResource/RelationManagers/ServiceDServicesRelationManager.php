@@ -94,7 +94,8 @@ class ServiceDServicesRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('service_name'),
                 Tables\Columns\TextColumn::make('jumlah'),
                 Tables\Columns\CheckboxColumn::make('checklist_hasil'),
-                Tables\Columns\TextInputColumn::make('keterangan'),
+                Tables\Columns\TextInputColumn::make('keterangan')
+                ->visible(auth()->user()->hasRole(['Kepala Mekanik', 'Mekanik'])),
                 Tables\Columns\TextColumn::make('harga_unit')
                 ->visible(auth()->user()->hasRole(['Kepala Mekanik', 'super_admin', 'manager']))
                 ->money('IDR', locale: 'id_ID'),
@@ -113,6 +114,7 @@ class ServiceDServicesRelationManager extends RelationManager
                 )
                 ->money('IDR', locale: 'id_ID'),
                 Tables\Columns\TextColumn::make('estimasi_waktu_pengerjaan')
+                ->label('Estimasi Waktu')
                 ->summarize(
                     Sum::make()
                         ->label('Total')

@@ -40,22 +40,22 @@ class ListServiceSchedules extends ListRecords
     function generateTab(string $status, string $color): Tab
     {
         return Tab::make()
-            ->badgeColor($color)
-            ->badge(
-                ServiceSchedule::query()
-                    ->where('service_status', $status)
-                    ->when(
-                        auth()->user()->hasRole('Mekanik'),
-                        fn ($query) =>
-                        $query->where('mekanik_id', auth()->id())
-                    )
-                    ->whereDate('created_at', now()->toDateString())
-                    ->count()
-            )
-            ->modifyQueryUsing(
-                fn (Builder $query) =>
-                $query->where('service_status', $status)
-            );
+        ->badgeColor($color)
+        ->badge(
+            ServiceSchedule::query()
+                ->where('service_status', $status)
+                ->when(
+                    !in_array($status, ['daftar', 'selesai']) && auth()->user()->hasRole(['Kepala Mekanik', 'Mekanik']),
+                    fn ($query) => $query->where('kepala_mekanik_id', auth()->id()) // Filter hanya jika role Kepala Mekanik/Mekanik
+                )
+                ->whereDate('created_at', now()->toDateString())
+                ->count()
+        )
+        ->modifyQueryUsing(
+            fn (Builder $query) => $query->where('service_status', $status)
+        );
+
+
     }
 
     public function getTabs(): array

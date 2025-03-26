@@ -53,12 +53,12 @@ class ServiceScheduleResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return 'Layanan Service';
+        return 'Pelayanan Service';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Layanan Service';
+        return 'Pelayanan Service';
     }
     
     public static function form(Form $form): Form

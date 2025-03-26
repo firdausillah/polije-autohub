@@ -5,14 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
-class CashFlow extends Model
+class CashDFlow extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+
     protected $guarded;
 
     protected static function boot()
@@ -31,10 +29,5 @@ class CashFlow extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
-    }
-
-    public function cashDFlow(): HasMany
-    {
-        return $this->hasMany(CashDFlow::class);
     }
 }
