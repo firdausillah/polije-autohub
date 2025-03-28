@@ -55,6 +55,11 @@ class ServiceSchedule extends Model
         return $this->belongsTo(UserRole::class)->where('role_name', 'like', 'Kepala Mekanik%');
     }
 
+    public function getChecklistStatusAttribute()
+    {
+        return [$this->serviceDChecklist->sum('checklist_hasil') == $this->serviceDChecklist->count()];
+    }
+
     // HasMany
     public function serviceDChecklist(): HasMany
     {

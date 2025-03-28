@@ -11,6 +11,10 @@ use App\Filament\Resources\ServiceScheduleResource\RelationManagers\ServiceDSpar
 use App\Helpers\CodeGenerator;
 use App\Models\Account;
 use App\Models\Checklist;
+use App\Models\Jurnal;
+use App\Models\ServiceDChecklist;
+use App\Models\ServiceDPayment;
+use App\Models\ServiceDServices;
 use App\Models\ServiceSchedule;
 use App\Models\User;
 use App\Models\UserRole;
@@ -35,6 +39,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
@@ -59,6 +64,73 @@ class ServiceScheduleResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return 'Pelayanan Service';
+    }
+
+    // public static function insertJurnalDetail($record, $table_type, $account_type, $data_prepare)
+    // {
+    //     Jurnal::create([
+    //         'transaksi_h_id'    => $data_prepare['header_id'],
+    //         'transaksi_d_id'    => $record->id,
+    //         'account_id'    => $record->account_id,
+
+    //         'keterangan'    => $record->keterangan,
+    //         'kode'  => $data_prepare['kode'],
+    //         'tanggal_transaksi' => $data_prepare['tanggal'],
+
+    //         'relation_name' => '',
+    //         'relation_nomor_telepon'    => '',
+
+    //         'account_name'  => $record->account_name,
+    //         'account_kode'  => $record->account_kode,
+    //         'transaction_type'  => 'jurnal umum',
+
+    //         'debit' => ($account_type == 'debit')
+    //             ? (($table_type == 'header')
+    //                 ? $record->total
+    //                 : (($table_type == 'detail') ? $record->jumlah : 0))
+    //             : 0,
+    //         'kredit' => ($account_type == 'kredit')
+    //             ? (($table_type == 'header')
+    //                 ? $record->total
+    //                 : (($table_type == 'detail') ? $record->jumlah : 0))
+    //             : 0,
+    //     ]);
+    // }
+
+    public static function InsertJurnal($record, $status)
+    {
+        if ($status == 'approved') {
+            $detail = ServiceDPayment::where('service_schedule_id', $record->id)->get();
+            dd($detail);
+
+            if ($record->total != $detail->sum('jumlah')) {
+                return ['title' => 'Approval Gagal', 'body' => 'total harus sama dengan total jumlah di detail', 'status' => 'warning'];
+            }
+
+            $data_prepare = [
+                'header_id' => $record->id,
+                'kode' => $record->kode,
+                'tanggal' => $record->tanggal_transaksi,
+            ];
+
+            if ($record->account_type == 'Debit') {
+                Self::insertJurnalDetail($record, 'header', 'debit', $data_prepare);
+                foreach ($detail as $val) {
+                    Self::insertJurnalDetail($val, 'detail', 'kredit', $data_prepare);
+                }
+            } else {
+                foreach ($detail as $val) {
+                    Self::insertJurnalDetail($val, 'detail', 'debit', $data_prepare);
+                }
+                Self::insertJurnalDetail($record, 'header', 'kredit', $data_prepare);
+            }
+
+            return ['title' => 'Approval Berhasil', 'body' => 'Cash Flow Berhasil Diapprove', 'status' => 'success'];
+        } else {
+            Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'jurnal umum'])->delete();
+
+            return ['title' => 'Reject Berhasil', 'body' => 'Cash Flow Berhasil Direject', 'status' => 'success'];
+        }
     }
     
     public static function form(Form $form): Form
@@ -266,6 +338,11 @@ class ServiceScheduleResource extends Resource
                 ->label('Mekanik'),
                 TextColumn::make('kepala_mekanik_name')
                 ->label('Kepala Mekanik'),
+                IconColumn::make('checklist_status')
+                ->label('Checklist')
+                ->icon(fn ($record) => $record->checklist_status ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                ->trueColor('info')
+                ->falseColor('warning'),
                 TextColumn::make('service_status')
                 ->label('Status')
                 ->badge()
@@ -335,16 +412,31 @@ class ServiceScheduleResource extends Resource
                         }
                     }),
                     Action::make('Approve Pembayaran')
-                    ->color('success')
-                    ->action(function(ServiceSchedule $record){
-                        $record->service_status = 'Selesai';
-                        $record->save();
+                    ->action(function (ServiceSchedule $record) {
+                        if (empty($record->kode)) {
+                            $record->kode = CodeGenerator::generateTransactionCode('SCD', 'service_schedules', 'kode');
+                        }
+                        
+                        $isApproving = in_array($record->is_approve, ['pending', 'rejected']);
+                        $status = $isApproving ? 'approved' : 'rejected';
+
+                        $message = self::InsertJurnal($record, $status);
+                        // if ($message['status'] == 'success') {
+                        //     $record->is_approve = $status;
+                        //     $record->approved_by = Auth::id();
+                        //     $record->save();
+                        // }
+
                         Notification::make()
-                            ->title("Service Selesai")
-                            ->success()
-                            ->body("Service sudah Selesai dekerjakan.")
+                            ->title($message['title'])
+                            ->{($message['status'] == 'success' ? 'success' : 'warning')}()
+                            ->body($message['body'])
                             ->send();
-                        })
+                    })
+                    ->color(fn (ServiceSchedule $record) => $record->is_approve === 'approved' ? 'danger' : 'info')
+                    ->icon(fn (ServiceSchedule $record) => $record->is_approve === 'approved' ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
+                    ->requiresConfirmation()
+                    ->label(fn (ServiceSchedule $record) => $record->is_approve === 'approved' ? 'Reject' : 'Approve')
                     ->visible(function (ServiceSchedule $record){
                         if ($record->service_status == "Menunggu Pembayaran" && auth()->user()->hasRole(['admin', 'super_admin'])) {
                             return true;

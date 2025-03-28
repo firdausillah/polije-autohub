@@ -72,13 +72,16 @@ class ServiceDServicesRelationManager extends RelationManager
                 ->columns(3)
                 ->schema([
                     TextInput::make('harga_unit')
+                    ->required()
                     ->label('Harga')
                     ->prefix('Rp')
                     ->readOnly(),
                     TextInput::make('harga_subtotal')
+                    ->required()
                     ->prefix('Rp')
                     ->readOnly(),
                     Textinput::make('estimasi_waktu_pengerjaan')
+                    ->required()
                     ->suffix('Menit')
                     ->readOnly(),
                 ])

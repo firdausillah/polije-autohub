@@ -73,6 +73,7 @@ class ServiceDSparepartRelationManager extends RelationManager
                     ->gt(0)
                     ->disabled(fn (Get $get) => !$get('sparepart_satuan_id')),
                 TextInput::make('harga_subtotal')
+                ->required()
                 ->prefix('Rp')
                 ->readOnly(),
             ]);
@@ -82,6 +83,7 @@ class ServiceDSparepartRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('name')
+            ->poll('2s')
             ->columns([
                 Tables\Columns\TextColumn::make('sparepart_name')
                 ->searchable(),

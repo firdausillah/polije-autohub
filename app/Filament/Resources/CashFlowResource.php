@@ -84,6 +84,7 @@ class CashFlowResource extends Resource
 
     public static function InsertJurnal($record, $status)
     {
+        // dd($record);
         if($status == 'approved'){
             $detail = CashDFlow::where('cash_flow_id', $record->id)->get();
 

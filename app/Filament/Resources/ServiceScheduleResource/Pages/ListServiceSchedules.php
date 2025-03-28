@@ -45,8 +45,12 @@ class ListServiceSchedules extends ListRecords
             ServiceSchedule::query()
                 ->where('service_status', $status)
                 ->when(
-                    !in_array($status, ['daftar', 'selesai']) && auth()->user()->hasRole(['Kepala Mekanik', 'Mekanik']),
-                    fn ($query) => $query->where('kepala_mekanik_id', auth()->id()) // Filter hanya jika role Kepala Mekanik/Mekanik
+                    !in_array($status, ['Daftar', 'Selesai']) && auth()->user()->hasRole('Mekanik'),
+                    fn ($query) => $query->where('mekanik_id', auth()->id()) // Filter hanya untuk mekanik
+                )
+                ->when(
+                    !in_array($status, ['Daftar', 'Selesai']) && auth()->user()->hasRole('Kepala Mekanik'),
+                    fn ($query) => $query->where('kepala_mekanik_id', auth()->id()) // Filter hanya untuk kepala mekanik
                 )
                 ->whereDate('created_at', now()->toDateString())
                 ->count()
@@ -54,6 +58,7 @@ class ListServiceSchedules extends ListRecords
         ->modifyQueryUsing(
             fn (Builder $query) => $query->where('service_status', $status)
         );
+
 
 
     }
