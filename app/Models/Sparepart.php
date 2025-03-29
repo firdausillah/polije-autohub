@@ -38,8 +38,8 @@ class Sparepart extends Model
         return $this->hasMany(SparepartSatuans::class);
     }
 
-    public function hpps(): HasMany
+    public function modals(): HasMany
     {
-        return $this->hasMany(Hpp::class);
+        return $this->hasMany(Modal::class);
     }
 }

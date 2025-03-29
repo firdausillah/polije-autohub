@@ -10,9 +10,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class HppsRelationManager extends RelationManager
+class ModalsRelationManager extends RelationManager
 {
-    protected static string $relationship = 'hpps';
+    protected static string $relationship = 'modals';
 
     public function form(Form $form): Form
     {
@@ -33,8 +33,8 @@ class HppsRelationManager extends RelationManager
                 ->label('Kode Transaksi')
                 ->searchable()
                 ->sortable(),
-                Tables\Columns\TextColumn::make('hpp')
-                ->label('HPP')
+                Tables\Columns\TextColumn::make('harga_modal')
+                // ->label('HPP')
                 ->money('IDR', locale: 'id_ID'),
                 // Tables\Columns\TextColumn::make('transaksi_h_kode'),
             ])

@@ -101,29 +101,62 @@ class ServiceScheduleResource extends Resource
     {
         if ($status == 'approved') {
             $detail = ServiceDPayment::where('service_schedule_id', $record->id)->get();
+            
+            if ($record->total != $detail->sum('jumlah_bayar')) {
+                return ['title' => 'Approval Gagal', 'body' => 'total pembayaran harus sama dengan total yang harus di bayar', 'status' => 'warning'];
+            }
+            // dd($record->total);
+            
+            // Jurnal debit
+            foreach ($detail as $key => $value) {
+                Jurnal::create([
+                    'transaksi_h_id'    => $record->id,
+                    'transaksi_d_id'    => $value->id,
+                    'account_id'    => $value->account_id,
+
+                    'keterangan'    => $value->keterangan,
+                    'kode'  => $record->kode,
+                    'tanggal_transaksi' => $record->tanggal,
+
+                    'relation_name' => $record->relation_name,
+                    'relation_nomor_telepon'    => $record->relation_nomor_telepon,
+
+                    'account_name'  => $value->account_name,
+                    'account_kode'  => $value->account_kode,
+                    'transaction_type'  => 'Pelayanan Service',
+
+                    'debit' => $value->jumlah_bayar,
+                    'kredit' => 0,
+                ]);
+            }
             dd($detail);
+            // Jurnal::create([
+            //     'transaksi_h_id'    => $data_prepare['header_id'],
+            //     'transaksi_d_id'    => $record->id,
+            //     'account_id'    => $record->account_id,
 
-            if ($record->total != $detail->sum('jumlah')) {
-                return ['title' => 'Approval Gagal', 'body' => 'total harus sama dengan total jumlah di detail', 'status' => 'warning'];
-            }
+            //     'keterangan'    => $record->keterangan,
+            //     'kode'  => $data_prepare['kode'],
+            //     'tanggal_transaksi' => $data_prepare['tanggal'],
 
-            $data_prepare = [
-                'header_id' => $record->id,
-                'kode' => $record->kode,
-                'tanggal' => $record->tanggal_transaksi,
-            ];
+            //     'relation_name' => '',
+            //     'relation_nomor_telepon'    => '',
 
-            if ($record->account_type == 'Debit') {
-                Self::insertJurnalDetail($record, 'header', 'debit', $data_prepare);
-                foreach ($detail as $val) {
-                    Self::insertJurnalDetail($val, 'detail', 'kredit', $data_prepare);
-                }
-            } else {
-                foreach ($detail as $val) {
-                    Self::insertJurnalDetail($val, 'detail', 'debit', $data_prepare);
-                }
-                Self::insertJurnalDetail($record, 'header', 'kredit', $data_prepare);
-            }
+            //     'account_name'  => $record->account_name,
+            //     'account_kode'  => $record->account_kode,
+            //     'transaction_type'  => 'jurnal umum',
+
+            //     'debit' => ($account_type == 'debit')
+            //         ? (($table_type == 'header')
+            //             ? $record->total
+            //             : (($table_type == 'detail') ? $record->jumlah : 0))
+            //         : 0,
+            //     'kredit' => ($account_type == 'kredit')
+            //         ? (($table_type == 'header')
+            //             ? $record->total
+            //             : (($table_type == 'detail') ? $record->jumlah : 0))
+            //         : 0,
+            // ]);
 
             return ['title' => 'Approval Berhasil', 'body' => 'Cash Flow Berhasil Diapprove', 'status' => 'success'];
         } else {

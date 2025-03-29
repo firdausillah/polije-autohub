@@ -100,6 +100,7 @@ class SparepartSaleResource extends Resource
         if ($status == 'approved') {
             // jurnal begin
             // debit
+            //Kas / Bank
             Jurnal::create([
                 'transaksi_h_id'    => $record->id,
                 'transaksi_d_id'    => $record->id,
@@ -121,7 +122,7 @@ class SparepartSaleResource extends Resource
             ]);
 
             // kredit
-            $account_kredit = Account::find(5);
+            $account_kredit = Account::find(5); //Pendapatan Penjualan Sparepart
             Jurnal::create([
                 'transaksi_h_id'    => $record->id,
                 'transaksi_d_id'    => $record->id,

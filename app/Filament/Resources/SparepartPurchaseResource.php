@@ -9,7 +9,7 @@ use App\Helpers\CodeGenerator;
 use App\Helpers\priceFix;
 use App\Helpers\Round;
 use App\Models\Account;
-use App\Models\Hpp;
+use App\Models\Modal;
 use App\Models\Inventory;
 use App\Models\Jurnal;
 use App\Models\SparepartDPurchase;
@@ -63,7 +63,7 @@ class SparepartPurchaseResource extends Resource
 
             // jurnal begin
             // debit
-            $account_debit = Account::find(11);
+            $account_debit = Account::find(11); //Beban Pembelian Sparepart
             Jurnal::create([
                 'transaksi_h_id'    => $record->id,
                 'transaksi_d_id'    => $record->id,
@@ -108,7 +108,7 @@ class SparepartPurchaseResource extends Resource
 
             // inventory begin
             $SparepartDPurchases = SparepartDPurchase::where('sparepart_purchase_id', $record->id)->get();
-            $hpp = '';
+            $harga_modal = '';
             foreach ($SparepartDPurchases as $val) {
                 Inventory::create([
                     'transaksi_h_id' => $record->id,
@@ -142,26 +142,26 @@ class SparepartPurchaseResource extends Resource
                     'relation_nomor_telepon' => $record->supplier_nomor_telepon
                 ]);
 
-                // hpp begin
-                $hpp = SparepartDPurchase::where('sparepart_id', $val->sparepart_id)
+                // harga_modal begin
+                $harga_modal = SparepartDPurchase::where('sparepart_id', $val->sparepart_id)
                     ->leftJoin('sparepart_purchases as b', 'sparepart_d_purchases.sparepart_purchase_id', '=', 'b.id')
                     ->where('b.is_approve', 'approved')
                     ->orderBy('sparepart_d_purchases.created_at', 'desc')
-                    ->selectRaw('SUM(sparepart_d_purchases.harga_subtotal) / SUM(sparepart_d_purchases.jumlah_terkecil) AS hpp')
+                    ->selectRaw('SUM(sparepart_d_purchases.harga_subtotal) / SUM(sparepart_d_purchases.jumlah_terkecil) AS harga_modal')
                     ->groupBy('sparepart_id')
                     ->limit(3)
-                    ->value('hpp');
+                    ->value('harga_modal');
 
-                Hpp::create([
+                Modal::create([
                     'transaksi_h_id' => $record->id,
                     'transaksi_d_id' => $val->id,
                     'tanggal_transaksi' => $record->tanggal_transaksi,
                     'sparepart_id' => $val->sparepart_id,
                     'transaksi_h_kode' => $record->kode,
-                    'hpp' => round($hpp, 2),
+                    'harga_modal' => round($harga_modal, 2),
                     'keterangan' => 'pembelian sparepart'
                 ]);
-                // hpp end
+                // harga_modal end
 
                 // update harga sparepart
                 priceFix::priceFixer($val->sparepart_id);
@@ -170,7 +170,7 @@ class SparepartPurchaseResource extends Resource
         } else {
             Inventory::where(['transaksi_h_id' => $record->id, 'movement_type' => 'IN-PUR'])->delete();
             Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'pembelian sparepart'])->delete();
-            Hpp::where(['transaksi_h_id' => $record->id, 'keterangan' => 'pembelian sparepart'])->delete();
+            Modal::where(['transaksi_h_id' => $record->id, 'keterangan' => 'pembelian sparepart'])->delete();
         }
     }
 

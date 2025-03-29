@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
-class Hpp extends Model
+class Modal extends Model
 {
     protected $guarded;
 

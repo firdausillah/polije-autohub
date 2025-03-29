@@ -101,7 +101,7 @@ class SparepartResource extends Resource
     {
         return [
             RelationManagers\SatuansRelationManager::class,
-            RelationManagers\HppsRelationManager::class,
+            RelationManagers\ModalsRelationManager::class,
         ];
     }
 
