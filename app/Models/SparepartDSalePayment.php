@@ -9,16 +9,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
-class SparepartPurchase extends Model
+class SparepartDSalePayment extends Model
 {
     use HasFactory, SoftDeletes;
     protected $guarded;
+
 
     protected static function boot()
     {
         parent::boot();
 
-        static::creating(function ($model) {
+        static::saving(function ($model) {
             $model->created_by = Auth::id();
         });
 
@@ -27,18 +28,19 @@ class SparepartPurchase extends Model
         });
     }
 
-    public function sparepartSatuan(): HasMany
+    public function sparepartSale(): BelongsTo
     {
-        return $this->hasMany(SparepartSatuans::class);
-    }
-
-    public function SparepartDPurchase(): HasMany
-    {
-        return $this->hasMany(SparepartDPurchase::class);
+        return $this->belongsTo(SparepartSale::class)->with('sparepart');
     }
 
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class)->where('kode', 'like', '100%');
     }
+
+    // public function sparepartSale()
+    // {
+    //     return $this->belongsTo(SparepartSale::class, 'parent_id')->with('sparepart');
+    // }
+    
 }

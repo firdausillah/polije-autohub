@@ -62,8 +62,12 @@ class SparepartPurchaseResource extends Resource
         if ($status == 'approved') {
 
             // jurnal begin
+            
+            // D. Persediaan Sparepart xxx  
+            //    C. Kas/Bank xxx  
+
             // debit
-            $account_debit = Account::find(11); //Beban Pembelian Sparepart
+            $account_debit = Account::find(3); //Persediaan Sparepart
             Jurnal::create([
                 'transaksi_h_id'    => $record->id,
                 'transaksi_d_id'    => $record->id,
@@ -186,7 +190,8 @@ class SparepartPurchaseResource extends Resource
                 ->readOnly(),
                 TextInput::make('supplier_name')
                 ->required(),
-                TextInput::make('supplier_nomor_telepon'),
+                TextInput::make('supplier_nomor_telepon')
+                ->numeric(),
                 TextInput::make('purchase_receipt')
                 ->required()
                 ->label('Nota Pembelian'),

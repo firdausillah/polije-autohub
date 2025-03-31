@@ -34,8 +34,8 @@ class SparepartSale extends Model
         return $this->hasMany(SparepartDSale::class);
     }
 
-    public function account(): BelongsTo
+    public function sparepartDSalePayment(): HasMany
     {
-        return $this->belongsTo(Account::class)->where('type', 'Aset');
+        return $this->hasMany(SparepartDSalePayment::class);
     }
 }

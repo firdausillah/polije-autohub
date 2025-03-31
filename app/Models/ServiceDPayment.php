@@ -26,6 +26,6 @@ class ServiceDPayment extends Model
     
     public function account(): BelongsTo
     {
-        return $this->belongsTo(Account::class)->where('type', 'Aset');
+        return $this->belongsTo(Account::class)->where('kode', 'like', '100%');
     }
 }
