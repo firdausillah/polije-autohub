@@ -92,6 +92,9 @@ class ServiceScheduleResource extends Resource
             // debit
             //Kas / Bank
             $payment = ServiceDPayment::where('service_schedule_id', $record->id)->get();
+            if ($record->total != $payment->sum('jumlah_bayar')) {
+                return ['title' => 'Approval Gagal', 'body' => 'total harus sama dengan total jumlah di detail', 'status' => 'warning'];
+            }
             foreach ($payment as $key => $val) {
                 Jurnal::create([
                     'transaksi_h_id'    => $val->service_schedule_id,
@@ -286,6 +289,7 @@ class ServiceScheduleResource extends Resource
                         ->relationship('vehicle', 'registration_number')
                         ->searchable()
                         ->preload()
+                        ->required()
                         ->label('Kendaraan')
                         ->createOptionForm([
                             Grid::make([
@@ -583,7 +587,7 @@ class ServiceScheduleResource extends Resource
                     ->requiresConfirmation()
                     ->label(fn (ServiceSchedule $record) => $record->is_approve === 'approved' ? 'Reject' : 'Approve')
                     ->visible(function (ServiceSchedule $record){
-                        if ($record->service_status == "Menunggu Pembayaran" && auth()->user()->hasRole(['admin', 'super_admin'])) {
+                        if (($record->service_status == "Menunggu Pembayaran" || $record->service_status == "Selesai") && auth()->user()->hasRole(['admin', 'super_admin'])) {
                             return true;
                         }
                     })

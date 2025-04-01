@@ -359,7 +359,7 @@ class SparepartSaleResource extends Resource
                     Wizard\Step::make('Pembayaran')
                     ->schema([
                         Repeater::make('sparepartDSalePayment')
-                        ->label('Order Sparepart')
+                        ->label('Metode Pembayaran')
                         ->relationship('sparepartDSalePayment')
                         ->schema([
                             Grid::make()
@@ -389,8 +389,8 @@ class SparepartSaleResource extends Resource
                                         ->label('Bukti pembayaran')
                                         ->image()
                                         ->resize(50),
-                                    TextInput::make('account_name'),
-                                    TextInput::make('account_kode'),
+                                    Hidden::make('account_name'),
+                                    Hidden::make('account_kode'),
                                 ])
                         ])
                     ]),

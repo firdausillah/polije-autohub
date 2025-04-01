@@ -16,6 +16,7 @@ use Filament\Forms\Set;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -80,8 +81,17 @@ class ServiceDPaymentRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('account_name')
                 ->label('Akun'),
+                // Tables\Columns\TextColumn::make('jumlah_bayar')
+                // ->money('IDR', locale: 'id_ID'),
+
                 Tables\Columns\TextColumn::make('jumlah_bayar')
+                ->summarize(
+                    Sum::make()
+                        ->money('IDR', locale: 'id_ID')
+                        ->label('Total')
+                )
                 ->money('IDR', locale: 'id_ID'),
+
                 ImageColumn::make('photo')
                 ->label('Bukti Pembayaran')
             ])

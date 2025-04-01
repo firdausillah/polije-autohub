@@ -147,15 +147,6 @@ class SparepartPurchaseResource extends Resource
                 ]);
 
                 // harga_modal begin
-                // $harga_modal = SparepartDPurchase::where('sparepart_id', $val->sparepart_id)
-                //     ->leftJoin('sparepart_purchases as b', 'sparepart_d_purchases.sparepart_purchase_id', '=', 'b.id')
-                //     ->where('b.is_approve', 'approved')
-                //     ->orderBy('sparepart_d_purchases.created_at', 'desc')
-                //     ->selectRaw('SUM(sparepart_d_purchases.harga_subtotal) / SUM(sparepart_d_purchases.jumlah_terkecil) AS harga_modal')
-                //     ->groupBy('sparepart_id')
-                //     ->limit(3)
-                //     ->value('harga_modal');
-
                 $harga_modal = SparepartDPurchase::where('sparepart_id', $val->sparepart_id)
                 ->leftJoin('sparepart_purchases as b', 'sparepart_d_purchases.sparepart_purchase_id', '=', 'b.id')
                 ->where('b.is_approve', 'approved')
