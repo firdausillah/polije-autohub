@@ -15,6 +15,7 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -81,6 +82,8 @@ class ServiceDPaymentRelationManager extends RelationManager
                 ->label('Akun'),
                 Tables\Columns\TextColumn::make('jumlah_bayar')
                 ->money('IDR', locale: 'id_ID'),
+                ImageColumn::make('photo')
+                ->label('Bukti Pembayaran')
             ])
             ->filters([
                 //

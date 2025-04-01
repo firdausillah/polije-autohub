@@ -11,11 +11,16 @@ use App\Filament\Resources\ServiceScheduleResource\RelationManagers\ServiceDSpar
 use App\Helpers\CodeGenerator;
 use App\Models\Account;
 use App\Models\Checklist;
+use App\Models\Inventory;
 use App\Models\Jurnal;
+use App\Models\Modal;
 use App\Models\ServiceDChecklist;
 use App\Models\ServiceDPayment;
 use App\Models\ServiceDServices;
+use App\Models\ServiceDSparepart;
 use App\Models\ServiceSchedule;
+use App\Models\Sparepart;
+use App\Models\SparepartSatuans;
 use App\Models\User;
 use App\Models\UserRole;
 use Filament\Forms;
@@ -66,103 +71,209 @@ class ServiceScheduleResource extends Resource
         return 'Pelayanan Service';
     }
 
-    // public static function insertJurnalDetail($record, $table_type, $account_type, $data_prepare)
-    // {
-    //     Jurnal::create([
-    //         'transaksi_h_id'    => $data_prepare['header_id'],
-    //         'transaksi_d_id'    => $record->id,
-    //         'account_id'    => $record->account_id,
-
-    //         'keterangan'    => $record->keterangan,
-    //         'kode'  => $data_prepare['kode'],
-    //         'tanggal_transaksi' => $data_prepare['tanggal'],
-
-    //         'relation_name' => '',
-    //         'relation_nomor_telepon'    => '',
-
-    //         'account_name'  => $record->account_name,
-    //         'account_kode'  => $record->account_kode,
-    //         'transaction_type'  => 'jurnal umum',
-
-    //         'debit' => ($account_type == 'debit')
-    //             ? (($table_type == 'header')
-    //                 ? $record->total
-    //                 : (($table_type == 'detail') ? $record->jumlah : 0))
-    //             : 0,
-    //         'kredit' => ($account_type == 'kredit')
-    //             ? (($table_type == 'header')
-    //                 ? $record->total
-    //                 : (($table_type == 'detail') ? $record->jumlah : 0))
-    //             : 0,
-    //     ]);
-    // }
-
     public static function InsertJurnal($record, $status)
     {
         if ($status == 'approved') {
-            $detail = ServiceDPayment::where('service_schedule_id', $record->id)->get();
-            
-            if ($record->total != $detail->sum('jumlah_bayar')) {
-                return ['title' => 'Approval Gagal', 'body' => 'total pembayaran harus sama dengan total yang harus di bayar', 'status' => 'warning'];
-            }
-            // dd($record->total);
-            
-            // Jurnal debit
-            foreach ($detail as $key => $value) {
+            // Jurnal Begin
+
+            // Jurnal Penjualan Servis + Sparepart dalam Satu Transaksi
+
+            // D. Kas/Bank xxx  
+            //     C. Pendapatan Servis xxx  
+            //     C. Pendapatan Sparepart xxx  
+            //     C. Utang PPN Keluaran
+
+            // Jurnal HPP (Harga Pokok Pelayanan Service)
+
+            // D. Harga Pokok Penjualan xxx  
+            //     C. Persediaan Sparepart xxx  
+
+
+            // debit
+            //Kas / Bank
+            $payment = ServiceDPayment::where('service_schedule_id', $record->id)->get();
+            foreach ($payment as $key => $val) {
                 Jurnal::create([
-                    'transaksi_h_id'    => $record->id,
-                    'transaksi_d_id'    => $value->id,
-                    'account_id'    => $value->account_id,
+                    'transaksi_h_id'    => $val->service_schedule_id,
+                    'transaksi_d_id'    => $val->id,
+                    'account_id'    => $val->account_id, //
 
-                    'keterangan'    => $value->keterangan,
+                    'keterangan'    => $val->keterangan,
                     'kode'  => $record->kode,
-                    'tanggal_transaksi' => $record->tanggal,
+                    'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
 
-                    'relation_name' => $record->relation_name,
-                    'relation_nomor_telepon'    => $record->relation_nomor_telepon,
+                    'relation_name' => $record->customer_name,
+                    'relation_nomor_telepon'    => $record->nomor_telepon,
 
-                    'account_name'  => $value->account_name,
-                    'account_kode'  => $value->account_kode,
+                    'account_name'  => $val->account_name, //
+                    'account_kode'  => $val->account_kode, //
                     'transaction_type'  => 'Pelayanan Service',
 
-                    'debit' => $value->jumlah_bayar,
-                    'kredit' => 0,
+                    'debit' => $val->jumlah_bayar,
+                    'kredit'    => 0,
                 ]);
             }
-            dd($detail);
-            // Jurnal::create([
-            //     'transaksi_h_id'    => $data_prepare['header_id'],
-            //     'transaksi_d_id'    => $record->id,
-            //     'account_id'    => $record->account_id,
 
-            //     'keterangan'    => $record->keterangan,
-            //     'kode'  => $data_prepare['kode'],
-            //     'tanggal_transaksi' => $data_prepare['tanggal'],
+            // kredit
+            $account_kredit_service = Account::find(6); //Pendapatan Jasa Service
+            Jurnal::create([
+                'transaksi_h_id'    => $record->id,
+                'transaksi_d_id'    => $record->id,
+                'account_id'    => $account_kredit_service->id,
 
-            //     'relation_name' => '',
-            //     'relation_nomor_telepon'    => '',
+                'keterangan'    => $record->keterangan,
+                'kode'  => $record->kode,
+                'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
 
-            //     'account_name'  => $record->account_name,
-            //     'account_kode'  => $record->account_kode,
-            //     'transaction_type'  => 'jurnal umum',
+                'relation_name' => $record->customer_name,
+                'relation_nomor_telepon'    => $record->nomor_telepon,
 
-            //     'debit' => ($account_type == 'debit')
-            //         ? (($table_type == 'header')
-            //             ? $record->total
-            //             : (($table_type == 'detail') ? $record->jumlah : 0))
-            //         : 0,
-            //     'kredit' => ($account_type == 'kredit')
-            //         ? (($table_type == 'header')
-            //             ? $record->total
-            //             : (($table_type == 'detail') ? $record->jumlah : 0))
-            //         : 0,
-            // ]);
+                'account_name'  => $account_kredit_service->name,
+                'account_kode'  => $account_kredit_service->kode,
+                'transaction_type'  => 'Pelayanan Service',
 
-            return ['title' => 'Approval Berhasil', 'body' => 'Cash Flow Berhasil Diapprove', 'status' => 'success'];
+                'debit' => 0,
+                'kredit'    => $record->service_total,
+            ]);
+            
+            $account_kredit_sparepart = Account::find(7); //Pendapatan Penjualan Sparepart service
+            Jurnal::create([
+                'transaksi_h_id'    => $record->id,
+                'transaksi_d_id'    => $record->id,
+                'account_id'    => $account_kredit_sparepart->id,
+
+                'keterangan'    => $record->keterangan,
+                'kode'  => $record->kode,
+                'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
+
+                'relation_name' => $record->customer_name,
+                'relation_nomor_telepon'    => $record->nomor_telepon,
+
+                'account_name'  => $account_kredit_sparepart->name,
+                'account_kode'  => $account_kredit_sparepart->kode,
+                'transaction_type'  => 'Pelayanan Service',
+
+                'debit' => 0,
+                'kredit'    => $record->sparepart_total,
+            ]);
+
+            if ($record->pajak_total) {
+                $account_kredit_pajak = Account::find(9); //Utang PPN Keluaran
+                Jurnal::create([
+                    'transaksi_h_id'    => $record->id,
+                    'transaksi_d_id'    => $record->id,
+                    'account_id'    => $account_kredit_pajak->id,
+
+                    'keterangan'    => $record->keterangan,
+                    'kode'  => $record->kode,
+                    'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
+
+                    'relation_name' => $record->customer_name,
+                    'relation_nomor_telepon'    => $record->nomor_telepon,
+
+                    'account_name'  => $account_kredit_pajak->name,
+                    'account_kode'  => $account_kredit_pajak->kode,
+                    'transaction_type'  => 'Pelayanan Service',
+
+                    'debit' => 0,
+                    'kredit'    => $record->pajak_total,
+                ]);
+            }
+
+
+            // hpp begin
+            $sparepart = ServiceDSparepart::where('service_schedule_id', $record->id)->get();
+            $account_hpp = Account::find(10); //Harga Pokok Penjualan
+            $account_persediaan = Account::find(3); //Persediaan Sparepart
+            foreach ($sparepart as $key => $val) {
+                $harga_modal = Modal::where('sparepart_id', $val->sparepart_id)->orderBy('id', 'desc')->first()->harga_modal;
+
+                Jurnal::create([
+                    'transaksi_h_id'    => $val->service_schedule_id,
+                    'transaksi_d_id'    => $val->sparepart_id,
+                    'account_id'    => $account_hpp->id, //
+
+                    'keterangan'    => $val->sparepart_kode . ' - ' . $val->sparepart_name,
+                    'kode'  => $record->kode,
+                    'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
+
+                    'relation_name' => $record->customer_name,
+                    'relation_nomor_telepon'    => $record->nomor_telepon,
+
+                    'account_name'  => $account_hpp->name, //
+                    'account_kode'  => $account_hpp->kode, //
+                    'transaction_type'  => 'HPP Penjualan',
+
+                    'debit' => $harga_modal,
+                    'kredit'    => 0
+                ]);
+
+                Jurnal::create([
+                    'transaksi_h_id'    => $val->service_schedule_id,
+                    'transaksi_d_id'    => $val->sparepart_id,
+                    'account_id'    => $account_persediaan->id, //
+
+                    'keterangan'    => $val->sparepart_kode . ' - ' . $val->sparepart_name,
+                    'kode'  => $record->kode,
+                    'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
+
+                    'relation_name' => $record->customer_name,
+                    'relation_nomor_telepon'    => $record->nomor_telepon,
+
+                    'account_name'  => $account_persediaan->name, //
+                    'account_kode'  => $account_persediaan->kode, //
+                    'transaction_type'  => 'HPP Penjualan',
+
+                    'debit' => 0,
+                    'kredit'    => $harga_modal
+                ]);
+            }
+            // hpp end
+            // jurnal end
+
+            // inventory begin
+            $serviceDSpareparts = ServiceDSparepart::where('service_schedule_id', $record->id)->get();
+            foreach ($serviceDSpareparts as $val) {
+                Inventory::create([
+                    'transaksi_h_id' => $record->id,
+                    'transaksi_d_id' => $val->id,
+                    'sparepart_id' => $val->sparepart_id,
+                    'satuan_id' => $val->satuan_id,
+
+                    'name' => '',
+                    'kode' => $record->kode,
+                    'keterangan' => $record->keterangan,
+                    'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
+                    'transaksi_h_kode' => $record->kode,
+
+                    'sparepart_name' => $val->sparepart_name,
+                    'sparepart_kode' => $val->sparepart_kode,
+
+                    'satuan_terkecil_name' => $val->satuan_terkecil_name,
+                    'satuan_terkecil_kode' => $val->satuan_terkecil_kode,
+
+                    'movement_type' => 'OUT-SAL',
+
+                    'jumlah_unit' => $val->jumlah_unit,
+                    'jumlah_konversi' => $val->jumlah_konversi,
+                    'jumlah_terkecil' => $val->jumlah_terkecil,
+
+                    'harga_unit' => $val->harga_unit,
+                    'harga_terkecil' => $val->harga_terkecil,
+                    'harga_subtotal' => $val->harga_subtotal,
+
+                    'relation_name' => $record->customer_name,
+                    'relation_nomor_telepon' => $record->nomor_telepon
+                ]);
+            }
+            // inventory end
+            return ['title' => 'Approval Berhasil', 'body' => 'Pelayanan Service Berhasil Diapprove', 'status' => 'success'];
         } else {
-            Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'jurnal umum'])->delete();
+            Inventory::where(['transaksi_h_id' => $record->id, 'movement_type' => 'OUT-SAL'])->delete();
+            Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'Pelayanan Service'])->delete();
+            Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'HPP Penjualan'])->delete();
 
-            return ['title' => 'Reject Berhasil', 'body' => 'Cash Flow Berhasil Direject', 'status' => 'success'];
+            return ['title' => 'Reject Berhasil', 'body' => 'Pelayanan Service Berhasil Direject', 'status' => 'success'];
         }
     }
     
@@ -429,20 +540,20 @@ class ServiceScheduleResource extends Resource
                         ->label('Checklist')
                         ->relationManager(ServiceDChecklistRelationManager::make()),
                     Action::make('Approve Service')
-                    ->color('success')
-                    ->action(function(ServiceSchedule $record){
-                            $record->service_status = 'Menunggu Pembayaran';
-                            $record->save();
-                            Notification::make()
-                                ->title("Service Selesai, sedang Menunggu Pembayaran")
-                                ->success()
-                                ->body("Service sedang Menunggu Pembayaran.")
-                                ->send();
-                        })
-                    ->visible(function (ServiceSchedule $record){
-                        if ($record->service_status == "Proses Pengerjaan" && auth()->user()->hasRole('Kepala Mekanik')) {
-                            return true;
-                        }
+                        ->color('success')
+                        ->action(function(ServiceSchedule $record){
+                                $record->service_status = 'Menunggu Pembayaran';
+                                $record->save();
+                                Notification::make()
+                                    ->title("Service Selesai, sedang Menunggu Pembayaran")
+                                    ->success()
+                                    ->body("Service sedang Menunggu Pembayaran.")
+                                    ->send();
+                            })
+                        ->visible(function (ServiceSchedule $record){
+                            if ($record->service_status == "Proses Pengerjaan" && auth()->user()->hasRole('Kepala Mekanik')) {
+                                return true;
+                            }
                     }),
                     Action::make('Approve Pembayaran')
                     ->action(function (ServiceSchedule $record) {
@@ -454,11 +565,12 @@ class ServiceScheduleResource extends Resource
                         $status = $isApproving ? 'approved' : 'rejected';
 
                         $message = self::InsertJurnal($record, $status);
-                        // if ($message['status'] == 'success') {
-                        //     $record->is_approve = $status;
-                        //     $record->approved_by = Auth::id();
-                        //     $record->save();
-                        // }
+                        if ($message['status'] == 'success') {
+                            $record->service_status = $isApproving ? 'Selesai' : 'Menunggu Pembayaran';
+                            $record->is_approve = $status;
+                            $record->approved_by = Auth::id();
+                            $record->save();
+                        }
 
                         Notification::make()
                             ->title($message['title'])

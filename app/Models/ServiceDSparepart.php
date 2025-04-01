@@ -23,10 +23,13 @@ class ServiceDSparepart extends Model
         $subTotalSparepart = ServiceDSparepart::where('service_schedule_id', $this->service_schedule_id)
             ->sum('harga_subtotal');
 
+        $totalPajak = ServiceDSparepart::where('service_schedule_id', $this->service_schedule_id)
+            ->sum('pajak');
+
         $subTotal = $subTotalService + $subTotalSparepart;
 
         ServiceSchedule::find($this->service_schedule_id)
-            ->update(['total' => $subTotal, 'service_total' => $subTotalService, 'sparepart_total' => $subTotalSparepart, 'total_estimasi_waktu' => $estimasi_waktu_pengerjaan]);
+            ->update(['total' => $subTotal, 'service_total' => $subTotalService, 'sparepart_total' => $subTotalSparepart, 'total_estimasi_waktu' => $estimasi_waktu_pengerjaan, 'pajak_total' => $totalPajak]);
     }
 
     protected static function boot()

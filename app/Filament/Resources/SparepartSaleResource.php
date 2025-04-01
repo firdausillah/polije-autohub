@@ -89,7 +89,6 @@ class SparepartSaleResource extends Resource
         $harga_subtotal = $selectedSparepart->map(function ($item) use ($detail_harga) {
             return $item['jumlah_unit'] * $detail_harga[$item['sparepart_satuan_id']]->harga;
         })->sum();
-        // dd($selectedSparepart);
 
         $total_pajak = $selectedSparepart->map(function ($item) use ($detail_harga) {
             return ($detail_harga[$item['sparepart_satuan_id']]->sparepart->is_pajak? ($item['jumlah_unit'] * $detail_harga[$item['sparepart_satuan_id']]->harga)*0.11:0);

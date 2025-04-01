@@ -30,15 +30,26 @@ class ServiceDSparepartRelationManager extends RelationManager
     public static function updateSubtotal($get, $set): void
     {
         $sparepart_satuan = SparepartSatuans::where(['id' => $get('sparepart_satuan_id')])->with('sparepart')->first();
+        if($sparepart_satuan != null){
+            $harga_subtotal = floatval($sparepart_satuan->harga) * floatval(($get('jumlah_unit')??0));
+        
+            $is_pajak = Sparepart::find($sparepart_satuan->sparepart_id)->is_pajak;
+            if ($is_pajak == 1) {
+                $pajak = $harga_subtotal * 0.11;
+                $set('pajak', $pajak);
+            } else {
+                $pajak = 0;
+                $set('pajak', 0);
+            }
+        
+            $set('harga_unit', $sparepart_satuan->harga);
+            $set('harga_subtotal', $harga_subtotal);
+            $set('sparepart_id', $sparepart_satuan->sparepart_id);
+            $set('satuan_id', $sparepart_satuan->satuan_id);
+        }
 
-        $harga_subtotal = floatval($sparepart_satuan->harga) * floatval(($get('jumlah_unit')??0));
-
-        $set('harga_unit', $sparepart_satuan->harga);
-        $set('harga_subtotal', $harga_subtotal);
-        $set('sparepart_id', $sparepart_satuan->sparepart_id);
-        $set('satuan_id', $sparepart_satuan->satuan_id);
     }
-
+    
     public function form(Form $form): Form
     {
         return $form
@@ -67,7 +78,7 @@ class ServiceDSparepartRelationManager extends RelationManager
                     ->live()
                     ->afterStateUpdated(
                         function (Get $get, Set $set, $state) {
-                            ($state != '' ? self::updateSubtotal($get, $set) : '');
+                            ($state != NULL ? self::updateSubtotal($get, $set) : '');
                         }
                     )
                     ->gt(0)
@@ -109,11 +120,11 @@ class ServiceDSparepartRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()->hidden(fn () => $this->getOwnerRecord()->is_approve === 'approved'),
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()->hidden(fn () => $this->getOwnerRecord()->is_approve === 'approved'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
