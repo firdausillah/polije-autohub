@@ -61,9 +61,9 @@ class JsonData extends Model
         // ->when(self::$tanggal_akhir, fn ($query) => $query->whereDate('tanggal_transaksi', '<=', self::$tanggal_akhir));
     }
 
-    public function getRows(): array
+    public static function getRows(): array
     {
-        // dd($query);
+        // dd(static::$filters['tanggal_awal']);
         // Ambil filter dari static variable
         $sparepart_id = null;
         $tanggal_awal = null;

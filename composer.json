@@ -9,6 +9,7 @@
         "php": "^8.2 || ^8.3 || ^8.4",
         "bezhansalleh/filament-shield": "^3.3",
         "calebporzio/sushi": "^2.4",
+        "eightynine/filament-reports": "^3.0",
         "filament/filament": "^3.2",
         "guava/filament-modal-relation-managers": "^1.2",
         "joshembling/image-optimizer": "^1.5",
@@ -77,5 +78,11 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/eighty9nine/filament-reports.git"
+        }
+    ]
 }
