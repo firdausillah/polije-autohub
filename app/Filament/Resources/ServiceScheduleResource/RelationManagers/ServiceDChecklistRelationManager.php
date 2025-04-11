@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ServiceDChecklistRelationManager extends RelationManager
 {
-    use CanBeEmbeddedInModals;
+    use canBeEmbeddedInModals;
     protected static string $relationship = 'ServiceDChecklist';
 
     protected static ?string $title = 'Checklist';
