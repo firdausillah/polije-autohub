@@ -71,7 +71,10 @@ class KartuStok extends Report
 
                                 return collect($data);
                             }
-                        ),
+                        )
+                        // ->([
+                        //     'class' => 'overflow-x-auto w-full block', // Tambahin scroll
+                        // ]),
                     // VerticalSpace::make(),
                 ]),
         ]);

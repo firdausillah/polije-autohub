@@ -112,7 +112,7 @@ class ServiceScheduleResource extends Resource
                     'account_kode'  => $val->account_kode, //
                     'transaction_type'  => 'Pelayanan Service',
 
-                    'debit' => $val->jumlah_bayar,
+                    'debit' => ($val->jumlah_bayar==null?0:$val->jumlah_bayar),
                     'kredit'    => 0,
                 ]);
             }
@@ -136,7 +136,7 @@ class ServiceScheduleResource extends Resource
                 'transaction_type'  => 'Pelayanan Service',
 
                 'debit' => 0,
-                'kredit'    => $record->service_total,
+                'kredit'    => ($record->service_total==null?0:$record->service_total),
             ]);
             
             $account_kredit_sparepart = Account::find(7); //Pendapatan Penjualan Sparepart service
@@ -157,7 +157,7 @@ class ServiceScheduleResource extends Resource
                 'transaction_type'  => 'Pelayanan Service',
 
                 'debit' => 0,
-                'kredit'    => $record->sparepart_total,
+                'kredit'    => ($record->sparepart_total==null?0:$record->sparepart_total),
             ]);
 
             if ($record->pajak_total) {
@@ -179,7 +179,7 @@ class ServiceScheduleResource extends Resource
                     'transaction_type'  => 'Pelayanan Service',
 
                     'debit' => 0,
-                    'kredit'    => $record->pajak_total,
+                    'kredit'    => ($record->pajak_total==null?0:$record->pajak_total),
                 ]);
             }
 
@@ -207,7 +207,7 @@ class ServiceScheduleResource extends Resource
                     'account_kode'  => $account_hpp->kode, //
                     'transaction_type'  => 'HPP Penjualan',
 
-                    'debit' => $harga_modal,
+                    'debit' => ($harga_modal==null?0:$harga_modal),
                     'kredit'    => 0
                 ]);
 
@@ -228,7 +228,7 @@ class ServiceScheduleResource extends Resource
                     'transaction_type'  => 'HPP Penjualan',
 
                     'debit' => 0,
-                    'kredit'    => $harga_modal
+                    'kredit'    => ($harga_modal==null?0:$harga_modal)
                 ]);
             }
             // hpp end
