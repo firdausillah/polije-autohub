@@ -4,6 +4,7 @@ namespace App\Filament\Reports;
 
 use App\Models\Account;
 use App\Models\KartuStok as ModelsKartuStok;
+use App\Models\Sparepart;
 use EightyNine\Reports\Report;
 use EightyNine\Reports\Components\Body;
 use EightyNine\Reports\Components\Footer;
@@ -16,16 +17,39 @@ use Filament\Forms\Components\Select;
 
 class KartuStok extends Report
 {
-    public ?string $heading = "Report";
-    
+    // public ?string $heading = "Report";
+
 
     // public ?string $subHeading = "A great report";
+
+
+    public function getSparepartName()
+    {
+        
+        $sparepart = isset($this->data['sparepart_id'])?Sparepart::find($this->data['sparepart_id'])->name:'Sparepart Belum Dipilih';
+
+        $periode = 'Periode: ' . \Carbon\Carbon::parse($this->data['start'])->translatedFormat('d F Y') . ' - ' . \Carbon\Carbon::parse($this->data['end'])->translatedFormat('d F Y');
+        // dd(Sparepart::find($this->data['sparepart_id'])->name);
+
+        return ['sparepart' => $sparepart, 'periode' => $periode];
+    }
 
     public function header(Header $header): Header
     {
         return $header
             ->schema([
-                // ...
+                Header\Layout\HeaderColumn::make()
+                    ->alignCenter()
+                    ->schema([
+                        Text::make("Polije Autohub")
+                        ->font2Xl()
+                        ->fontBold(),
+                        Text::make("Laporan Kartu Stok")
+                        ->fontXl()
+                        ->fontBold(),
+                        Text::make($this->getSparepartName()['periode'])
+                            ->fontNormal()
+                    ]),
             ]);
     }
 
@@ -37,7 +61,7 @@ class KartuStok extends Report
         ->schema([
             Body\Layout\BodyColumn::make()
                 ->schema([
-                    Text::make("Kartu Stok Sparepart")
+                    Text::make($this->getSparepartName()['sparepart'])
                         ->fontXl()
                         ->fontBold()
                         ->primary(),
@@ -51,8 +75,8 @@ class KartuStok extends Report
                             ->dateTime('d/M/Y'),
                             Body\TextColumn::make("transaksi_kode")
                             ->label('Kode'),
-                            Body\TextColumn::make("sparepart_name")
-                            ->label('Sparepart'),
+                            // Body\TextColumn::make("sparepart_name")
+                            // ->label('Sparepart'),
                             // Body\TextColumn::make("satuan"),
                             Body\TextColumn::make("relation_name")
                             ->label('Relasi'),

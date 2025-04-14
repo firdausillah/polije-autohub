@@ -12,18 +12,37 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Tables\Columns\Summarizers\Sum;
+use Carbon\Carbon;
+use EightyNine\Reports\Components\Body\TextColumn;
+use Filament\Infolists\Components\TextEntry;
 
 class labaRugi extends Report
 {
-    public ?string $heading = "Laporan Laba Rugi";
-
+    // public ?string $heading = "Laporan Laba Rugi";
+    
     // public ?string $subHeading = "A great report";
+
+    public function getFilter(){
+        return 'Periode: ' . \Carbon\Carbon::parse($this->data['start'])->translatedFormat('d F Y') . ' - ' . \Carbon\Carbon::parse($this->data['end'])->translatedFormat('d F Y');
+
+    }
 
     public function header(Header $header): Header
     {
         return $header
             ->schema([
-                // ...
+            Header\Layout\HeaderColumn::make()
+                ->alignCenter()
+                ->schema([
+                    Text::make("Polije Autohub")
+                    ->font2Xl()
+                    ->fontBold(),
+                    Text::make("Laporan Laba Rugi")
+                    ->fontXl()
+                    ->fontBold(),
+                    Text::make($this->getFilter())
+                    ->fontNormal()
+                ]),
             ]);
     }
 
@@ -175,7 +194,6 @@ class labaRugi extends Report
             ]);
     }
 
-
     public function footer(Footer $footer): Footer
     {
         return $footer
@@ -186,7 +204,6 @@ class labaRugi extends Report
 
     public function filterForm(Form $form): Form
     {
-
         return $form
             ->schema([
                 DatePicker::make('start')
