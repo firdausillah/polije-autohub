@@ -15,12 +15,24 @@ use Filament\Tables\Columns\Summarizers\Sum;
 use Carbon\Carbon;
 use EightyNine\Reports\Components\Body\TextColumn;
 use Filament\Infolists\Components\TextEntry;
+use Illuminate\Support\Facades\Auth;
 
-class labaRugi extends Report
+class LabaRugi extends Report
 {
+
     // public ?string $heading = "Laporan Laba Rugi";
-    
+
     // public ?string $subHeading = "A great report";
+
+    public static function canAccess(): bool
+    {
+    return auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager']);
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public function getFilter(){
         return 'Periode: ' . \Carbon\Carbon::parse($this->data['start'])->translatedFormat('d F Y') . ' - ' . \Carbon\Carbon::parse($this->data['end'])->translatedFormat('d F Y');

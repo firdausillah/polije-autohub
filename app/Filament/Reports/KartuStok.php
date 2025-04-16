@@ -19,9 +19,17 @@ class KartuStok extends Report
 {
     // public ?string $heading = "Report";
 
-
     // public ?string $subHeading = "A great report";
 
+    public static function canAccess(): bool
+    {
+        return auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager']);
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public function getSparepartName()
     {
