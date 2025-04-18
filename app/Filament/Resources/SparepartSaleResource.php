@@ -500,7 +500,11 @@ class SparepartSaleResource extends Resource
                         // Cek apakah file sudah ada
                         if (!$record->invoice_file) {
                             // Generate PDF
-                            $pdf = new \Mpdf\Mpdf();
+                            // $pdf = new \Mpdf\Mpdf();
+                            $pdf = new \Mpdf\Mpdf([
+                                'tempDir' => storage_path('app/mpdf-temp')
+                            ]);
+
                             $html = view('invoices.template', ['transaction' => $record, 'transaction_d' => SparepartDSale::where(['sparepart_sale_id' => $record->id])->get()])->render();
                             $filename = 'invoice-' . \Illuminate\Support\Str::random(5) . $record->id .\Illuminate\Support\Str::random(5) . '.pdf';
                             $path = storage_path("app/invoices/penjualan/{$filename}");
