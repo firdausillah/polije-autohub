@@ -573,6 +573,7 @@ class ServiceScheduleResource extends Resource
                             $record->service_status = $isApproving ? 'Selesai' : 'Menunggu Pembayaran';
                             $record->is_approve = $status;
                             $record->approved_by = Auth::id();
+                            $record->approved_at = NOW();
                             $record->save();
                         }
 

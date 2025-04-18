@@ -272,6 +272,7 @@ class SparepartPurchaseResource extends Resource
 
                         $record->is_approve = $status;
                         $record->approved_by = FacadesAuth::id();
+                        $record->approved_at = NOW();
                         $record->save();
                         self::InsertJurnal($record, $status);
 
