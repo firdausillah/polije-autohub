@@ -10,7 +10,7 @@ Route::get('/', function () {
 });
 
 // routes/web.php
-// Route::get('/invoice/{transaksi}', [InvoiceController::class, 'preview'])->name('invoice.preview');
+Route::get('/invoice/{transaksi}', [InvoiceController::class, 'preview'])->name('invoice.preview');
 
 
 Route::get('/penjualan-invoice-download/{filename}', function ($filename) {
