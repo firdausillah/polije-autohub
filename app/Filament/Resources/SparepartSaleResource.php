@@ -357,6 +357,8 @@ class SparepartSaleResource extends Resource
                             TextInput::make('customer_name')
                             ->label('Nama pelanggan'),
                             TextInput::make('customer_nomor_telepon')
+                            ->default('+62')
+                            ->helperText('tambahkan kode negara (+62)')
                             ->label('Nomor Telepon Pelanggan')
                         ]),
                     Wizard\Step::make('Pembayaran')
@@ -471,7 +473,7 @@ class SparepartSaleResource extends Resource
                         ->label(fn (SparepartSale $record) => $record->is_approve === 'approved' ? 'Reject' : 'Approve'),
 
                     Tables\Actions\EditAction::make()
-                        ->visible(fn (SparepartSale $record) => $record->is_approve !== 'approved'),
+                    ->visible(fn (SparepartSale $record) => $record->is_approve !== 'approved'),
                     Tables\Actions\Action::make('kirimInvoice')
                     ->label('Kirim Invoice')
                     ->icon('heroicon-o-paper-airplane')
@@ -480,27 +482,10 @@ class SparepartSaleResource extends Resource
                     ->modalHeading('Kirim invoice ke WhatsApp?')
                     ->modalDescription('Invoice akan dikirim ke nomor pelanggan.')
                     ->openUrlInNewTab()
-                    // ->action(function ($record) {
-                    //     // Generate PDF
-                    //     $pdf = new Mpdf();
-                    //     $html = view('invoices.template', ['transaction' => $record])->render();
-                    //     $filename = 'invoice_' . $record->id . '_' . Str::random(5) . '.pdf';
-                    //     $path = storage_path("app/invoices/penjualan/{$filename}");
-                    //     $pdf->WriteHTML($html);
-                    //     $pdf->Output($path, \Mpdf\Output\Destination::FILE);
-
-                    //     // Kirim via WhatsApp
-                    //     $downloadUrl = route('invoice.download', ['filename' => $filename]);
-                    //     $message = "Halo! Berikut invoice kamu:\n{$downloadUrl}";
-                    //     $whatsappLink = 'https://wa.me/' . $record->customer_nomor_telepon . '?text=' . urlencode($message);
-
-                    //     return redirect($whatsappLink);
-                    // })
                     ->action(function ($record) {
                         // Cek apakah file sudah ada
                         if (!$record->invoice_file) {
                             // Generate PDF
-                            // $pdf = new \Mpdf\Mpdf();
                             $pdf = new \Mpdf\Mpdf([
                                 'tempDir' => storage_path('app/mpdf-temp')
                             ]);
@@ -510,9 +495,6 @@ class SparepartSaleResource extends Resource
                             $path = storage_path("app/invoices/penjualan/{$filename}");
                             $pdf->WriteHTML($html);
                             $pdf->Output($path, \Mpdf\Output\Destination::FILE);
-
-                            // Simpan PDF
-                            // Storage::disk('local')->put("invoices/penjualan/{$filename}", $pdf->Output('', 'S'));
 
                             // Simpan nama file di database
                             $record->update(['invoice_file' => $filename]);
@@ -525,7 +507,13 @@ class SparepartSaleResource extends Resource
 
                         return redirect($waLink);
                     })
-                        ->visible(fn ($record) => !empty($record->customer_nomor_telepon)),
+                    ->visible(fn ($record) => !empty($record->customer_nomor_telepon && $record->is_approve == 'approved')),
+                    Tables\Actions\Action::make('preview_invoice')
+                    ->label('Lihat Invoice')
+                    ->url(fn ($record) => route('invoice.preview', $record))
+                    ->openUrlInNewTab()
+                    ->icon('heroicon-o-document-text')
+                    ->visible(fn ($record) => !empty($record->customer_nomor_telepon && $record->is_approve == 'approved')),
                 ])
             ])
 
