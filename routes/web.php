@@ -10,19 +10,20 @@ Route::get('/', function () {
 });
 
 // routes/web.php
-Route::get('/invoice/{transaksi}', [InvoiceController::class, 'preview'])->name('invoice.preview');
+Route::get('/invoice/sales/{transaksi}', [InvoiceController::class, 'sales'])->name('invoice.sales_preview');
+Route::get('/invoice/service/{transaksi}', [InvoiceController::class, 'service'])->name('invoice.service_preview');
 
 
-Route::get('/penjualan-invoice-download/{filename}', function ($filename) {
-    $path = storage_path("app/invoices/penjualan/{$filename}");
+Route::get('/sales-invoice-download/{filename}', function ($filename) {
+    $path = storage_path("app/invoices/sales/{$filename}");
 
     abort_unless(file_exists($path), 404);
 
     return response()->file($path);
-})->name('penjualan.invoice.download');
+})->name('sales.invoice.download');
 
 Route::get('/service-invoice-download/{filename}', function ($filename) {
-    $path = storage_path("app/invoices/pelayanan-service/{$filename}");
+    $path = storage_path("app/invoices/service/{$filename}");
 
     abort_unless(file_exists($path), 404);
 

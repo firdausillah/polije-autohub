@@ -492,7 +492,7 @@ class SparepartSaleResource extends Resource
 
                             $html = view('invoices.template', ['transaction' => $record, 'transaction_d' => SparepartDSale::where(['sparepart_sale_id' => $record->id])->get()])->render();
                             $filename = 'invoice-' . \Illuminate\Support\Str::random(5) . $record->id .\Illuminate\Support\Str::random(5) . '.pdf';
-                            $path = storage_path("app/invoices/penjualan/{$filename}");
+                            $path = storage_path("app/invoices/sales/{$filename}");
                             $pdf->WriteHTML($html);
                             $pdf->Output($path, \Mpdf\Output\Destination::FILE);
 
@@ -501,8 +501,8 @@ class SparepartSaleResource extends Resource
                         }
 
                         // Gunakan file yang sudah ada
-                        $downloadUrl = route('penjualan.invoice.download', ['filename' => $record->invoice_file]);
-                        $message = "Halo! Berikut invoice kamu: \n{$downloadUrl}";
+                        $downloadUrl = route('sales.invoice.download', ['filename' => $record->invoice_file]);
+                        $message = "Halo! Terimakasih sudah berbelanja Sparepart di Polije Autohub. Berikut adalah invoice belanja anda: \n{$downloadUrl}";
                         $waLink = 'https://wa.me/' . $record->customer_nomor_telepon . '?text=' . urlencode($message);
 
                         return redirect($waLink);
@@ -510,7 +510,7 @@ class SparepartSaleResource extends Resource
                     ->visible(fn ($record) => !empty($record->customer_nomor_telepon && $record->is_approve == 'approved')),
                     Tables\Actions\Action::make('preview_invoice')
                     ->label('Lihat Invoice')
-                    ->url(fn ($record) => route('invoice.preview', $record))
+                    ->url(fn ($record) => route('invoice.sales_preview', $record))
                     ->openUrlInNewTab()
                     ->icon('heroicon-o-document-text')
                     ->visible(fn ($record) => !empty($record->customer_nomor_telepon && $record->is_approve == 'approved')),

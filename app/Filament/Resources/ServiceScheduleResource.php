@@ -592,7 +592,54 @@ class ServiceScheduleResource extends Resource
                         if (($record->service_status == "Menunggu Pembayaran" || $record->service_status == "Selesai") && auth()->user()->hasRole(['admin', 'super_admin'])) {
                             return true;
                         }
+                    }),
+                    Tables\Actions\Action::make('kirimInvoice')
+                    ->label('Kirim Invoice')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Kirim invoice ke WhatsApp?')
+                    ->modalDescription('Invoice akan dikirim ke nomor pelanggan.')
+                    ->openUrlInNewTab()
+                    ->action(function ($record) {
+                        // Cek apakah file sudah ada
+                        if (!$record->invoice_file) {
+                            // Generate PDF
+                            $pdf = new \Mpdf\Mpdf([
+                                'tempDir' => storage_path('app/mpdf-temp')
+                            ]);
+
+                            $html = view(
+                                'invoices.service_template', 
+                                [
+                                    'transaction' => $record, 
+                                    'transaction_d_service' => ServiceDServices::where(['service_schedule_id' => $record->id])->get(), 
+                                    'transaction_d_sparepart' => ServiceDSparepart::where(['service_schedule_id' => $record->id])->get()
+                                ])
+                                ->render();
+                            $filename = 'invoice-' . \Illuminate\Support\Str::random(5) . $record->id . \Illuminate\Support\Str::random(5) . '.pdf';
+                            $path = storage_path("app/invoices/service/{$filename}");
+                            $pdf->WriteHTML($html);
+                            $pdf->Output($path, \Mpdf\Output\Destination::FILE);
+
+                            // Simpan nama file di database
+                            $record->update(['invoice_file' => $filename]);
+                        }
+
+                        // Gunakan file yang sudah ada
+                        $downloadUrl = route('service.invoice.download', ['filename' => $record->invoice_file]);
+                        $message = "Halo! Terimakasih sudah mempercayai Polije Autohub untuk meningkatkan kenyamanan berkendara anda. Berikut adalah invoice anda: \n{$downloadUrl}";
+                        $waLink = 'https://wa.me/' . $record->nomor_telepon . '?text=' . urlencode($message);
+
+                        return redirect($waLink);
                     })
+                    ->visible(fn ($record) => !empty($record->nomor_telepon && $record->is_approve == 'approved')),
+                    Tables\Actions\Action::make('preview_invoice')
+                    ->label('Lihat Invoice')
+                    ->url(fn ($record) => route('invoice.service_preview', $record))
+                    ->openUrlInNewTab()
+                    ->icon('heroicon-o-document-text')
+                    ->visible(fn ($record) => !empty($record->nomor_telepon && $record->is_approve == 'approved')),
                 ]),
                 // Tables\Actions\EditAction::make(),
             ])
