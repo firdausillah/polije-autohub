@@ -17,6 +17,7 @@ class InvoiceController extends Controller
     {
 
         $mpdf = new Mpdf([
+            'tempDir' => storage_path('app/mpdf-temp')
             // 'format' => 'A4',
             // 'orientation' => 'P',
         ]);
@@ -42,6 +43,7 @@ class InvoiceController extends Controller
     {
 
         $mpdf = new Mpdf([
+            'tempDir' => storage_path('app/mpdf-temp')
             // 'format' => 'A4',
             // 'orientation' => 'P',
         ]);
