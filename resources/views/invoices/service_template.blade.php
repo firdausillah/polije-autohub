@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Invoice</title>
+    <title>Invoice Pelayanan Service {{$transaction->kode}}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -119,7 +119,7 @@
                     <img src="{{ public_path('logo autohub sm.png') }}" alt="Logo Bengkel" height="90">
                 </td>
                 <td style="text-align: right; color: white;">
-                    <strong>INVOICE</strong><br>
+                    <strong>INVOICE PELAYANAN SERVICE</strong><br>
                     No: {{$transaction->kode}}<br>
                     Tanggal: {{date_format(date_create($transaction->approved_at), 'd M Y')}}<br>
                 </td>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Invoice</title>
+    <title>Invoice Penjualan Sparepart {{$transaction->kode}}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,8 +15,8 @@
 
         .bg-header {
             background-color: green;
-            width: 300px;
-            height: 160px;
+            width: 350px;
+            height: 170px;
             z-index: 1;
             top: 0;
             right: 0;
@@ -119,7 +119,7 @@
                     <img src="{{ public_path('logo autohub sm.png') }}" alt="Logo Bengkel" height="90">
                 </td>
                 <td style="text-align: right; color: white;">
-                    <strong>INVOICE</strong><br>
+                    <strong>INVOICE PENJUALAN SPAREPART</strong><br>
                     No: {{$transaction->kode}}<br>
                     Tanggal: {{date_format(date_create($transaction->approved_at), 'd M Y')}}<br>
                 </td>
