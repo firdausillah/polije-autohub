@@ -73,9 +73,6 @@ class KartuStok extends Report
                         ->fontXl()
                         ->fontBold()
                         ->primary(),
-                    // Text::make("This is a list of registered users from the specified date range")
-                    // ->fontSm()
-                    // ->secondary(),
                     Body\Table::make()
                         ->columns([
                             Body\TextColumn::make("created_at")

@@ -219,10 +219,10 @@ class LabaRugi extends Report
         return $form
             ->schema([
                 DatePicker::make('start')
-                ->label('Rentang Tanggal')
+                ->label('Mulai Tanggal')
                 ->default(now()->startOfMonth()), // Default ke 1 bulan terakhir
                 DatePicker::make('end')
-                ->label('Rentang Tanggal')
+                ->label('Sampai Tanggal')
                 ->default(now()->endOfMonth())
             ]);
     }

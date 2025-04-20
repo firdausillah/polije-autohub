@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Filament\Reports\KartuStok;
 use App\Filament\Reports\LabaRugi;
+use App\Filament\Reports\PemasukanPengeluaran;
 use Filament\Facades\Filament;
 use Filament\Navigation\NavigationItem;
 use Illuminate\Support\ServiceProvider;
@@ -37,6 +38,11 @@ class AppServiceProvider extends ServiceProvider
                     NavigationItem::make()
                         ->label('Kartu Stok')
                         ->url(KartuStok::getUrl())
+                        ->icon('heroicon-o-document-text')
+                        ->group('Laporan'),
+                    NavigationItem::make()
+                        ->label('Pemasukan & Pengeluaran')
+                        ->url(PemasukanPengeluaran::getUrl())
                         ->icon('heroicon-o-document-text')
                         ->group('Laporan'),
                 ]);

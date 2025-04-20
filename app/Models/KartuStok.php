@@ -11,34 +11,9 @@ class KartuStok extends Model
 {
     protected $guarded;
 
-    public static function getRows()
-    {
-        $data = DB::select("
-            SELECT id, account_name, kode, debit, kredit 
-            FROM jurnals limit 5
-        ");
-
-        dd($data);
-        // print_r(json_decode(json_encode($data), true));
-        // return json_decode(json_encode($data), true);
-
-        // Step 2: Olah jadi custom array
-        return $data->map(function ($item) {
-            return [
-                'name' => strtoupper($item->name), // customisasi
-                'email' => $item->email,
-                'role_name' => optional($item->role)->name ?? '-',
-            ];
-        });
-    }
 
     public static function getLaporanByTanggal($sparepartId, $startDate, $endDate)
     {
-        // return DB::select('
-        //     SELECT id, kode, account_id, account_name, debit, kredit, DATE_FORMAT(created_at, "%d/%M/%Y") AS tanggal
-        //     FROM jurnals
-        //     WHERE account_id = ? AND created_at BETWEEN ? AND ?
-        // ', [$sparepartId, $startDate, $endDate]);
 
         $saldo_awal = DB::table('inventories')
         ->where('sparepart_id', $sparepartId)
