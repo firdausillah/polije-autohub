@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Invoice Penjualan Sparepart {{$transaction->kode}}</title>
+    <title>Invoice Pelayanan Service {{$transaction->kode}}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,8 +15,8 @@
 
         .bg-header {
             background-color: green;
-            width: 350px;
-            height: 170px;
+            width: 300px;
+            height: 160px;
             z-index: 1;
             top: 0;
             right: 0;
@@ -119,7 +119,7 @@
                     <img src="{{ public_path('logo autohub sm.png') }}" alt="Logo Bengkel" height="90">
                 </td>
                 <td style="text-align: right; color: white;">
-                    <strong>INVOICE PENJUALAN SPAREPART</strong><br>
+                    <strong>INVOICE PELAYANAN SERVICE</strong><br>
                     No: {{$transaction->kode}}<br>
                     Tanggal: {{date_format(date_create($transaction->approved_at), 'd M Y')}}<br>
                 </td>
@@ -132,7 +132,32 @@
             No WA: {{$transaction->customer_nomor_telepon}}
         </div>
 
-        <h4 style="margin-top: 30px;">Detail Transaksi</h4>
+        <h4 style="margin-top: 30px; margin-bottom: 10px;">Detail Service</h4>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Deskripsi</th>
+                    <th>Qty</th>
+                    <th>Harga</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($transaction_d_service as $key => $value) : ?>
+                    <tr>
+                        <td>{{$key+1}}</td>
+                        <td>{{$value->service_name}}</td>
+                        <td>{{$value->jumlah}}</td>
+                        <td>{{"Rp " . number_format($value->harga_unit, 2, ",", ".")}}</td>
+                        <td>{{"Rp " . number_format($value->harga_subtotal, 2, ",", ".")}}</td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <h4 style="margin-top: 30px; margin-bottom: 10px;">Detail Sparepart</h4>
 
         <table>
             <thead>
@@ -146,7 +171,7 @@
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($transaction_d as $key => $value) : ?>
+                <?php foreach ($transaction_d_sparepart as $key => $value) : ?>
                     <tr>
                         <td>{{$key+1}}</td>
                         <td>{{$value->sparepart_name}}</td>
@@ -163,30 +188,21 @@
             <!-- <div style="width: 100px; height: 100px; background-color: #333; position: absolute; right: 10px;">as</div> -->
             <table width="100%">
                 <tr>
-                    <td width="50%" style="border: none;"></td>
+                    <td width="60%" style="border: none;"></td>
+                    <td style="background: #f5f5f5;">Subtotal Service</td>
+                    <td>{{"Rp " . number_format($transaction->service_total, 2, ",", ".")}}</td>
+                </tr>
+                <tr>
+                    <td width="60%" style="border: none;"></td>
+                    <td style="background: #f5f5f5;">Subtotal Sparepart</td>
+                    <td>{{"Rp " . number_format($transaction->sparepart_total, 2, ",", ".")}}</td>
+                </tr>
+                <tr>
+                    <td width="60%" style="border: none;"></td>
                     <td style="background: #f5f5f5; font-weight: bold;">Total</td>
                     <td>{{"Rp " . number_format($transaction->total, 2, ",", ".")}}</td>
                 </tr>
             </table>
-            <!-- <table>
-                <tr>
-                    <td></td>
-                    <td>
-                        <table style="width: 30%; position: absolute; right: 10px;">
-                            <tr>
-                                <td>Subtotal</td>
-                                <td>Ini Subtotalnya</td>
-                            </tr>
-                            <tr>
-                                <td>Total</td>
-                                <td>Ini Totalnya</td>
-                            </tr>
-                        </table>
-
-                    </td>
-                </tr>
-            </table> -->
-            <!-- <strong>Grand Total: Rp265.000</strong> -->
         </div>
 
         <div class="note">

@@ -132,6 +132,7 @@
             No WA: {{$transaction->customer_nomor_telepon}}
         </div>
 
+        <?php if($transaction_d_service->isNotEmpty()): ?>
         <h4 style="margin-top: 30px; margin-bottom: 10px;">Detail Service</h4>
 
         <table>
@@ -156,7 +157,9 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+        <?php endif ?>
 
+        <?php if($transaction_d_sparepart->isNotEmpty()): ?>
         <h4 style="margin-top: 30px; margin-bottom: 10px;">Detail Sparepart</h4>
 
         <table>
@@ -183,22 +186,23 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+        <?php endif ?>
 
         <div class="" style="width: 100%; position: relative;">
             <!-- <div style="width: 100px; height: 100px; background-color: #333; position: absolute; right: 10px;">as</div> -->
             <table width="100%">
                 <tr>
-                    <td width="60%" style="border: none;"></td>
+                    <td width="50%" style="border: none;"></td>
                     <td style="background: #f5f5f5;">Subtotal Service</td>
                     <td>{{"Rp " . number_format($transaction->service_total, 2, ",", ".")}}</td>
                 </tr>
                 <tr>
-                    <td width="60%" style="border: none;"></td>
+                    <td width="50%" style="border: none;"></td>
                     <td style="background: #f5f5f5;">Subtotal Sparepart</td>
                     <td>{{"Rp " . number_format($transaction->sparepart_total, 2, ",", ".")}}</td>
                 </tr>
                 <tr>
-                    <td width="60%" style="border: none;"></td>
+                    <td width="50%" style="border: none;"></td>
                     <td style="background: #f5f5f5; font-weight: bold;">Total</td>
                     <td>{{"Rp " . number_format($transaction->total, 2, ",", ".")}}</td>
                 </tr>

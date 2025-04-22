@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\InvoiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +13,7 @@ Route::get('/', function () {
 // routes/web.php
 Route::get('/invoice/sales/{transaksi}', [InvoiceController::class, 'sales'])->name('invoice.sales_preview');
 Route::get('/invoice/service/{transaksi}', [InvoiceController::class, 'service'])->name('invoice.service_preview');
+Route::get('/history/service/{transaksi}', [HistoryController::class, 'service'])->name('service.history');
 
 
 Route::get('/sales-invoice-download/{filename}', function ($filename) {
