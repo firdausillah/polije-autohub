@@ -214,7 +214,7 @@ class SparepartSaleResource extends Resource
                     'account_kode'  => $account_hpp->kode, //
                     'transaction_type'  => 'HPP Penjualan',
 
-                    'debit' => $harga_modal,
+                    'debit' => $harga_modal * $val->jumlah_terkecil,
                     'kredit'    => 0
                 ]);
 
@@ -235,7 +235,7 @@ class SparepartSaleResource extends Resource
                         'transaction_type'  => 'HPP Penjualan',
 
                         'debit' => 0,
-                        'kredit'    => $harga_modal
+                        'kredit'    => $harga_modal * $val->jumlah_terkecil
                 ]);
             }
             // hpp end
@@ -454,6 +454,19 @@ class SparepartSaleResource extends Resource
 
                         $isApproving = in_array($record->is_approve, ['pending', 'rejected']);
                         $status = $isApproving ? 'approved' : 'rejected';
+
+                        if ($status == 'rejected') {
+                            // Hapus file jika ada
+                            $filePath = storage_path('app/invoices/sales/' . $record->invoice_file);
+                            if ($record->invoice_file != null && file_exists($filePath)) {
+                                unlink($filePath);
+                            }
+
+                            $record->update([
+                                'invoice_file' => null,
+                            ]);
+                        }
+
 
                         self::InsertJurnal($record, $status);
                         $record->is_approve = $status;

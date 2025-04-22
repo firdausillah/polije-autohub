@@ -54,6 +54,7 @@ use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 
 class ServiceScheduleResource extends Resource
 {    
@@ -157,7 +158,7 @@ class ServiceScheduleResource extends Resource
                 'transaction_type'  => 'Pelayanan Service',
 
                 'debit' => 0,
-                'kredit'    => ($record->sparepart_total==null?0:$record->sparepart_total),
+                'kredit'    => ($record->sparepart_total==null?0:$record->sparepart_total-$record->pajak_total),
             ]);
 
             if ($record->pajak_total) {
@@ -207,7 +208,7 @@ class ServiceScheduleResource extends Resource
                     'account_kode'  => $account_hpp->kode, //
                     'transaction_type'  => 'HPP Penjualan',
 
-                    'debit' => ($harga_modal==null?0:$harga_modal),
+                    'debit' => ($harga_modal==null?0:$harga_modal * $val->jumlah_terkecil),
                     'kredit'    => 0
                 ]);
 
@@ -228,7 +229,7 @@ class ServiceScheduleResource extends Resource
                     'transaction_type'  => 'HPP Penjualan',
 
                     'debit' => 0,
-                    'kredit'    => ($harga_modal==null?0:$harga_modal)
+                    'kredit'    => ($harga_modal == null ? 0 : $harga_modal * $val->jumlah_terkecil)
                 ]);
             }
             // hpp end
@@ -490,8 +491,8 @@ class ServiceScheduleResource extends Resource
                 IconColumn::make('checklist_status')
                 ->label('Checklist')
                 ->icon(fn ($record) => $record->checklist_status ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
-                ->trueColor('info')
-                ->falseColor('warning'),
+                ->trueColor('success')
+                ->falseColor('gray'),
                 TextColumn::make('service_status')
                 ->label('Status')
                 ->badge()
@@ -568,6 +569,18 @@ class ServiceScheduleResource extends Resource
                         
                         $isApproving = in_array($record->is_approve, ['pending', 'rejected']);
                         $status = $isApproving ? 'approved' : 'rejected';
+
+                        if($status=='rejected'){
+                            // Hapus file jika ada
+                            $filePath = storage_path('app/invoices/service/'. $record->invoice_file);
+                            if ($record->invoice_file != null && file_exists($filePath)) {
+                                unlink($filePath);
+                            }
+
+                            $record->update([
+                                'invoice_file' => null,
+                            ]);
+                        }
 
                         $message = self::InsertJurnal($record, $status);
                         if ($message['status'] == 'success') {

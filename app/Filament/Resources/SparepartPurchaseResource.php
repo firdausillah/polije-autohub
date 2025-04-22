@@ -67,6 +67,7 @@ class SparepartPurchaseResource extends Resource
             //    C. Kas/Bank xxx  
 
             // debit
+            // dd($record);
             $account_debit = Account::find(3); //Persediaan Sparepart
             Jurnal::create([
                 'transaksi_h_id'    => $record->id,
@@ -270,11 +271,14 @@ class SparepartPurchaseResource extends Resource
                         $isApproving = in_array($record->is_approve, ['pending', 'rejected']);
                         $status = $isApproving ? 'approved' : 'rejected';
 
-                        $record->is_approve = $status;
-                        $record->approved_by = FacadesAuth::id();
-                        $record->approved_at = NOW();
-                        $record->save();
-                        self::InsertJurnal($record, $status);
+                        if($record->total != null){
+                            $record->is_approve = $status;
+                            $record->approved_by = FacadesAuth::id();
+                            $record->approved_at = NOW();
+                            $record->save();
+                            self::InsertJurnal($record, $status);
+
+                        }
 
                         Notification::make()
                             ->title("Sparepart Purchase $status")

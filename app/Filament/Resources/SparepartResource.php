@@ -52,8 +52,7 @@ class SparepartResource extends Resource
                     1 => 'Iya',
                     0 => 'Tidak'
                 ]),
-                TextInput::make('part_number')
-                ->numeric(),
+                TextInput::make('part_number'),
                 TextInput::make('margin')
                 ->numeric()
                 ->suffix('%')

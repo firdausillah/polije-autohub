@@ -34,17 +34,20 @@ class AppServiceProvider extends ServiceProvider
                         ->label('Laba Rugi')
                         ->url(LabaRugi::getUrl())
                         ->icon('heroicon-o-document-text')
-                        ->group('Laporan'),
+                        ->group('Laporan')
+                        ->isActiveWhen(fn () => str_contains(request()->url(), LabaRugi::getUrl())),
                     NavigationItem::make()
                         ->label('Kartu Stok')
                         ->url(KartuStok::getUrl())
                         ->icon('heroicon-o-document-text')
-                        ->group('Laporan'),
+                        ->group('Laporan')
+                        ->isActiveWhen(fn () => str_contains(request()->url(), KartuStok::getUrl())),
                     NavigationItem::make()
                         ->label('Pemasukan & Pengeluaran')
                         ->url(PemasukanPengeluaran::getUrl())
                         ->icon('heroicon-o-document-text')
-                        ->group('Laporan'),
+                        ->group('Laporan')
+                        ->isActiveWhen(fn () => str_contains(request()->url(), PemasukanPengeluaran::getUrl())),
                 ]);
             }
         });
