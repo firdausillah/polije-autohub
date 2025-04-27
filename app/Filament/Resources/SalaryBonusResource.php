@@ -68,6 +68,7 @@ class SalaryBonusResource extends Resource
                 // Ambil ID CashFlow barusan
                 $cashFlowId = $cashFlow->id;
                 $user_active = Auth::id();
+                dd($cashFlowId);
 
                 // cashflow detail gaji begin
                 DB::insert("
