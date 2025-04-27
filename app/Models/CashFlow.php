@@ -26,6 +26,10 @@ class CashFlow extends Model
         static::updating(function ($model) {
             $model->updated_by = Auth::id();
         });
+
+        static::deleting(function ($model) {
+            $model->cashDFlow()->delete();
+        });
     }
 
     public function account(): BelongsTo
