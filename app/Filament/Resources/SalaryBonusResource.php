@@ -44,7 +44,6 @@ class SalaryBonusResource extends Resource
     {
         if ($status == 'approved') {
 
-            // dd($record);
             $account_kredit = Account::find(1); //account kas
 
             DB::transaction(function () use ($account_kredit, $record) {
@@ -65,82 +64,73 @@ class SalaryBonusResource extends Resource
                     'tanggal_transaksi' => now(),
                 ]);
 
-                // Ambil ID CashFlow barusan
                 $cashFlowId = $cashFlow->id;
-                $user_active = Auth::id();
-                dd($cashFlowId);
+                $userActive = Auth::id();
+                $salaryBonusId = $record->id;
 
-                // cashflow detail gaji begin
-                DB::insert("
-                INSERT INTO cash_d_flows (
-                    cash_flow_id,
-
-                    account_id,
-                    account_kode,
-                    account_name,
-
-                    created_by,
-                    created_at,
-                    updated_at,
-
-                    jumlah
-                )
-                SELECT
-                    $cashFlowId,
-
-                    sa.id,
-                    sa.kode,
-                    sa.name,
-
-                    $user_active,
-                    now(),
-                    now(),
-
-                    SUM(a.salary)
-                FROM salary_d_bonuses a
-                LEFT JOIN (
-                    SELECT id, name, kode,
-                        CASE
-                            WHEN kode = 5005 THEN 11
-                            WHEN kode = 5006 THEN 9
-                            WHEN kode = 5007 THEN 3
-                            WHEN kode = 5008 THEN 8
-                        END AS role_id
-                    FROM accounts
-                    WHERE kode IN (5005,5006,5007,5008)
-                ) sa ON a.role_id = sa.role_id
-                WHERE a.salary_bonus_id = ?
-                GROUP BY a.role_id, sa.id, sa.kode, sa.name
-            ", [$record->id]);
+                // Cashflow detail - Salary
                 DB::insert("
                     INSERT INTO cash_d_flows (
                         cash_flow_id,
-
                         account_id,
                         account_kode,
                         account_name,
-
                         created_by,
                         created_at,
                         updated_at,
-
                         jumlah
                     )
                     SELECT
-                        $cashFlowId,
-
-                        ba.id,
-                        ba.kode,
-                        ba.name,
-
-                        $user_active,
-                        now(),
-                        now(),
-
-                        SUM(a.bonus)
+                        ? AS cash_flow_id,
+                        sa.id AS account_id,
+                        sa.kode AS account_kode,
+                        sa.name AS account_name,
+                        ? AS created_by,
+                        NOW() AS created_at,
+                        NOW() AS updated_at,
+                        SUM(a.salary) AS jumlah
                     FROM salary_d_bonuses a
                     LEFT JOIN (
-                        SELECT id, name, kode,
+                        SELECT 
+                            id, name, kode,
+                            CASE
+                                WHEN kode = 5005 THEN 11
+                                WHEN kode = 5006 THEN 9
+                                WHEN kode = 5007 THEN 3
+                                WHEN kode = 5008 THEN 8
+                            END AS role_id
+                        FROM accounts
+                        WHERE kode IN (5005, 5006, 5007, 5008)
+                    ) sa ON a.role_id = sa.role_id
+                    WHERE a.salary_bonus_id = ?
+                    GROUP BY a.role_id, sa.id, sa.kode, sa.name
+                ", [$cashFlowId, $userActive, $salaryBonusId]);
+
+                // Cashflow detail - Bonus
+                DB::insert("
+                    INSERT INTO cash_d_flows (
+                        cash_flow_id,
+                        account_id,
+                        account_kode,
+                        account_name,
+                        created_by,
+                        created_at,
+                        updated_at,
+                        jumlah
+                    )
+                    SELECT
+                        ? AS cash_flow_id,
+                        ba.id AS account_id,
+                        ba.kode AS account_kode,
+                        ba.name AS account_name,
+                        ? AS created_by,
+                        NOW() AS created_at,
+                        NOW() AS updated_at,
+                        SUM(a.bonus) AS jumlah
+                    FROM salary_d_bonuses a
+                    LEFT JOIN (
+                        SELECT 
+                            id, name, kode,
                             CASE
                                 WHEN kode = 5001 THEN 11
                                 WHEN kode = 5002 THEN 9
@@ -148,14 +138,12 @@ class SalaryBonusResource extends Resource
                                 WHEN kode = 5004 THEN 8
                             END AS role_id
                         FROM accounts
-                        WHERE kode IN (5001,5002,5003,5004)
+                        WHERE kode IN (5001, 5002, 5003, 5004)
                     ) ba ON a.role_id = ba.role_id
                     WHERE a.salary_bonus_id = ?
                     GROUP BY a.role_id, ba.id, ba.kode, ba.name
-                ", [$record->id]);
+                ", [$cashFlowId, $userActive, $salaryBonusId]);
             });
-                // cashflow detail bonus begin
-            // cashflow detail end
 
         // } else {
         //     CashFlow::where(['transaksi_h_id' => $record->id, 'movement_type' => 'IN-PUR'])->delete();
