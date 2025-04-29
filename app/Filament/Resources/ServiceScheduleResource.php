@@ -459,7 +459,7 @@ class ServiceScheduleResource extends Resource
 
             Hidden::make('mekanik_name'),
             ])
-            ->disabled(auth()->user()->hasRole(['super_admin', 'Manager']) ? false:true)
+            ->disabled(auth()->user()->hasRole(['super_admin', 'Manager', 'Admin']) ? false:true)
             ->columns([
                 'sm' => 2,
             ]);
@@ -536,7 +536,7 @@ class ServiceScheduleResource extends Resource
                     ViewAction::make(),
                     EditAction::make()
                         ->visible(function (ServiceSchedule $record){
-                        if (auth()->user()->hasRole(['super_admin', 'Manager']) OR ($record->kepala_mekanik_id != null && auth()->user()->hasRole(['Kepala Mekanik', 'Mekanik']))) {
+                        if (auth()->user()->hasRole(['super_admin', 'Manager', 'Admin']) OR ($record->kepala_mekanik_id != null && auth()->user()->hasRole(['Kepala Mekanik', 'Mekanik']))) {
                             return true;
                         }else{
                             return false;
@@ -602,7 +602,7 @@ class ServiceScheduleResource extends Resource
                     ->requiresConfirmation()
                     ->label(fn (ServiceSchedule $record) => $record->is_approve === 'approved' ? 'Reject' : 'Approve')
                     ->visible(function (ServiceSchedule $record){
-                        if (($record->service_status == "Menunggu Pembayaran" || $record->service_status == "Selesai") && auth()->user()->hasRole(['admin', 'super_admin'])) {
+                        if (($record->service_status == "Menunggu Pembayaran" || $record->service_status == "Selesai") && auth()->user()->hasRole(['Admin', 'super_admin'])) {
                             return true;
                         }
                     }),
