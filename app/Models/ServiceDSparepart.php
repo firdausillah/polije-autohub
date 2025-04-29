@@ -27,12 +27,6 @@ class ServiceDSparepart extends Model
             ->sum('pajak');
 
         $subTotal = $subTotalService + $subTotalSparepart;
-        dd(
-            $estimasi_waktu_pengerjaan,
-            $subTotalService,
-            $subTotalSparepart,
-            $totalPajak
-        );
 
         ServiceSchedule::find($this->service_schedule_id)
             ->update(['total' => $subTotal, 'service_total' => $subTotalService, 'sparepart_total' => $subTotalSparepart, 'total_estimasi_waktu' => $estimasi_waktu_pengerjaan, 'pajak_total' => $totalPajak]);

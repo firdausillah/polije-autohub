@@ -410,7 +410,7 @@ class ServiceScheduleResource extends Resource
                         ->label('Nama Customer'),
                     TextInput::make('nomor_telepon')
                         ->default('+62')
-                        ->helperText('tambahkan kode negara (+62)'),
+                        ->helperText('tambahkan kode negara (+62). contoh: +62856781234'),
                     TextInput::make('km_datang')
                         ->required()
                         ->label('KM datang')
