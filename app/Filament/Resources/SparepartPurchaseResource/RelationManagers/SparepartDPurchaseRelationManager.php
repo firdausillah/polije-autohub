@@ -42,6 +42,7 @@ class SparepartDPurchaseRelationManager extends RelationManager
                 ),
 
                 Select::make('satuan_id')
+                ->label('Satuan')
                 ->options(
                     fn (Get $get) =>
                     Sparepart::find($get('sparepart_id'))?->sparepartSatuan()->pluck('satuan_name', 'satuan_id') ?? [],
