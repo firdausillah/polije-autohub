@@ -33,8 +33,7 @@ class ServiceDPaymentRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        dd(auth()->user());
-        return $ownerRecord->service_status === 'Menunggu Pembayaran' && auth()->user()->hasRole('super_admin', 'Admin');
+        return $ownerRecord->service_status === 'Menunggu Pembayaran' && auth()->user()->hasRole(['super_admin', 'Admin']);
     }
 
     public function form(Form $form): Form
