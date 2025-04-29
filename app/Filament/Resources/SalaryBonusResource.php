@@ -220,7 +220,7 @@ class SalaryBonusResource extends Resource
                             ->send();
                     })
                     ->requiresConfirmation()
-                    ->modalDescription(fn (SalaryBonus $record) => $record->is_approve === 'approved' ? 'Reject tidak akan menarik kembali data dari Cashflow, jika ingin mengubah data, hapus dulu data Gaji dan Bonus di menu Cashflow agar data tidak double' : 'Anda akan menarik data ini ke menu Cashflow')
+                    ->modalDescription(fn (SalaryBonus $record) => $record->is_approve === 'approved' ? 'Reject tidak akan menarik kembali data dari Jurnal Umum, jika ingin mengubah data, hapus dulu data Gaji dan Bonus di menu Jurnal Umum agar data tidak double' : 'Anda akan menarik data ini ke menu Jurnal Umum')
                     ->color(fn (SalaryBonus $record) => $record->is_approve === 'approved' ? 'danger' : 'info')
                     ->icon(fn (SalaryBonus $record) => $record->is_approve === 'approved' ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                     ->label(fn (SalaryBonus $record) => $record->is_approve === 'approved' ? 'Reject' : 'Approve'),
