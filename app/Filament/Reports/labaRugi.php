@@ -26,7 +26,7 @@ class LabaRugi extends Report
 
     public static function canAccess(): bool
     {
-    return auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager']);
+    return auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager', 'Admin']);
     }
 
     public static function shouldRegisterNavigation(): bool
