@@ -18,19 +18,19 @@ class StatsOverview extends BaseWidget
     {
         // Bulan ini
         $startDate = Carbon::now()->startOfMonth();
-        $endDate = Carbon::now()->endOfMonth();
+        $endDate = Carbon::now()->endOfMonth()->addDay();
 
         // Bulan lalu
         $startLastMonth = Carbon::now()->subMonth()->startOfMonth();
-        $endLastMonth = Carbon::now()->subMonth()->endOfMonth();
+        $endLastMonth = Carbon::now()->subMonth()->endOfMonth()->addDay();
 
         // Minggu ini
         $startWeekDate = Carbon::now()->startOfWeek();
-        $endWeekDate = Carbon::now()->endOfWeek();
+        $endWeekDate = Carbon::now()->endOfWeek()->addDay();
 
         // Minggu lalu
         $startLastWeek = Carbon::now()->subWeek()->startOfWeek();
-        $endLastWeek = Carbon::now()->subWeek()->endOfWeek();
+        $endLastWeek = Carbon::now()->subWeek()->endOfWeek()->addDay();
 
         // ==================== //
         //   Data Bulan Lalu    //

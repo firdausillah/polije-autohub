@@ -5,6 +5,7 @@ namespace App\Filament\Reports;
 use App\Models\Account;
 use App\Models\LabaRugi;
 use App\Models\PemasukanPengeluaran as ModelsPemasukanPengeluaran;
+use Carbon\Carbon;
 use EightyNine\Reports\Report;
 use EightyNine\Reports\Components\Body;
 use EightyNine\Reports\Components\Footer;
@@ -106,7 +107,7 @@ class PemasukanPengeluaran extends Report
                                 $startDate = $filters['start'] ?? now()->startOfMonth();
                                 $endDate = $filters['end'] ?? now()->endOfMonth();
 
-                                $data = ModelsPemasukanPengeluaran::getLaporanByTanggal($accountId, $startDate, $endDate);
+                                $data = ModelsPemasukanPengeluaran::getLaporanByTanggal($accountId, $startDate, Carbon::parse($endDate)->addDay()->toDateString());
 
                                 return collect($data);
                             }

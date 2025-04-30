@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class SalaryBonus extends Model
         static::created(function ($model) {
 
             $start_date = $model->start_date;
-            $end_date = $model->end_date;
+            $end_date = Carbon::parse($model->end_date)->addDay()->toDateString();
             DB::insert(
                 "
                 INSERT INTO salary_d_bonuses (

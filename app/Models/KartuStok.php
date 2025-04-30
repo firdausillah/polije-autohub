@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +15,8 @@ class KartuStok extends Model
 
     public static function getLaporanByTanggal($sparepartId, $startDate, $endDate)
     {
+
+        $endDate = Carbon::parse($endDate)->addDay()->toDateString();
 
         $saldo_awal = DB::table('inventories')
         ->where('sparepart_id', $sparepartId)

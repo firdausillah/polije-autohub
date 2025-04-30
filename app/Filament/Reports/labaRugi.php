@@ -166,8 +166,9 @@ class LabaRugi extends Report
                                 function (?array $filters) {
                                     $startDate = $filters['start'] ?? now()->startOfMonth();
                                     $endDate = $filters['end'] ?? now()->endOfMonth();
+                                    
 
-                                    $data = ModelsLabaRugi::getBebanOperasional($startDate, $endDate);
+                                    $data = ModelsLabaRugi::getBebanOperasional($startDate, Carbon::parse($endDate)->addDay()->toDateString());
                                     // dd($data);
 
                                     return collect($data);
