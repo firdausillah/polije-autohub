@@ -10,7 +10,7 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class StokTerkecil extends BaseWidget
 {
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 4;
 
     public function table(Table $table): Table
     {
