@@ -7,6 +7,7 @@ use App\Filament\Resources\ServiceResource\RelationManagers;
 use App\Helpers\CodeGenerator;
 use App\Models\Service;
 use Filament\Forms;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -34,15 +35,29 @@ class ServiceResource extends Resource
                 TextInput::make('kode')
                 ->default(fn () => CodeGenerator::generateSimpleCode('SV', 'services', 'kode'))
                 ->readOnly(),
-                TextInput::make('harga')
-                ->label('Biaya')
+
+                Select::make('service_m_category_id')
+                ->relationship('serviceMCategory', 'name')
+                ->label('Kategori Service')
+                ->required(),
+
+                Select::make('service_m_type_id')
+                ->relationship('serviceMType', 'name')
+                ->label('Tipe Service')
+                ->required(),
+                TextInput::make('harga_1')
+                ->label('Biaya Umum')
                 ->prefix('Rp ')
                 ->numeric()
                 ->required(),
-                TextInput::make('estimasi_waktu_pengerjaan')
-                ->suffix('menit')
-                ->required()
-                ->numeric(),
+                TextInput::make('harga_2')
+                ->label('Biaya Mahasiswa')
+                ->prefix('Rp ')
+                ->numeric()
+                ->required(),
+                // TextInput::make('estimasi_waktu_pengerjaan')
+                // ->suffix('menit')
+                // ->numeric(),
                 Textarea::make('keterangan')
             ]);
     }
@@ -51,16 +66,25 @@ class ServiceResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('serviceMCategory.name')
+                ->label('Kategori')
+                ->searchable(),
+                TextColumn::make('serviceMType.name')
+                ->label('Tipe')
+                ->searchable(),
                 TextColumn::make('name')
                 ->searchable(),
-                TextColumn::make('kode')
-                ->searchable(),
-                TextColumn::make('harga')
-                ->label('Biaya')
+                // TextColumn::make('kode')
+                // ->searchable(),
+                TextColumn::make('harga_1')
+                ->label('Biaya Umum')
                 ->money('IDR', locale: 'id_ID'),
-                TextColumn::make('estimasi_waktu_pengerjaan')
-                ->suffix(' menit')
-                ->alignCenter(),
+                TextColumn::make('harga_2')
+                ->label('Biaya Mahasiswa')
+                ->money('IDR', locale: 'id_ID'),
+                // TextColumn::make('estimasi_waktu_pengerjaan')
+                // ->suffix(' menit')
+                // ->alignCenter(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
