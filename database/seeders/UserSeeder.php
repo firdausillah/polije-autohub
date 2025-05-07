@@ -41,7 +41,7 @@ class UserSeeder extends Seeder
         $kepalaMekanikUser = User::firstOrCreate(
             ['email' => 'kepala_mekanik@kepala_mekanik.com'],
             [
-                'name' => 'Kepala Mekanik User',
+                'name' => 'Kepala Unit User',
                 'password' => bcrypt('password'),
             ]
         );

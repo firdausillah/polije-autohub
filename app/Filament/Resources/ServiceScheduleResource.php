@@ -436,7 +436,7 @@ class ServiceScheduleResource extends Resource
                             TextInput::make('total_estimasi_waktu')
                                 ->suffix(' Menit')
                                 ->numeric()
-                                ->readOnly(!auth()->user()->hasRole('Kepala Mekanik')),
+                                ->readOnly(!auth()->user()->hasRole('Kepala Unit')),
                             TextInput::make('service_total')
                                 ->prefix('Rp')
                                 ->readOnly(),
@@ -452,7 +452,7 @@ class ServiceScheduleResource extends Resource
                         Tabs\Tab::make('Mekanik')
                             ->schema([
                                 Select::make('kepala_mekanik_id')
-                                    ->label('Kepala Mekanik')
+                                    ->label('Kepala Unit')
                                     ->relationship('kepalaMekanik', 'user_name')
                                     ->disabled(),
                                 Fieldset::make('Mekanik')
@@ -494,7 +494,7 @@ class ServiceScheduleResource extends Resource
 
             // Hidden::make('mekanik_name'),
             ])
-            ->disabled(auth()->user()->hasRole(['super_admin', 'Manager', 'Admin', 'Kepala Mekanik']) ? false:true)
+            ->disabled(auth()->user()->hasRole(['super_admin', 'Manager', 'Admin', 'Kepala Unit']) ? false:true)
             ->columns([
                 'sm' => 2,
             ]);
@@ -526,7 +526,7 @@ class ServiceScheduleResource extends Resource
                 // TextColumn::make('mekanik_name')
                 // ->label('Mekanik'),
                 TextColumn::make('kepala_mekanik_name')
-                ->label('Kepala Mekanik'),
+                ->label('Kepala Unit'),
                 IconColumn::make('checklist_status')
                 ->label('Checklist')
                 ->icon(fn ($record) => $record->checklist_status ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
@@ -569,14 +569,14 @@ class ServiceScheduleResource extends Resource
                         ->icon('heroicon-o-clipboard-document-check')
                         // ->requiresConfirmation()
                         ->visible(function (ServiceSchedule $record){
-                            if ($record->kepala_mekanik_id == null && auth()->user()->hasRole('Kepala Mekanik')) {
+                            if ($record->kepala_mekanik_id == null && auth()->user()->hasRole('Kepala Unit')) {
                                 return true;
                             }
                         }),
                     ViewAction::make(),
                     EditAction::make()
                         ->visible(function (ServiceSchedule $record){
-                        if (auth()->user()->hasRole(['super_admin', 'Manager', 'Admin']) OR ($record->kepala_mekanik_id != null && auth()->user()->hasRole(['Kepala Mekanik', 'Mekanik']))) {
+                        if (auth()->user()->hasRole(['super_admin', 'Manager', 'Admin']) OR ($record->kepala_mekanik_id != null && auth()->user()->hasRole(['Kepala Unit', 'Mekanik']))) {
                             return true;
                         }else{
                             return false;
@@ -598,7 +598,7 @@ class ServiceScheduleResource extends Resource
                                     ->send();
                             })
                         ->visible(function (ServiceSchedule $record){
-                            if ($record->service_status == "Proses Pengerjaan" && auth()->user()->hasRole('Kepala Mekanik')) {
+                            if ($record->service_status == "Proses Pengerjaan" && auth()->user()->hasRole('Kepala Unit')) {
                                 return true;
                             }
                     }),

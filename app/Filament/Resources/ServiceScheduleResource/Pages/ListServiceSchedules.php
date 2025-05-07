@@ -44,7 +44,7 @@ class ListServiceSchedules extends ListRecords
             });
         }
 
-        if (auth()->user()->hasRole('Kepala Mekanik')) {
+        if (auth()->user()->hasRole('Kepala Unit')) {
             $query->where('kepala_mekanik_id', auth()->id());
         }
         // dd($query->get());
@@ -65,7 +65,7 @@ class ListServiceSchedules extends ListRecords
                 });
             }
 
-            if (auth()->user()->hasRole('Kepala Mekanik')) {
+            if (auth()->user()->hasRole('Kepala Unit')) {
                 $query->where('kepala_mekanik_id', auth()->id());
             }
         }

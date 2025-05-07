@@ -62,7 +62,7 @@ class ServiceSchedule extends Model
 
     public function kepalaMekanik(): BelongsTo
     {
-        return $this->belongsTo(UserRole::class)->where('role_name', 'like', 'Kepala Mekanik%');
+        return $this->belongsTo(UserRole::class)->where('role_name', 'like', 'Kepala Unit%');
     }
 
     public function getChecklistStatusAttribute()

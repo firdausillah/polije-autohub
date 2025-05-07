@@ -88,7 +88,7 @@ class SalaryBonus extends Model
                                         AND approved_at BETWEEN ? AND ?
                                     ), 0)
 
-                                WHEN u.role_id = 3 THEN -- Kepala Mekanik
+                                WHEN u.role_id = 3 THEN -- Kepala Unit
                                     COALESCE((
                                         SELECT SUM(service_total)
                                         FROM service_schedules
@@ -136,7 +136,7 @@ class SalaryBonus extends Model
                     $start_date, $end_date, // admin - service_schedules
                     $start_date, $end_date, // admin - sparepart_sales
                     $start_date, $end_date, // mekanik
-                    $start_date, $end_date, // kepala mekanik
+                    $start_date, $end_date, // Kepala Unit
                     $start_date, $end_date, // manager - service_schedules
                     $start_date, $end_date, // manager - sparepart_sales
                 ]

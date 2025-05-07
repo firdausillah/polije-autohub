@@ -102,12 +102,12 @@ class ServiceDSparepartRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('jumlah_unit'),
                 Tables\Columns\CheckboxColumn::make('checklist_hasil'),
                 Tables\Columns\TextInputColumn::make('keterangan')
-                ->visible(auth()->user()->hasRole(['Kepala Mekanik', 'Mekanik'])),
+                ->visible(auth()->user()->hasRole(['Kepala Unit', 'Mekanik'])),
                 Tables\Columns\TextColumn::make('harga_unit')
-                ->visible(auth()->user()->hasRole(['Kepala Mekanik', 'super_admin', 'manager']))
+                ->visible(auth()->user()->hasRole(['Kepala Unit', 'super_admin', 'manager']))
                     ->money('IDR', locale: 'id_ID'),
                 Tables\Columns\TextColumn::make('harga_subtotal')
-                ->visible(auth()->user()->hasRole(['Kepala Mekanik', 'super_admin', 'manager']))
+                ->visible(auth()->user()->hasRole(['Kepala Unit', 'super_admin', 'manager']))
                     ->summarize(
                         Sum::make()
                             ->money('IDR', locale: 'id_ID')
@@ -135,11 +135,11 @@ class ServiceDSparepartRelationManager extends RelationManager
 
     public function canCreate(): bool
     {
-        return auth()->user()->hasRole(['Kepala Mekanik']);
+        return auth()->user()->hasRole(['Kepala Unit']);
     }
 
     public function canDelete(Model $record): bool
     {
-        return auth()->user()->hasRole(['Kepala Mekanik']);
+        return auth()->user()->hasRole(['Kepala Unit']);
     }
 }
