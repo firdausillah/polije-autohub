@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Auth;
 
 class ServiceDServices extends Model
@@ -47,6 +49,16 @@ class ServiceDServices extends Model
     public function service()
     {
         return $this->belongsTo(Service::class);
+    }
+
+    public function serviceMCategory(): BelongsTo
+    {
+        return $this->belongsTo(ServiceMCategory::class);
+    }
+
+    public function serviceMType(): BelongsTo
+    {
+        return $this->belongsTo(ServiceMType::class)->where('service_m_category_id', Payroll::find(auth()->user()->payroll_id)->service_m_category_id);
     }
     
     // public function services(): HasMany

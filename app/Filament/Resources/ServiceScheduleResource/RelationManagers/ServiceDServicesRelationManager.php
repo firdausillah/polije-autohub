@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ServiceScheduleResource\RelationManagers;
 
 use App\Models\Service;
 use App\Models\ServiceDServices;
+use App\Models\ServiceSchedule;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Hidden;
@@ -17,6 +18,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class ServiceDServicesRelationManager extends RelationManager
 {
@@ -26,16 +28,18 @@ class ServiceDServicesRelationManager extends RelationManager
     protected static ?string $pluralLabel = 'Services';
     protected static ?string $modelLabel = 'Services';
 
-    public static function updateSubtotal($get, $set): void
+    public static function updateSubtotal($get, $set, $is_customer_umum): void
     {
         $service = Service::find($get('service_id'));
         
-        $harga_subtotal = floatval($service->harga ?? 0) * floatval($get('jumlah') ?? 0);
+        $harga = $is_customer_umum==1?$service->harga_1: $service->harga_2;
+
+        $harga_subtotal = floatval($harga ?? 0) * floatval($get('jumlah') ?? 0);
         $estimasi_waktu_pengerjaan = ($service->estimasi_waktu_pengerjaan ?? 0) * floatval(($get('jumlah') ?? 0));
 
         $set('service_name', $service->name??'');
         $set('service_kode', $service->kode??'');
-        $set('harga_unit', $service->harga??0);
+        $set('harga_unit', $harga??0);
         $set('estimasi_waktu_pengerjaan', $estimasi_waktu_pengerjaan);
         $set('harga_subtotal', $harga_subtotal);
     }
@@ -44,14 +48,21 @@ class ServiceDServicesRelationManager extends RelationManager
     {
         return $form
             ->schema([
+                Select::make('service_m_type_id')
+                ->relationship('serviceMType', 'name')
+                ->label('Tipe Service')
+                ->required()
+                ->preload(),
                 Select::make('service_id')
                 ->relationship('service', 'name')
                 ->required()
                 ->preload()
                 ->live()
+                ->options(fn (Get $get): Collection => Service::query() ->where('service_m_type_id', $get('service_m_type_id')) ->pluck('name', 'id'))
                 ->afterStateUpdated(
                     function(Set $set, Get $get){
-                        Self::updateSubtotal($get, $set);
+                        $is_customer_umum = $this->getOwnerRecord()->is_customer_umum;
+                        Self::updateSubtotal($get, $set, $is_customer_umum);
                     }
                 )
                 ->searchable(),
@@ -64,7 +75,8 @@ class ServiceDServicesRelationManager extends RelationManager
                 ->numeric()
                 ->afterStateUpdated(
                     function (Set $set, Get $get) {
-                        Self::updateSubtotal($get, $set);
+                        $is_customer_umum = $this->getOwnerRecord()->is_customer_umum;
+                        Self::updateSubtotal($get, $set, $is_customer_umum);
                     }
                 )
                 ->gt(0),
@@ -137,18 +149,18 @@ class ServiceDServicesRelationManager extends RelationManager
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()->visible(!auth()->user()->hasRole('Mekanik')),
                 ]),
             ]);
     }
 
     public function canCreate(): bool
     {
-        return auth()->user()->hasRole(['Kepala Mekanik', 'super_admin', 'manager']);
+        return auth()->user()->hasRole(['Kepala Mekanik']);
     }
 
     public function canDelete(Model $record): bool
     {
-        return auth()->user()->hasRole(['Kepala Mekanik', 'super_admin', 'manager']);
+        return auth()->user()->hasRole(['Kepala Mekanik']);
     }
 }

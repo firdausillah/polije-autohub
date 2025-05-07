@@ -26,11 +26,13 @@ use App\Models\UserRole;
 use Filament\Forms;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Wizard;
@@ -284,182 +286,215 @@ class ServiceScheduleResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([Grid::make(['sm' => 2])
-                ->schema([
-                    Select::make('vehicle_id')
-                        ->relationship('vehicle', 'registration_number')
-                        ->searchable()
-                        ->preload()
-                        ->required()
-                        ->label('Kendaraan')
-                        ->createOptionForm([
-                            Grid::make([
-                                'sm' => 2,
-                            ])
-                                ->schema([
-                                    TextInput::make('registration_number')
-                                        ->label('Nomor Polisi')
-                                        ->required(),
-                                    TextInput::make('kode')
-                                        ->default(fn () => CodeGenerator::generateSimpleCode('V', 'vehicles', 'kode'))
-                                        ->readOnly(),
-                                    Select::make('category')
-                                        ->required()
-                                        ->options([
-                                            "Sepeda Motor" => "Sepeda Motor",
-                                            "Mobil" => "Mobil",
-                                            "Lainya" => "Lainya"
-                                        ])
-                                        ->live()
-                                        ->afterStateUpdated(
-                                            function (Set $set, $state) {
-                                                $set('brand', null);
-                                            }
-                                        )
-                                        ->label('Jenis'),
-                                    Select::make('brand')
-                                        ->required()
-                                        ->options(
-                                            function (Get $get) {
-                                                if ($get('category') == 'Sepeda Motor') {
-                                                    return [
-                                                        "Honda" => "Honda",
-                                                        "Yamaha" => "Yamaha",
-                                                        "Suzuki" => "Suzuki",
-                                                        "Kawasaki" => "Kawasaki",
-                                                        "Viar" => "Viar",
-                                                        "Gesits" => "Gesits",
-                                                        "Kymco" => "Kymco",
-                                                        "Benelli" => "Benelli",
-                                                        "Royal Enfield" => "Royal Enfield",
-                                                        "Vespa" => "Vespa",
-                                                        "Minerva" => "Minerva",
-                                                        "Lainya" => "Lainya",
-                                                    ];
-                                                } elseif ($get('category') == 'Mobil') {
-                                                    return [
-                                                        "Toyota" => "Toyota",
-                                                        "Daihatsu" => "Daihatsu",
-                                                        "Honda" => "Honda",
-                                                        "Mitsubishi" => "Mitsubishi",
-                                                        "Suzuki" => "Suzuki",
-                                                        "Nissan" => "Nissan",
-                                                        "Hyundai" => "Hyundai",
-                                                        "Kia" => "Kia",
-                                                        "Mazda" => "Mazda",
-                                                        "Isuzu" => "Isuzu",
-                                                        "Wuling" => "Wuling",
-                                                        "DFSK" => "DFSK (Dongfeng Sokon)",
-                                                        "Subaru" => "Subaru",
-                                                        "Chery" => "Chery",
-                                                        "Esemka" => "Esemka",
-                                                        "Timor" => "Timor",
-                                                        "AMMDes" => "AMMDes (Alat Mekanis Multiguna Pedesaan)",
-                                                        "Tawon" => "Tawon",
-                                                        "GEA" => "GEA (Gulirkan Energi Alternatif)",
-                                                        "Lainya" => "Lainya",
-                                                    ];
-                                                } else {
-                                                    return [
-                                                        "Lainya" => "Lainya"
-                                                    ];
-                                                }
-                                            }
-                                        )
-                                        ->live()
-                                        ->searchable()
-                                        ->disabled(fn (Get $get) => !$get('category')),
+            ->schema([
+                Tabs::make('Tabs')
+                ->tabs([
+                    Tabs\Tab::make('Pelanggan & Kendaraan')
+                        ->schema([Grid::make(['sm' => 2])
+                        ->schema([
+                            Select::make('vehicle_id')
+                                ->relationship('vehicle', 'registration_number')
+                                ->searchable()
+                                ->preload()
+                                ->required()
+                                ->label('Kendaraan')
+                                ->createOptionForm([
+                                    Grid::make([
+                                        'sm' => 2,
+                                    ])
+                                        ->schema([
+                                            TextInput::make('registration_number')
+                                                ->label('Nomor Polisi')
+                                                ->required(),
+                                            TextInput::make('kode')
+                                                ->default(fn () => CodeGenerator::generateSimpleCode('V', 'vehicles', 'kode'))
+                                                ->readOnly(),
+                                            Select::make('category')
+                                                ->required()
+                                                ->options([
+                                                    "Sepeda Motor" => "Sepeda Motor",
+                                                    "Mobil" => "Mobil",
+                                                    "Lainya" => "Lainya"
+                                                ])
+                                                ->live()
+                                                ->afterStateUpdated(
+                                                    function (Set $set, $state) {
+                                                        $set('brand', null);
+                                                    }
+                                                )
+                                                ->label('Jenis'),
+                                            Select::make('brand')
+                                                ->required()
+                                                ->options(
+                                                    function (Get $get) {
+                                                        if ($get('category') == 'Sepeda Motor') {
+                                                            return [
+                                                                "Honda" => "Honda",
+                                                                "Yamaha" => "Yamaha",
+                                                                "Suzuki" => "Suzuki",
+                                                                "Kawasaki" => "Kawasaki",
+                                                                "Viar" => "Viar",
+                                                                "Gesits" => "Gesits",
+                                                                "Kymco" => "Kymco",
+                                                                "Benelli" => "Benelli",
+                                                                "Royal Enfield" => "Royal Enfield",
+                                                                "Vespa" => "Vespa",
+                                                                "Minerva" => "Minerva",
+                                                                "Lainya" => "Lainya",
+                                                            ];
+                                                        } elseif ($get('category') == 'Mobil') {
+                                                            return [
+                                                                "Toyota" => "Toyota",
+                                                                "Daihatsu" => "Daihatsu",
+                                                                "Honda" => "Honda",
+                                                                "Mitsubishi" => "Mitsubishi",
+                                                                "Suzuki" => "Suzuki",
+                                                                "Nissan" => "Nissan",
+                                                                "Hyundai" => "Hyundai",
+                                                                "Kia" => "Kia",
+                                                                "Mazda" => "Mazda",
+                                                                "Isuzu" => "Isuzu",
+                                                                "Wuling" => "Wuling",
+                                                                "DFSK" => "DFSK (Dongfeng Sokon)",
+                                                                "Subaru" => "Subaru",
+                                                                "Chery" => "Chery",
+                                                                "Esemka" => "Esemka",
+                                                                "Timor" => "Timor",
+                                                                "AMMDes" => "AMMDes (Alat Mekanis Multiguna Pedesaan)",
+                                                                "Tawon" => "Tawon",
+                                                                "GEA" => "GEA (Gulirkan Energi Alternatif)",
+                                                                "Lainya" => "Lainya",
+                                                            ];
+                                                        } else {
+                                                            return [
+                                                                "Lainya" => "Lainya"
+                                                            ];
+                                                        }
+                                                    }
+                                                )
+                                                ->live()
+                                                ->searchable()
+                                                ->disabled(fn (Get $get) => !$get('category')),
 
-                                    TextInput::make('type'),
-                                    TextInput::make('model'),
-                                    TextInput::make('tahun_pembuatan')
-                                        ->numeric()
-                                        ->maxLength(4),
-                                    TextInput::make('cc'),
-                                    TextInput::make('nomor_rangka'),
-                                    TextInput::make('nomor_mesin'),
-                                    TextInput::make('warna'),
-                                    Select::make('bahan_bakar')
-                                        ->options([
-                                            "Bensin" => "Bensin",
-                                            "Solar" => "Solar",
-                                            "Gas" => "Gas",
-                                            "Listrik" => "Listrik",
-                                        ]),
-                                    Textarea::make('keterangan'),
+                                            TextInput::make('type'),
+                                            TextInput::make('model'),
+                                            TextInput::make('tahun_pembuatan')
+                                                ->numeric()
+                                                ->maxLength(4),
+                                            TextInput::make('cc'),
+                                            TextInput::make('nomor_rangka'),
+                                            TextInput::make('nomor_mesin'),
+                                            TextInput::make('warna'),
+                                            Select::make('bahan_bakar')
+                                                ->options([
+                                                    "Bensin" => "Bensin",
+                                                    "Solar" => "Solar",
+                                                    "Gas" => "Gas",
+                                                    "Listrik" => "Listrik",
+                                                ]),
+                                            Textarea::make('keterangan'),
+                                        ])
+                                ])
+                                ->live()
+                                ->afterStateUpdated(
+                                    function ($state, Set $set) {
+                                        $riwayat_service = ServiceSchedule::where('vehicle_id', $state)->first();
+
+                                        if ($riwayat_service !== null) {
+                                            $set('customer_name', $riwayat_service->customer_name);
+                                            $set('nomor_telepon', $riwayat_service->nomor_telepon);
+                                        } else {
+                                            $set('customer_name', '');
+                                            $set('nomor_telepon', '');
+                                        }
+                                    }
+                                ),
+                            TextInput::make('kode')
+                                ->default(fn () => CodeGenerator::generateTransactionCode('SSJ', 'service_schedules', 'kode'))
+                                ->readOnly(),
+                            TextInput::make('customer_name')
+                                ->label('Nama Customer'),
+                            TextInput::make('nomor_telepon')
+                                ->default('+62')
+                                ->helperText('tambahkan kode negara (+62). contoh: +62856781234'),
+                            Select::make('is_customer_umum')
+                                ->label('Jenis Customer')
+                                ->options([
+                                    1 => 'Umum',
+                                    0 => 'Mahasiswa'
+                                ]),
+                            TextInput::make('km_datang')
+                                ->required()
+                                ->label('KM datang')
+                                ->numeric()
+                                ->suffix('KM'),
+                            Textarea::make('keluhan')
+                                ->required(),
+                        ]),
+                    Grid::make(['sm' => 4])
+                        ->schema([
+                            TextInput::make('total_estimasi_waktu')
+                                ->suffix(' Menit')
+                                ->numeric()
+                                ->readOnly(!auth()->user()->hasRole('Kepala Mekanik')),
+                            TextInput::make('service_total')
+                                ->prefix('Rp')
+                                ->readOnly(),
+                            TextInput::make('sparepart_total')
+                                ->prefix('Rp')
+                                ->readOnly(),
+                            TextInput::make('total')
+                                ->prefix('Rp')
+                                ->readOnly(),
+                        ]),
+
+                        ]),
+                        Tabs\Tab::make('Mekanik')
+                            ->schema([
+                                Select::make('kepala_mekanik_id')
+                                    ->label('Kepala Mekanik')
+                                    ->relationship('kepalaMekanik', 'user_name')
+                                    ->disabled(),
+                                Fieldset::make('Mekanik')
+                                ->schema([
+                                    Grid::make(['sm' => 2])
+                                    ->schema([
+                                        Select::make('mekanik1_id')
+                                            ->label('Mekanik 1')
+                                            ->nullable()
+                                            ->required()
+                                            ->relationship('mekanik1', 'user_name'),
+                                        TextInput::make('mekanik1_percentage')
+                                            ->label('Persentase Pekerjaan Mekanik 1')
+                                            ->numeric()
+                                            ->suffix('%'),
+                                        Select::make('mekanik2_id')
+                                            ->label('Mekanik 2')
+                                            ->nullable()
+                                            ->required(false)
+                                            ->relationship('mekanik2', 'user_name'),
+                                        TextInput::make('mekanik2_percentage')
+                                            ->label('Persentase Pekerjaan Mekanik 2')
+                                            ->numeric()
+                                            ->suffix('%'),
+                                        Select::make('mekanik3_id')
+                                            ->label('Mekanik 3')
+                                            ->nullable()
+                                            ->required(false)
+                                            ->relationship('mekanik3', 'user_name'),
+                                        TextInput::make('mekanik3_percentage')
+                                            ->label('Persentase Pekerjaan Mekanik 3')
+                                            ->numeric()
+                                            ->suffix('%'),
+                                    ]),
                                 ])
                         ])
-                        ->live()
-                        ->afterStateUpdated(
-                            function ($state, Set $set) {
-                                $riwayat_service = ServiceSchedule::where('vehicle_id', $state)->first();
+                ])
+                ->columnSpan('full')
 
-                                if ($riwayat_service !== null) {
-                                    $set('customer_name', $riwayat_service->customer_name);
-                                    $set('nomor_telepon', $riwayat_service->nomor_telepon);
-                                } else {
-                                    $set('customer_name', '');
-                                    $set('nomor_telepon', '');
-                                }
-                            }
-                        ),
-                    TextInput::make('kode')
-                        ->default(fn () => CodeGenerator::generateTransactionCode('SSJ', 'service_schedules', 'kode'))
-                        ->readOnly(),
-                    TextInput::make('customer_name')
-                        ->label('Nama Customer'),
-                    TextInput::make('nomor_telepon')
-                        ->default('+62')
-                        ->helperText('tambahkan kode negara (+62). contoh: +62856781234'),
-                    TextInput::make('km_datang')
-                        ->required()
-                        ->label('KM datang')
-                        ->numeric()
-                        ->suffix('KM'),
-                    Textarea::make('keluhan')
-                        ->required(),
-                    Select::make('mekanik_id')
-                        ->label('Mekanik')
-                        ->required()
-                        ->relationship('mekanik', 'user_name')
-                        ->live()
-                        ->afterStateUpdated(
-                            function (Set $set, $state) {
-                                $mekanik = User::find($state)->name;
-                                $set('mekanik_name', $mekanik);
-                            }
-                        ),
-                    Select::make('kepala_mekanik_id')
-                        ->label('Kepala Mekanik')
-                        ->relationship('kepalaMekanik', 'user_name')
-                        ->disabled()
-                        ->live()
-                        ->afterStateUpdated(
-                            function (Set $set, $state) {
-                                $mekanik = User::find($state)->name;
-                                $set('mekanik_name', $mekanik);
-                            }
-                        ),
-                ]),
-            Grid::make(['sm' => 4])
-                ->schema([
-                    TextInput::make('total_estimasi_waktu')
-                        ->suffix(' Menit')
-                        ->readOnly(),
-                    TextInput::make('service_total')
-                        ->prefix('Rp')
-                        ->readOnly(),
-                    TextInput::make('sparepart_total')
-                        ->prefix('Rp')
-                        ->readOnly(),
-                    TextInput::make('total')
-                        ->prefix('Rp')
-                        ->readOnly(),
-                ]),
-
-            Hidden::make('mekanik_name'),
+            // Hidden::make('mekanik_name'),
             ])
-            ->disabled(auth()->user()->hasRole(['super_admin', 'Manager', 'Admin']) ? false:true)
+            ->disabled(auth()->user()->hasRole(['super_admin', 'Manager', 'Admin', 'Kepala Mekanik']) ? false:true)
             ->columns([
                 'sm' => 2,
             ]);
@@ -470,7 +505,11 @@ class ServiceScheduleResource extends Resource
         return $table
             ->modifyQueryUsing(function (Builder $query) {
                 if (auth()->user()->hasRole('Mekanik')) {
-                    $query->where('mekanik_id', auth()->id());
+                    $query->where(function ($query) {
+                        $query->where('mekanik1_id', auth()->id())
+                            ->orWhere('mekanik2_id', auth()->id())
+                            ->orWhere('mekanik3_id', auth()->id());
+                    });
                 }
                 $query->where('created_at','like', (now()->toDateString().'%'));
             })
@@ -484,8 +523,8 @@ class ServiceScheduleResource extends Resource
                 TextColumn::make('customer_name')
                 ->searchable()
                 ->label('Customer'),
-                TextColumn::make('mekanik_name')
-                ->label('Mekanik'),
+                // TextColumn::make('mekanik_name')
+                // ->label('Mekanik'),
                 TextColumn::make('kepala_mekanik_name')
                 ->label('Kepala Mekanik'),
                 IconColumn::make('checklist_status')
@@ -517,6 +556,7 @@ class ServiceScheduleResource extends Resource
                             $record->service_status = 'Proses Pengerjaan'; //daftar, proses pengerjaan, batal, selesai
                             $record->kepala_mekanik_name = $kepala_mekanik_name;
                             $record->kepala_mekanik_id = Auth::id();
+                            $record->working_start = NOW();
                             $record->save();
 
                             Notification::make()
@@ -549,6 +589,7 @@ class ServiceScheduleResource extends Resource
                         ->color('success')
                         ->action(function(ServiceSchedule $record){
                                 $record->service_status = 'Menunggu Pembayaran';
+                                $record->working_end = NOW();
                                 $record->save();
                                 Notification::make()
                                     ->title("Service Selesai, sedang Menunggu Pembayaran")
@@ -602,7 +643,7 @@ class ServiceScheduleResource extends Resource
                     ->requiresConfirmation()
                     ->label(fn (ServiceSchedule $record) => $record->is_approve === 'approved' ? 'Reject' : 'Approve')
                     ->visible(function (ServiceSchedule $record){
-                        if (($record->service_status == "Menunggu Pembayaran" || $record->service_status == "Selesai") && auth()->user()->hasRole(['Admin', 'super_admin'])) {
+                        if (($record->service_status == "Menunggu Pembayaran" || $record->service_status == "Selesai") && auth()->user()->hasRole(['Admin', 'super_admin', 'Manager'])) {
                             return true;
                         }
                     }),

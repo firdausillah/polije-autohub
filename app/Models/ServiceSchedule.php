@@ -24,7 +24,7 @@ class ServiceSchedule extends Model
 
         });
 
-        static::updating(function ($model) {
+        static::updated(function ($model) {
             $model->updated_by = Auth::id();
         });
 
@@ -45,9 +45,19 @@ class ServiceSchedule extends Model
         return $this->belongsTo(Vehicle::class);
     }
 
-    public function mekanik(): BelongsTo
+    public function mekanik1(): BelongsTo
     {
-        return $this->belongsTo(UserRole::class)->where('role_name', 'like', 'Mekanik%');
+        return $this->belongsTo(UserRole::class, 'mekanik1_id')->where('role_name', 'like', 'Mekanik%');
+    }
+
+    public function mekanik2(): BelongsTo
+    {
+        return $this->belongsTo(UserRole::class, 'mekanik2_id')->where('role_name', 'like', 'Mekanik%');
+    }
+
+    public function mekanik3(): BelongsTo
+    {
+        return $this->belongsTo(UserRole::class, 'mekanik3_id')->where('role_name', 'like', 'Mekanik%');
     }
 
     public function kepalaMekanik(): BelongsTo

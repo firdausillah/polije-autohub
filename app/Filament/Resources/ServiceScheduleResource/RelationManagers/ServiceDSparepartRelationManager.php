@@ -128,18 +128,18 @@ class ServiceDSparepartRelationManager extends RelationManager
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()->visible(!auth()->user()->hasRole('Mekanik')),
                 ]),
             ]);
     }
 
     public function canCreate(): bool
     {
-        return auth()->user()->hasRole(['Kepala Mekanik', 'super_admin', 'manager']);
+        return auth()->user()->hasRole(['Kepala Mekanik']);
     }
 
     public function canDelete(Model $record): bool
     {
-        return auth()->user()->hasRole(['Kepala Mekanik', 'super_admin', 'manager']);
+        return auth()->user()->hasRole(['Kepala Mekanik']);
     }
 }
