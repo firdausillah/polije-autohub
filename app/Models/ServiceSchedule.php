@@ -23,7 +23,9 @@ class ServiceSchedule extends Model
             $model->created_by = Auth::id();
             
             if(auth()->user()->hasRole('Kepala Unit')){
-                $model->kepala_unit = Auth::id();
+                $model->kepala_unit_id = Auth::id();
+                $model->service_status = 'Proses Pengerjaan';
+                $model->working_start = NOW();
             }
 
         });
