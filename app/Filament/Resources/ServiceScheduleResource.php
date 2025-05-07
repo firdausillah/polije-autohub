@@ -405,7 +405,7 @@ class ServiceScheduleResource extends Resource
                                             $set('nomor_telepon', $riwayat_service->nomor_telepon);
                                         } else {
                                             $set('customer_name', '');
-                                            $set('nomor_telepon', '');
+                                            $set('nomor_telepon', '+62');
                                         }
                                     }
                                 ),
