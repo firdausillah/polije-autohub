@@ -21,6 +21,10 @@ class ServiceSchedule extends Model
 
         static::creating(function ($model) {
             $model->created_by = Auth::id();
+            
+            if(auth()->user()->hasRole('Kepala Unit')){
+                $model->kepala_unit = Auth::id();
+            }
 
         });
 

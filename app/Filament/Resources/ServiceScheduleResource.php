@@ -451,7 +451,7 @@ class ServiceScheduleResource extends Resource
                         ]),
                         Tabs\Tab::make('Mekanik')
                             ->schema([
-                                Select::make('kepala_mekanik_id')
+                                Select::make('kepala_unit_id')
                                     ->label('Kepala Unit')
                                     ->relationship('kepalaMekanik', 'user_name')
                                     ->disabled(),
@@ -525,7 +525,7 @@ class ServiceScheduleResource extends Resource
                 ->label('Customer'),
                 // TextColumn::make('mekanik_name')
                 // ->label('Mekanik'),
-                TextColumn::make('kepala_mekanik_name')
+                TextColumn::make('kepala_unit_name')
                 ->label('Kepala Unit'),
                 IconColumn::make('checklist_status')
                 ->label('Checklist')
@@ -551,11 +551,11 @@ class ServiceScheduleResource extends Resource
                 ActionGroup::make([
                     Action::make('Kerjakan')
                         ->action(function (ServiceSchedule $record) {
-                            $kepala_mekanik_name = User::find(Auth::id())->name;
+                            $kepala_unit_name = User::find(Auth::id())->name;
                             
                             $record->service_status = 'Proses Pengerjaan'; //daftar, proses pengerjaan, batal, selesai
-                            $record->kepala_mekanik_name = $kepala_mekanik_name;
-                            $record->kepala_mekanik_id = Auth::id();
+                            $record->kepala_unit_name = $kepala_unit_name;
+                            $record->kepala_unit_id = Auth::id();
                             $record->working_start = NOW();
                             $record->save();
 
@@ -569,14 +569,14 @@ class ServiceScheduleResource extends Resource
                         ->icon('heroicon-o-clipboard-document-check')
                         // ->requiresConfirmation()
                         ->visible(function (ServiceSchedule $record){
-                            if ($record->kepala_mekanik_id == null && auth()->user()->hasRole('Kepala Unit')) {
+                            if ($record->kepala_unit_id == null && auth()->user()->hasRole('Kepala Unit')) {
                                 return true;
                             }
                         }),
                     ViewAction::make(),
                     EditAction::make()
                         ->visible(function (ServiceSchedule $record){
-                        if (auth()->user()->hasRole(['super_admin', 'Manager', 'Admin']) OR ($record->kepala_mekanik_id != null && auth()->user()->hasRole(['Kepala Unit', 'Mekanik']))) {
+                        if (auth()->user()->hasRole(['super_admin', 'Manager', 'Admin']) OR ($record->kepala_unit_id != null && auth()->user()->hasRole(['Kepala Unit', 'Mekanik']))) {
                             return true;
                         }else{
                             return false;

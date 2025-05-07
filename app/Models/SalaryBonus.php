@@ -92,7 +92,7 @@ class SalaryBonus extends Model
                                     COALESCE((
                                         SELECT SUM(service_total)
                                         FROM service_schedules
-                                        WHERE kepala_mekanik_id = u.user_id
+                                        WHERE kepala_unit_id = u.user_id
                                         AND is_approve = 'approved'
                                         AND approved_at BETWEEN ? AND ?
                                     ), 0)

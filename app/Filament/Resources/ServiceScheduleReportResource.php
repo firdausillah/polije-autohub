@@ -56,7 +56,7 @@ class ServiceScheduleReportResource extends Resource
                 TextColumn::make('customer_name')->searchable()->sortable(),
                 TextColumn::make('nomor_telepon')->searchable()->sortable(),
                 TextColumn::make('mekanik_name')->searchable()->sortable(),
-                TextColumn::make('kepala_mekanik_name')->searchable()->sortable(),
+                TextColumn::make('kepala_unit_name')->searchable()->sortable(),
                 //
             ])
             ->filters([
