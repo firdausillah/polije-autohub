@@ -431,7 +431,7 @@ class ServiceScheduleResource extends Resource
                             Textarea::make('keluhan')
                                 ->required(),
                         ]),
-                    Grid::make(['sm' => 4])
+                        Grid::make(['sm' => 4])
                         ->schema([
                             TextInput::make('total_estimasi_waktu')
                                 ->suffix(' Menit')
@@ -467,6 +467,7 @@ class ServiceScheduleResource extends Resource
                                         TextInput::make('mekanik1_percentage')
                                             ->label('Persentase Pekerjaan Mekanik 1')
                                             ->numeric()
+                                            ->default(100)
                                             ->suffix('%'),
                                         Select::make('mekanik2_id')
                                             ->label('Mekanik 2')
