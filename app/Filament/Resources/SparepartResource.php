@@ -7,6 +7,7 @@ use App\Filament\Resources\SparepartResource\RelationManagers;
 use App\Helpers\CodeGenerator;
 use App\Models\Sparepart;
 use Filament\Forms;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -15,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -35,22 +37,29 @@ class SparepartResource extends Resource
             ->schema([
                 TextInput::make('name')
                 ->required(),
-                TextInput::make('kode')
-                ->default(fn () => CodeGenerator::generateSimpleCode('SP', 'spareparts', 'kode'))
-                ->readOnly(),
-                Select::make('is_original')
-                ->label('Original part')
-                ->required()
-                ->options([
-                    1 => 'Iya',
-                    0 => 'Tidak'
-                ]),
-                Select::make('is_pajak')
-                ->label('Pajak 11%')
-                ->required()
-                ->options([
-                    1 => 'Iya',
-                    0 => 'Tidak'
+                TextInput::make('kode'),
+                // ->default(fn () => CodeGenerator::generateSimpleCode('SP', 'spareparts', 'kode'))
+                // ->readOnly(),
+                Grid::make(3)
+                ->schema([
+                    Select::make('sparepart_m_category_id')
+                    ->label('Kategori Sparepart')
+                    ->relationship('sparepartMCategory', 'name'),
+                    Select::make('is_original')
+                    ->label('Original part')
+                    ->required()
+                    ->options([
+                        1 => 'Iya',
+                        0 => 'Tidak'
+                    ]),
+                    Select::make('is_pajak')
+                    ->label('Pajak 12%')
+                    ->required()
+                    ->options([
+                        1 => 'Iya',
+                        0 => 'Tidak'
+                    ]),
+
                 ]),
                 TextInput::make('part_number'),
                 TextInput::make('margin')
@@ -69,13 +78,16 @@ class SparepartResource extends Resource
                 ->searchable(),
                 TextColumn::make('kode')
                 ->searchable(),
+                TextColumn::make('sparepartMCategory.name')
+                ->label('Kategori')
+                ->searchable(),
                 IconColumn::make('is_original')
                 ->label('Original')
                 ->boolean()
                 ->trueColor('success')
                 ->falseColor('danger'),
                 IconColumn::make('is_pajak')
-                ->label('Pajak 11%')
+                ->label('Pajak 12%')
                 ->boolean()
                 ->trueColor('success')
                 ->falseColor('danger'),
@@ -83,6 +95,10 @@ class SparepartResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
+                SelectFilter::make('sparepart_m_category_id')
+                ->searchable()
+                ->preload()
+                ->relationship('sparepartMCategory', 'name')
             ])
             ->actions([
                 Tables\Actions\EditAction::make()

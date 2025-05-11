@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Helpers\priceFix;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
@@ -41,5 +42,10 @@ class Sparepart extends Model
     public function modals(): HasMany
     {
         return $this->hasMany(Modal::class);
+    }
+
+    public function sparepartMCategory(): BelongsTo
+    {
+        return $this->belongsTo(SparepartMCategory::class);
     }
 }

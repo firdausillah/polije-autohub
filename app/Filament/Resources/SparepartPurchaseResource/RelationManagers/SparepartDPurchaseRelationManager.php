@@ -34,6 +34,8 @@ class SparepartDPurchaseRelationManager extends RelationManager
             ->schema([
                 Select::make('sparepart_id')
                 ->relationship('sparepart', 'name')
+                ->preload()
+                ->searchable()
                 ->live() // Trigger update saat berubah
                 ->afterStateUpdated(
                     function (Set $set, $state){

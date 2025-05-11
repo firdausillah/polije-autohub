@@ -114,6 +114,7 @@ class SparepartPurchaseResource extends Resource
             // inventory begin
             $SparepartDPurchases = SparepartDPurchase::where('sparepart_purchase_id', $record->id)->get();
             $harga_modal = '';
+            // dd($SparepartDPurchases);
             foreach ($SparepartDPurchases as $val) {
                 Inventory::create([
                     'transaksi_h_id' => $record->id,

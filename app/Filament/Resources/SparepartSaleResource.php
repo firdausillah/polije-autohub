@@ -164,7 +164,8 @@ class SparepartSaleResource extends Resource
                 'transaction_type'  => 'penjualan sparepart',
 
                 'debit' => 0,
-                'kredit'    => $record->total - $record->pajak_total,
+                'kredit'    => $record->total,
+                // 'kredit'    => $record->total - $record->pajak_total,
             ]);
 
             if($record->pajak_total){
@@ -345,7 +346,7 @@ class SparepartSaleResource extends Resource
                                     ->prefix('Rp ')
                                     ->numeric()
                                     ->readOnly(),
-                                TextInput::make('pajak_total')
+                                Hidden::make('pajak_total')
                                     ->gt(0)
                                     ->prefix('Rp ')
                                     ->numeric()
