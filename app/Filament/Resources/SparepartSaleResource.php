@@ -71,13 +71,13 @@ class SparepartSaleResource extends Resource
 
         $is_pajak = Sparepart::find($sparepart_satuan->sparepart_id)->is_pajak;
         if ($is_pajak == 1) {
-            $pajak = $harga_subtotal * 0.11;
+            $pajak = $harga_subtotal * 0.12;
             $set('pajak', $pajak);
         } else {
             $pajak = 0;
             $set('pajak', 0);
         }
-
+        
         $set('harga_unit', $sparepart_satuan->harga);
         $set('harga_subtotal', $harga_subtotal);
         $set('sparepart_id', $sparepart_satuan->sparepart_id);
@@ -88,18 +88,51 @@ class SparepartSaleResource extends Resource
     {
         $selectedSparepart = collect($get('sparepartDSale'))->filter(fn ($item) => !empty($item['sparepart_satuan_id']));
         $detail_harga = SparepartSatuans::whereIn('id', $selectedSparepart->pluck('sparepart_satuan_id'))->with('sparepart')->get()->keyBy('id');
+
+        // dd($selectedSparepart);
         
         $harga_subtotal = $selectedSparepart->map(function ($item) use ($detail_harga) {
-            return $item['jumlah_unit'] * $detail_harga[$item['sparepart_satuan_id']]->harga;
+            return (float) $item['jumlah_unit'] * $detail_harga[$item['sparepart_satuan_id']]->harga;
         })->sum();
 
+        $discount_d_total = $selectedSparepart->map(function ($item) use ($detail_harga) {
+            return (float) $item['discount'];
+        })->sum();
+
+        $discount_total = $discount_d_total==0?$get('discount_total'):$discount_d_total;
+
         $total_pajak = $selectedSparepart->map(function ($item) use ($detail_harga) {
-            return ($detail_harga[$item['sparepart_satuan_id']]->sparepart->is_pajak? ($item['jumlah_unit'] * $detail_harga[$item['sparepart_satuan_id']]->harga)*0.11:0);
+            return ($detail_harga[$item['sparepart_satuan_id']]->sparepart->is_pajak? ((float) $item['jumlah_unit'] * $detail_harga[$item['sparepart_satuan_id']]->harga)*0.12:0);
         })->sum();
         
         
-        $set('total', $harga_subtotal);
         $set('pajak_total', $total_pajak);
+        $set('discount_total', $discount_total);
+        $set('sub_total', $harga_subtotal);
+        $set('total', $harga_subtotal - $discount_total);
+    }
+
+    // public static function updateDChange($get, $set): void
+    // {
+    //     dd('kembalian akan diupdate disini');
+        // $selectedPaymentMethod = collect($get('sparepartDSalePayment'))->filter(fn ($item) => !empty($item['account_id']));
+        // $total_jumlah_bayar = $selectedPaymentMethod->map(function ($item) {
+        //     return (float) $item['jumlah_bayar'];
+        // })->sum();
+        
+        // $change = ($total_jumlah_bayar==0?$get('total'):$total_jumlah_bayar) - $get('total');
+        // $set('change', $change);
+    // }
+
+    public static function updateChange($get, $set): void
+    {
+        $selectedPaymentMethod = collect($get('sparepartDSalePayment'))->filter(fn ($item) => !empty($item['account_id']));
+        $total_jumlah_bayar = $selectedPaymentMethod->map(function ($item) {
+            return (float) $item['jumlah_bayar'];
+        })->sum();
+        
+        $change = ($total_jumlah_bayar==0?$get('total'):$total_jumlah_bayar) - $get('total');
+        $set('change', $change);
     }
 
     public static function InsertJurnal($record, $status): void
@@ -140,8 +173,31 @@ class SparepartSaleResource extends Resource
                     'account_kode'  => $val->account_kode, //
                     'transaction_type'  => 'penjualan sparepart',
     
-                    'debit' => $val->jumlah_bayar,
+                    'debit' => (($val->jumlah_bayar-$val->total_payable)<0?$val->jumlah_bayar:$val->total_payable),
                     'kredit'    => 0,
+                ]);
+            }
+
+            if($record->discount_total){
+                $account_debit_discount = Account::find(24); //Utang PPN Keluaran
+                Jurnal::create([
+                    'transaksi_h_id'    => $record->id,
+                    'transaksi_d_id'    => $record->id,
+                    'account_id'    => $account_debit_discount->id,
+
+                    'keterangan'    => $record->keterangan,
+                    'kode'  => $record->kode,
+                    'tanggal_transaksi' => $record->tanggal_transaksi,
+
+                    'relation_name' => $record->customer_name,
+                    'relation_nomor_telepon'    => $record->customer_nomor_telepon,
+
+                    'account_name'  => $account_debit_discount->name,
+                    'account_kode'  => $account_debit_discount->kode,
+                    'transaction_type'  => 'penjualan sparepart',
+
+                    'debit'    => $record->discount_total,
+                    'kredit' => 0,
                 ]);
             }
 
@@ -296,7 +352,7 @@ class SparepartSaleResource extends Resource
                             ->label('Order Sparepart')
                             ->relationship('sparepartDSale')
                             ->columns([
-                                'md' =>3,
+                                'md' =>2,
                                 ])
                             ->schema([
                                 Select::make('sparepart_satuan_id')
@@ -304,6 +360,11 @@ class SparepartSaleResource extends Resource
                                     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name} ({$record->harga})")
                                     ->searchable()
                                     ->preload()
+                                    ->afterStateUpdated(
+                                        function (Get $get, Set $set, $state) {
+                                            ($state != '' ? self::updateSubtotal($get, $set) : 0);
+                                        }
+                                    )
                                     ->live(),
 
                                 Hidden::make('sparepart_id'),
@@ -313,25 +374,34 @@ class SparepartSaleResource extends Resource
 
                                 TextInput::make('jumlah_unit')
                                     ->required()
-                                    // ->default(1)
+                                    ->default(1)
                                     ->numeric()
-                                    ->live()
+                                    ->live(debounce: 500)
                                     ->afterStateUpdated(
                                         function (Get $get, Set $set, $state){
-                                            ($state !='' ? self::updateSubtotal($get, $set) : '');
+                                            ($state !='' ? self::updateSubtotal($get, $set) : 0);
 
                                         }
                                     )
-                                    ->gt(0)
+                                    // ->default(0)
                                     ->disabled(fn (Get $get) => !$get('sparepart_satuan_id')),
                                 TextInput::make('harga_subtotal')
                                 ->required()
                                 ->live()
                                 ->label('Harga subtotal')
-                                ->gt(0)
+                                ->default(0)
                                 ->prefix('Rp ')
                                 ->numeric()
                                 ->readOnly(),
+                                TextInput::make('discount')
+                                ->numeric()
+                                ->live(debounce: 500)
+                                ->afterStateUpdated(
+                                    function (Get $get, Set $set, $state) {
+                                        ($state != '' ? self::updateSubtotal($get, $set) : 0);
+                                    }
+                                )
+                                ->default(0)
                             ])
                             ->live()
                             ->afterStateUpdated(function (Set $set, Get $get) {
@@ -339,31 +409,61 @@ class SparepartSaleResource extends Resource
                             }),
 
                         Grid::make()
-                            ->columns('2')
+                            ->columns('3')
                             ->schema([
+                                TextInput::make('sub_total')
+                                    ->default(0)
+                                    ->prefix('Rp ')
+                                    ->numeric()
+                                    ->readOnly(),
+                                TextInput::make('discount_total')
+                                    ->default(0)
+                                    ->prefix('Rp ')
+                                    ->numeric()
+                                    ->live(debounce:500)
+                                    ->afterStateUpdated(function (Set $set, Get $get) {
+                                        self::updatedTotals($get, $set);
+                                    })
+                                    ->readOnly(fn($state) => $state!=0),
                                 TextInput::make('total')
-                                    ->gt(0)
+                                    ->default(0)
                                     ->prefix('Rp ')
                                     ->numeric()
                                     ->readOnly(),
                                 Hidden::make('pajak_total')
-                                    ->gt(0)
-                                    ->prefix('Rp ')
-                                    ->numeric()
-                                    ->readOnly()
+                                    ->default(0)
+                                    // ->numeric()
+                                    // ->readOnly()
                             ])
                     ]),
                     Wizard\Step::make('Data Pelanggan')
                         ->schema([
                             TextInput::make('customer_name')
+                            ->required()
                             ->label('Nama pelanggan'),
                             TextInput::make('customer_nomor_telepon')
                             ->default('+62')
+                            ->required()
                             ->helperText('tambahkan kode negara (+62)')
                             ->label('Nomor Telepon Pelanggan')
                         ]),
                     Wizard\Step::make('Pembayaran')
                     ->schema([
+                        Grid::make(2)
+                        ->schema([
+                            TextInput::make('total')
+                                ->default(0)
+                                ->prefix('Rp ')
+                                ->label('Jumlah yang harus dibayar')
+                                ->numeric()
+                                ->readOnly(),
+                            TextInput::make('change')
+                                ->default(0)
+                                ->prefix('Rp ')
+                                ->label('Kembalian')
+                                ->numeric()
+                                ->readOnly()
+                        ]),
                         Repeater::make('sparepartDSalePayment')
                         ->label('Metode Pembayaran')
                         ->relationship('sparepartDSalePayment')
@@ -383,8 +483,14 @@ class SparepartSaleResource extends Resource
 
                                         if (count($livewire->data['sparepartDSalePayment']) == 1) {
                                             $set('jumlah_bayar', $livewire->data['total']);
+                                            $set('total_payable', $livewire->data['total']);
                                         }else{
-                                            $set('jumlah_bayar', $livewire->data['total'] - array_sum(array_column($livewire->data['sparepartDSalePayment'], 'jumlah_bayar')));
+                                            $total_payable = $livewire->data['total'] - array_sum(array_column($livewire->data['sparepartDSalePayment'], 'jumlah_bayar'));
+                                            $set('jumlah_bayar', $total_payable);
+                                            $set('total_payable', $total_payable);
+                                            
+                                            // dd($livewire->data['total'], array_sum(array_column($livewire->data['sparepartDSalePayment'], 'jumlah_bayar')));
+
 
                                         }
                                         
@@ -395,10 +501,15 @@ class SparepartSaleResource extends Resource
                                         ->label('Bukti pembayaran')
                                         ->image()
                                         ->resize(50),
+                                    TextInput::make('total_payable'),
                                     Hidden::make('account_name'),
                                     Hidden::make('account_kode'),
                                 ])
                         ])
+                        ->live(debounce:500)
+                        ->afterStateUpdated(function (Set $set, Get $get) {
+                            self::updateChange($get, $set);
+                        }),
                     ]),
                 ])
                 ->columnSpan('full')

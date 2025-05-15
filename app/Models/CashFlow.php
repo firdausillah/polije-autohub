@@ -34,7 +34,7 @@ class CashFlow extends Model
 
     public function account(): BelongsTo
     {
-        return $this->belongsTo(Account::class);
+        return $this->belongsTo(Account::class)->whereIn('kode', [1001, 1002]);
     }
 
     public function cashDFlow(): HasMany
