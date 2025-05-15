@@ -112,27 +112,15 @@ class SparepartSaleResource extends Resource
         $set('total', $harga_subtotal - $discount_total);
     }
 
-    // public static function updateDChange($get, $set): void
-    // {
-    //     dd('kembalian akan diupdate disini');
-        // $selectedPaymentMethod = collect($get('sparepartDSalePayment'))->filter(fn ($item) => !empty($item['account_id']));
-        // $total_jumlah_bayar = $selectedPaymentMethod->map(function ($item) {
-        //     return (float) $item['jumlah_bayar'];
-        // })->sum();
-        
-        // $change = ($total_jumlah_bayar==0?$get('total'):$total_jumlah_bayar) - $get('total');
-        // $set('change', $change);
-    // }
-
-    public static function updateChange($get, $set): void
+    public static function updatePaymentChange($get, $set): void
     {
         $selectedPaymentMethod = collect($get('sparepartDSalePayment'))->filter(fn ($item) => !empty($item['account_id']));
         $total_jumlah_bayar = $selectedPaymentMethod->map(function ($item) {
             return (float) $item['jumlah_bayar'];
         })->sum();
         
-        $change = ($total_jumlah_bayar==0?$get('total'):$total_jumlah_bayar) - $get('total');
-        $set('change', $change);
+        $payment_change = ($total_jumlah_bayar==0?$get('total'):$total_jumlah_bayar) - $get('total');
+        $set('payment_change', $payment_change);
     }
 
     public static function InsertJurnal($record, $status): void
@@ -457,7 +445,7 @@ class SparepartSaleResource extends Resource
                                 ->label('Jumlah yang harus dibayar')
                                 ->numeric()
                                 ->readOnly(),
-                            TextInput::make('change')
+                            TextInput::make('payment_change')
                                 ->default(0)
                                 ->prefix('Rp ')
                                 ->label('Kembalian')
@@ -508,7 +496,7 @@ class SparepartSaleResource extends Resource
                         ])
                         ->live(debounce:500)
                         ->afterStateUpdated(function (Set $set, Get $get) {
-                            self::updateChange($get, $set);
+                            self::updatePaymentChange($get, $set);
                         }),
                     ]),
                 ])
