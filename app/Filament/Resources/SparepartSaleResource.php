@@ -99,7 +99,8 @@ class SparepartSaleResource extends Resource
             return (float) $item['discount'];
         })->sum();
 
-        $discount_total = $discount_d_total==0?$get('discount_total'):$discount_d_total;
+        // dd($discount_d_total);
+        // $discount_total = $discount_d_total==0?$get('discount_total'):$discount_d_total;
 
         $total_pajak = $selectedSparepart->map(function ($item) use ($detail_harga) {
             return ($detail_harga[$item['sparepart_satuan_id']]->sparepart->is_pajak? ((float) $item['jumlah_unit'] * $detail_harga[$item['sparepart_satuan_id']]->harga)*0.12:0);
@@ -107,9 +108,9 @@ class SparepartSaleResource extends Resource
         
         
         $set('pajak_total', $total_pajak);
-        $set('discount_total', $discount_total);
+        $set('discount_total', $discount_d_total);
         $set('sub_total', $harga_subtotal);
-        $set('total', $harga_subtotal - $discount_total);
+        $set('total', $harga_subtotal - $discount_d_total);
     }
 
     public static function updatePaymentChange($get, $set): void
@@ -167,7 +168,7 @@ class SparepartSaleResource extends Resource
             }
 
             if($record->discount_total){
-                $account_debit_discount = Account::find(24); //Utang PPN Keluaran
+                $account_debit_discount = Account::find(25); //Diskon Penjualan
                 Jurnal::create([
                     'transaksi_h_id'    => $record->id,
                     'transaksi_d_id'    => $record->id,
@@ -208,7 +209,7 @@ class SparepartSaleResource extends Resource
                 'transaction_type'  => 'penjualan sparepart',
 
                 'debit' => 0,
-                'kredit'    => $record->total,
+                'kredit'    => $record->total + $record->discount_total,
                 // 'kredit'    => $record->total - $record->pajak_total,
             ]);
 
@@ -489,7 +490,7 @@ class SparepartSaleResource extends Resource
                                         ->label('Bukti pembayaran')
                                         ->image()
                                         ->resize(50),
-                                    TextInput::make('total_payable'),
+                                    Hidden::make('total_payable'),
                                     Hidden::make('account_name'),
                                     Hidden::make('account_kode'),
                                 ])

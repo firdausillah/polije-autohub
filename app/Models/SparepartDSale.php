@@ -20,9 +20,11 @@ class SparepartDSale extends Model
     {
         $subTotal = self::where('sparepart_sale_id', $this->sparepart_sale_id)
             ->sum('harga_subtotal');
+        $discountTotal = self::where('sparepart_sale_id', $this->sparepart_sale_id)
+            ->sum('discount');
 
         SparepartSale::where('id', $this->sparepart_sale_id)
-            ->update(['total' => $subTotal]);
+            ->update(['total' => $subTotal - $discountTotal]);
     }
 
     protected static function boot()
