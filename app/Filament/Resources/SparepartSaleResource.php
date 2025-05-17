@@ -511,7 +511,7 @@ class SparepartSaleResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('tanggal_transaksi')
-                ->sortable('desc')
+                ->sortable()
                 ->label('Tanggal'),
                 TextColumn::make('kode')
                     ->searchable(),
@@ -529,6 +529,7 @@ class SparepartSaleResource extends Resource
                 TextColumn::make('total')->money('IDR', locale: 'id_ID'),
 
             ])
+            ->defaultSort('tanggal_transaksi', 'desc')
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
                 FiltersFilter::make('created_at')
