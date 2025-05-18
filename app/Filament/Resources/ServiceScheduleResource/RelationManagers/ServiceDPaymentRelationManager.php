@@ -56,11 +56,11 @@ class ServiceDPaymentRelationManager extends RelationManager
                 Hidden::make('account_kode'),
                 TextInput::make('jumlah_bayar')
                 ->required()
-                ->label('Kembalian')
+                ->label('Jumlah Bayar')
                 ->live(debounce: 500)
                 ->afterStateUpdated(
                     function(Get $get, Set $set){
-                        $payment_change = $get('jumlah_bayar') - $get('total_payable');
+                        $payment_change = (float) $get('jumlah_bayar') - (float) $get('total_payable');
                         $set('payment_change', $payment_change>0?$payment_change:0);
                     }
                 )
@@ -90,6 +90,7 @@ class ServiceDPaymentRelationManager extends RelationManager
                 }
                 ),
                 TextInput::make('payment_change')
+                ->label('kembalian')
                 ->numeric()
                 ->readOnly(),
                 FileUpload::make('photo')

@@ -96,7 +96,7 @@ class ServiceScheduleResource extends Resource
             //Kas / Bank
             $payment = ServiceDPayment::where('service_schedule_id', $record->id)->get();
             if ($record->total > $payment->sum('jumlah_bayar')) {
-                return ['title' => 'Approval Gagal', 'body' => 'total tidak boleh lebih kecil dari total jumlah di detail', 'status' => 'warning'];
+                return ['title' => 'Approval Gagal', 'body' => 'jumlah bayar tidak boleh lebih kecil dari total yang harus dibayarkan di detail payment', 'status' => 'warning'];
             }
             foreach ($payment as $key => $val) {
                 Jurnal::create([
