@@ -77,7 +77,9 @@ class ServiceDPaymentRelationManager extends RelationManager
                     }
                 ),
                 TextInput::make('total_payable')
-                ->required()
+                // ->required()
+                ->readOnly()
+                ->label('Total yang harus dibayar')
                 ->default(
                 function (Livewire $livewire) {
                     $record = $livewire->ownerRecord;
