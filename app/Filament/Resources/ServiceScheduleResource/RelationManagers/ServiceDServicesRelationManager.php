@@ -33,6 +33,7 @@ class ServiceDServicesRelationManager extends RelationManager
         $service = Service::find($get('service_id'));
         
         $harga = $is_customer_umum==1?$service->harga_1: $service->harga_2;
+        $discount = $get('discount') != '' ?? 0;
 
         $harga_subtotal = floatval($harga ?? 0) * floatval($get('jumlah') ?? 0);
         $estimasi_waktu_pengerjaan = ($service->estimasi_waktu_pengerjaan ?? 0) * floatval(($get('jumlah') ?? 0));
@@ -42,6 +43,7 @@ class ServiceDServicesRelationManager extends RelationManager
         $set('harga_unit', $harga??0);
         $set('estimasi_waktu_pengerjaan', $estimasi_waktu_pengerjaan);
         $set('harga_subtotal', $harga_subtotal);
+        $set('total', $harga_subtotal - $discount);
     }
 
     public function form(Form $form): Form
@@ -51,6 +53,7 @@ class ServiceDServicesRelationManager extends RelationManager
                 Select::make('service_m_type_id')
                 ->relationship('serviceMType', 'name')
                 ->label('Tipe Service')
+                ->searchable()
                 ->required()
                 ->preload(),
                 Select::make('service_id')
@@ -71,7 +74,7 @@ class ServiceDServicesRelationManager extends RelationManager
                 Textinput::make('jumlah')
                 ->required()
                 ->default(1)
-                ->live()
+                ->live(debounce: 500)
                 ->numeric()
                 ->afterStateUpdated(
                     function (Set $set, Get $get) {
@@ -80,8 +83,18 @@ class ServiceDServicesRelationManager extends RelationManager
                     }
                 )
                 ->gt(0),
-                Grid::make()
-                ->columns(3)
+                TextInput::make('discount')
+                ->prefix('Rp')
+                ->live(debounce: 500)
+                ->default(0)
+                ->numeric()
+                ->afterStateUpdated(
+                    function (Set $set, Get $get) {
+                        $is_customer_umum = $this->getOwnerRecord()->is_customer_umum;
+                        Self::updateSubtotal($get, $set, $is_customer_umum);
+                    }
+                ),
+                Grid::make(['sm' => 3])
                 ->schema([
                     TextInput::make('harga_unit')
                     ->required()
@@ -92,12 +105,17 @@ class ServiceDServicesRelationManager extends RelationManager
                     ->required()
                     ->prefix('Rp')
                     ->readOnly(),
-                    Textinput::make('estimasi_waktu_pengerjaan')
+                    TextInput::make('total')
                     ->required()
-                    ->suffix('Menit')
+                    ->prefix('Rp')
                     ->readOnly(),
+                    // Textinput::make('estimasi_waktu_pengerjaan')
+                    // ->required()
+                    // ->suffix('Menit')
+                    // ->readOnly(),
                 ])
-            ]);
+            ])
+            ->columns(['sm' => 2]);
     }
 
     public function table(Table $table): Table
@@ -112,30 +130,47 @@ class ServiceDServicesRelationManager extends RelationManager
                 Tables\Columns\TextInputColumn::make('keterangan')
                 ->visible(auth()->user()->hasRole(['Kepala Unit', 'Mekanik'])),
                 Tables\Columns\TextColumn::make('harga_unit')
-                ->visible(auth()->user()->hasRole(['Kepala Unit', 'super_admin', 'manager']))
+                ->visible(!auth()->user()->hasRole('mekanik'))
                 ->money('IDR', locale: 'id_ID'),
                 Tables\Columns\TextColumn::make('harga_subtotal')
-                ->visible(auth()->user()->hasRole(['Kepala Unit', 'super_admin', 'manager']))
+                ->visible(!auth()->user()->hasRole('mekanik'))
                 ->money('IDR', locale: 'id_ID'),
-                Tables\Columns\TextColumn::make('estimasi_waktu_pengerjaan'),
-
+                // Tables\Columns\TextColumn::make('estimasi_waktu_pengerjaan'),
 
                 Tables\Columns\TextColumn::make('harga_subtotal')
-                ->visible(auth()->user()->hasRole(['Kepala Unit', 'super_admin', 'manager']))
+                ->visible(!auth()->user()->hasRole('mekanik'))
                 ->summarize(
                     Sum::make()
                         ->money('IDR', locale: 'id_ID')
-                        ->label('Total')
+                        ->label('')
                 )
                 ->money('IDR', locale: 'id_ID'),
-                Tables\Columns\TextColumn::make('estimasi_waktu_pengerjaan')
-                ->label('Estimasi Waktu')
+
+                Tables\Columns\TextColumn::make('discount')
+                ->visible(!auth()->user()->hasRole('mekanik'))
                 ->summarize(
                     Sum::make()
-                        ->label('Total')
-                        ->suffix(' Menit'),
+                        ->money('IDR', locale: 'id_ID')
+                        ->label('')
                 )
-                ->suffix(' Menit'),
+                ->money('IDR', locale: 'id_ID'),
+
+                Tables\Columns\TextColumn::make('total')
+                ->visible(!auth()->user()->hasRole('mekanik'))
+                ->summarize(
+                    Sum::make()
+                        ->money('IDR', locale: 'id_ID')
+                        ->label('')
+                )
+                ->money('IDR', locale: 'id_ID'),
+                // Tables\Columns\TextColumn::make('estimasi_waktu_pengerjaan')
+                // ->label('Estimasi Waktu')
+                // ->summarize(
+                //     Sum::make()
+                //         ->label('Total')
+                //         ->suffix(' Menit'),
+                // )
+                // ->suffix(' Menit'),
             ])
             ->filters([
                 //

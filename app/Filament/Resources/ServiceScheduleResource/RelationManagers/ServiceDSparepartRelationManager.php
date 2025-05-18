@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ServiceScheduleResource\RelationManagers;
 use App\Models\Sparepart;
 use App\Models\SparepartSatuans;
 use Filament\Forms;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -18,6 +19,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Collection;
 
 class ServiceDSparepartRelationManager extends RelationManager
 {
@@ -32,6 +34,7 @@ class ServiceDSparepartRelationManager extends RelationManager
         $sparepart_satuan = SparepartSatuans::where(['id' => $get('sparepart_satuan_id')])->with('sparepart')->first();
         if($sparepart_satuan != null){
             $harga_subtotal = floatval($sparepart_satuan->harga) * floatval(($get('jumlah_unit')??0));
+            $discount = $get('discount')!=''??0;
         
             $is_pajak = Sparepart::find($sparepart_satuan->sparepart_id)->is_pajak;
             if ($is_pajak == 1) {
@@ -44,6 +47,8 @@ class ServiceDSparepartRelationManager extends RelationManager
         
             $set('harga_unit', $sparepart_satuan->harga);
             $set('harga_subtotal', $harga_subtotal);
+            $set('total', $harga_subtotal-$discount);
+
             $set('sparepart_id', $sparepart_satuan->sparepart_id);
             $set('satuan_id', $sparepart_satuan->satuan_id);
         }
@@ -54,40 +59,94 @@ class ServiceDSparepartRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Select::make('sparepart_satuan_id')
-                ->relationship('sparepartSatuan', 'sparepart_name')
-                ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name} ({$record->harga})")
+                // Select::make('sparepart_satuan_id')
+                // ->relationship('sparepartSatuan', 'sparepart_name')
+                // ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name}")
+                // ->searchable()
+                // ->preload()
+                // ->live()
+                // ->afterStateUpdated(
+                //     function(Set $set, Get $get){
+                //         self::updateSubtotal($get, $set);
+                //     }
+                // ),
+
+                Select::make('sparepart_m_category_id')
+                ->relationship('sparepartMCategory', 'name')
+                ->label('Kategori Sparepart')
+                ->required()
                 ->searchable()
+                ->preload(),
+                Select::make('sparepart_satuan_id')
+                ->required()
                 ->preload()
                 ->live()
+                ->options(
+                    fn (Get $get): Collection =>
+                    \App\Models\SparepartSatuans::whereHas(
+                        'sparepart',
+                        fn ($q) =>
+                        $q->where('sparepart_m_category_id', $get('sparepart_m_category_id'))
+                    )
+                    ->get()
+                    ->mapWithKeys(fn ($item) => [
+                        $item->id => "{$item->sparepart->kode} - {$item->sparepart->name}"
+                    ])
+                )
                 ->afterStateUpdated(
                     function(Set $set, Get $get){
                         self::updateSubtotal($get, $set);
                     }
-                ),
+                )
+                ->searchable(),
 
                 Hidden::make('sparepart_id'),
                 Hidden::make('satuan_id'),
-                Hidden::make('harga_unit'),
                 Hidden::make('pajak'),
 
                 TextInput::make('jumlah_unit')
                     ->required()
                     ->default(1)
                     ->numeric()
-                    ->live()
+                    ->live(debounce: 500)
                     ->afterStateUpdated(
                         function (Get $get, Set $set, $state) {
-                            ($state != NULL ? self::updateSubtotal($get, $set) : '');
+                            ($state != NULL ? self::updateSubtotal($get, $set) : 0);
                         }
                     )
                     ->gt(0)
                     ->disabled(fn (Get $get) => !$get('sparepart_satuan_id')),
-                TextInput::make('harga_subtotal')
-                ->required()
-                ->prefix('Rp')
-                ->readOnly(),
-            ]);
+                TextInput::make('discount')
+                ->live(debounce: 500)
+                ->afterStateUpdated(
+                    function (Get $get, Set $set, $state) {
+                        // ($state != NULL ?  : 0);
+                        self::updateSubtotal($get, $set);
+                    }
+                )
+                ->prefix('Rp'),
+                Grid::make(['sm' => 3])
+                ->schema([
+                    TextInput::make('harga_unit')
+                    ->required()
+                    ->label('Harga')
+                    ->prefix('Rp')
+                    ->readOnly(),
+                    TextInput::make('harga_subtotal')
+                    ->required()
+                    ->prefix('Rp')
+                    ->readOnly(),
+                    TextInput::make('total')
+                    ->required()
+                    ->prefix('Rp')
+                    ->readOnly(),
+                    // Textinput::make('estimasi_waktu_pengerjaan')
+                    // ->required()
+                    // ->suffix('Menit')
+                    // ->readOnly(),
+                ])
+            ])
+            ->columns(2);
     }
 
     public function table(Table $table): Table
@@ -104,16 +163,35 @@ class ServiceDSparepartRelationManager extends RelationManager
                 Tables\Columns\TextInputColumn::make('keterangan')
                 ->visible(auth()->user()->hasRole(['Kepala Unit', 'Mekanik'])),
                 Tables\Columns\TextColumn::make('harga_unit')
-                ->visible(auth()->user()->hasRole(['Kepala Unit', 'super_admin', 'manager']))
+                ->visible(!auth()->user()->hasRole('mekanik'))
                     ->money('IDR', locale: 'id_ID'),
-                Tables\Columns\TextColumn::make('harga_subtotal')
-                ->visible(auth()->user()->hasRole(['Kepala Unit', 'super_admin', 'manager']))
-                    ->summarize(
-                        Sum::make()
-                            ->money('IDR', locale: 'id_ID')
-                            ->label('Total')
-                    )
+
+            Tables\Columns\TextColumn::make('harga_subtotal')
+            ->visible(!auth()->user()->hasRole('mekanik'))
+            ->summarize(
+                Sum::make()
                     ->money('IDR', locale: 'id_ID')
+                    ->label('')
+            )
+            ->money('IDR', locale: 'id_ID'),
+
+            Tables\Columns\TextColumn::make('discount')
+            ->visible(!auth()->user()->hasRole('mekanik'))
+            ->summarize(
+                Sum::make()
+                    ->money('IDR', locale: 'id_ID')
+                    ->label('')
+            )
+            ->money('IDR', locale: 'id_ID'),
+
+            Tables\Columns\TextColumn::make('total')
+            ->visible(!auth()->user()->hasRole('mekanik'))
+            ->summarize(
+                Sum::make()
+                    ->money('IDR', locale: 'id_ID')
+                    ->label('')
+            )
+            ->money('IDR', locale: 'id_ID'),
 
             ])
             ->filters([

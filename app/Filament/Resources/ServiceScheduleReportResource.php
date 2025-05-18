@@ -59,6 +59,7 @@ class ServiceScheduleReportResource extends Resource
                 TextColumn::make('kepala_unit_name')->searchable()->sortable(),
                 //
             ])
+            ->defaultSort('id', 'desc')
             ->filters([
                 Filter::make('approved_at')
                 ->form([

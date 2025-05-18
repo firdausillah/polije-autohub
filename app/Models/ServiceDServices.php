@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\updateServiceTotal;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,23 +13,6 @@ class ServiceDServices extends Model
 {
 
     protected $guarded;
-
-    public function updateServiceTotal()
-    {
-        $estimasi_waktu_pengerjaan = ServiceDServices::where('service_schedule_id',$this->service_schedule_id)
-            ->sum('estimasi_waktu_pengerjaan');
-
-        $subTotalService = ServiceDServices::where('service_schedule_id',$this->service_schedule_id)
-            ->sum('harga_subtotal');
-
-        $subTotalSparepart = ServiceDSparepart::where('service_schedule_id',$this->service_schedule_id)
-            ->sum('harga_subtotal');
-
-        $subTotal = $subTotalService + $subTotalSparepart;
-
-        ServiceSchedule::find($this->service_schedule_id)
-            ->update(['total' =>$subTotal, 'service_total' => $subTotalService, 'sparepart_total' => $subTotalSparepart, 'total_estimasi_waktu' => $estimasi_waktu_pengerjaan]);
-    }
 
     protected static function boot()
     {
@@ -42,8 +26,13 @@ class ServiceDServices extends Model
             $model->updated_by = Auth::id();
         });
 
-        static::saved(fn ($model) => $model->updateServiceTotal());
-        static::deleted(fn ($model) => $model->updateServiceTotal());
+        static::saved(function ($model) {
+            updateServiceTotal::updateTotal($model->service_schedule_id);
+        });
+
+        static::deleted(function ($model) {
+            updateServiceTotal::updateTotal($model->service_schedule_id);
+        });
     }
 
     public function service()

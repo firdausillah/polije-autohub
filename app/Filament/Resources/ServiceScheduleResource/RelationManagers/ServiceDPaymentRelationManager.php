@@ -56,17 +56,42 @@ class ServiceDPaymentRelationManager extends RelationManager
                 Hidden::make('account_kode'),
                 TextInput::make('jumlah_bayar')
                 ->required()
+                ->label('Kembalian')
+                ->live(debounce: 500)
+                ->afterStateUpdated(
+                    function(Get $get, Set $set){
+                        $payment_change = $get('jumlah_bayar') - $get('total_payable');
+                        $set('payment_change', $payment_change>0?$payment_change:0);
+                    }
+                )
+                ->default(
+                    function (Livewire $livewire) {
+                        $record = $livewire->ownerRecord;
+                        $existing_payment = ServiceDPayment::where('service_schedule_id', $record->id)
+                            ->pluck('jumlah_bayar')
+                            ->toArray();
+
+                        $total_payable = $record->total - array_sum($existing_payment);
+                        // dd($record->total, array_sum($existing_payment), $existing_payment, $record->total - array_sum($existing_payment));
+                        return $total_payable<0?0:$total_payable;
+                    }
+                ),
+                TextInput::make('total_payable')
+                ->required()
                 ->default(
                 function (Livewire $livewire) {
                     $record = $livewire->ownerRecord;
                     $existing_payment = ServiceDPayment::where('service_schedule_id', $record->id)
-                        ->pluck('jumlah_bayar') // Ambil hanya kolom jumlah_bayar sebagai array
-                        ->toArray(); // Ubah ke array
+                        ->pluck('jumlah_bayar')
+                        ->toArray();
 
-                    // dd(array_sum($existing_payment));   
-                    return $record->total - array_sum($existing_payment);
+                    $total_payable = $record->total - array_sum($existing_payment);
+                    return $total_payable < 0 ? 0 : $total_payable;
                 }
                 ),
+                TextInput::make('payment_change')
+                ->numeric()
+                ->readOnly(),
                 FileUpload::make('photo')
                     ->label('Bukti pembayaran')
                     ->image()
@@ -88,7 +113,16 @@ class ServiceDPaymentRelationManager extends RelationManager
                 ->summarize(
                     Sum::make()
                         ->money('IDR', locale: 'id_ID')
-                        ->label('Total')
+                        ->label('')
+                )
+                ->money('IDR', locale: 'id_ID'),
+
+                Tables\Columns\TextColumn::make('payment_change')
+                ->label('Kembalian')
+                ->summarize(
+                    Sum::make()
+                        ->money('IDR', locale: 'id_ID')
+                        ->label('')
                 )
                 ->money('IDR', locale: 'id_ID'),
 

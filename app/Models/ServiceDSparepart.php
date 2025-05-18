@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Helpers\SparepartDetailUpdate;
+use App\Helpers\updateServiceTotal;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,25 +13,6 @@ class ServiceDSparepart extends Model
 {
     protected $guarded;
 
-    public function updateServiceTotal()
-    {
-        $estimasi_waktu_pengerjaan = ServiceDServices::where('service_schedule_id', $this->service_schedule_id)
-            ->sum('estimasi_waktu_pengerjaan');
-
-        $subTotalService = ServiceDServices::where('service_schedule_id', $this->service_schedule_id)
-            ->sum('harga_subtotal');
-
-        $subTotalSparepart = ServiceDSparepart::where('service_schedule_id', $this->service_schedule_id)
-            ->sum('harga_subtotal');
-
-        $totalPajak = ServiceDSparepart::where('service_schedule_id', $this->service_schedule_id)
-            ->sum('pajak');
-
-        $subTotal = $subTotalService + $subTotalSparepart;
-
-        ServiceSchedule::find($this->service_schedule_id)
-            ->update(['total' => $subTotal, 'service_total' => $subTotalService, 'sparepart_total' => $subTotalSparepart, 'total_estimasi_waktu' => $estimasi_waktu_pengerjaan, 'pajak_total' => $totalPajak]);
-    }
 
     protected static function boot()
     {
@@ -46,10 +28,19 @@ class ServiceDSparepart extends Model
             SparepartDetailUpdate::prepareSparepartData($model);
         });
 
-        static::saved(fn ($model) => $model->updateServiceTotal());
-        static::deleted(fn ($model) => $model->updateServiceTotal());
+        static::saved(function ($model) {
+            updateServiceTotal::updateTotal($model->service_schedule_id);
+        });
+
+        static::deleted(function ($model) {
+            updateServiceTotal::updateTotal($model->service_schedule_id);
+        });
     }
 
+    public function sparepartMCategory(): BelongsTo
+    {
+        return $this->belongsTo(SparepartMCategory::class);
+    }
 
     public function sparepartSatuan(): BelongsTo
     {
