@@ -31,9 +31,9 @@ class ServiceDServicesRelationManager extends RelationManager
     public static function updateSubtotal($get, $set, $is_customer_umum): void
     {
         $service = Service::find($get('service_id'));
-        
+        // dd($service);
         $harga = $is_customer_umum==1?$service->harga_1: $service->harga_2;
-        $discount = $get('discount') != '' ?? 0;
+        $discount = $get('discount');
 
         $harga_subtotal = floatval($harga ?? 0) * floatval($get('jumlah') ?? 0);
         $estimasi_waktu_pengerjaan = ($service->estimasi_waktu_pengerjaan ?? 0) * floatval(($get('jumlah') ?? 0));
