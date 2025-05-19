@@ -7,7 +7,39 @@ use Illuminate\Support\Facades\DB;
 
 class SalesReport extends Model
 {
-    public static function getData($startDate, $endDate){
+    public static function getData($sort_by, $startDate, $endDate){
+        // dd($sort_by);
+
+        switch ($sort_by) {
+            case 'name_asc':
+                $order_by = 'ORDER BY sparepart_name ASC';
+                break;
+            case 'name_desc':
+                $order_by = 'ORDER BY sparepart_name DESC';
+                break;
+            case 'saldo_asc':
+                $order_by = 'ORDER BY sd.saldo ASC';
+                break;
+            case 'saldo_desc':
+                $order_by = 'ORDER BY sd.saldo DESC';
+                break;
+            case 'terjual_asc':
+                $order_by = 'ORDER BY qty_terjual ASC';
+                break;
+            case 'terjual_desc':
+                $order_by = 'ORDER BY qty_terjual DESC';
+                break;
+            case 'penjualan_asc':
+                $order_by = 'ORDER BY total_penjualan ASC';
+                break;
+            case 'penjualan_desc':
+                $order_by = 'ORDER BY total_penjualan DESC';
+                break;
+            default:
+                $order_by = 'ORDER BY sparepart_id ASC';
+                break;
+        }
+
         $from = $startDate;
         $to = $endDate;
 
@@ -17,36 +49,49 @@ class SalesReport extends Model
 
         $results = DB::select("
             SELECT
-                inventories.sparepart_id AS sparepart_id,
-                inventories.sparepart_kode AS sparepart_kode,
-                inventories.sparepart_name AS sparepart_name,
-                sd.saldo,
-                SUM(
-                    IF(inventories.movement_type = 'OUT-SAL', inventories.jumlah_terkecil, 0)
-                ) AS qty_terjual,
-                SUM(
-                    IF(inventories.movement_type = 'OUT-SAL', inventories.harga_subtotal, 0)
-                ) AS total_penjualan
-            FROM polije_autohub.inventories
+                a.id AS sparepart_id,
+                a.kode AS sparepart_kode,
+                a.name AS sparepart_name,
+                IFNULL(sd.saldo, 0) AS saldo,
+                IFNULL(SUM(
+                    IF(
+                        b.movement_type = 'OUT-SAL',
+                        b.jumlah_terkecil,
+                        0
+                    )
+                ), 0) AS qty_terjual,
+                IFNULL(SUM(
+                    IF(
+                        b.movement_type = 'OUT-SAL',
+                        b.harga_subtotal,
+                        0
+                    )
+                ), 0) AS total_penjualan
+            FROM
+                spareparts a
+            LEFT JOIN inventories b 
+                ON a.id = b.sparepart_id 
+                AND b.created_at BETWEEN ? AND ?
             LEFT JOIN (
-                SELECT 
+                SELECT
                     inventories.sparepart_id,
                     COALESCE(
                         SUM(
                             CASE 
-                                WHEN inventories.movement_type = 'IN-PUR' THEN inventories.jumlah_terkecil
-                                WHEN inventories.movement_type = 'OUT-SAL' THEN -inventories.jumlah_terkecil
+                                WHEN inventories.movement_type = 'IN-PUR' THEN inventories.jumlah_terkecil 
+                                WHEN inventories.movement_type = 'OUT-SAL' THEN -inventories.jumlah_terkecil 
                                 ELSE 0
                             END
-                        ), 0
+                        ),
+                        0
                     ) AS saldo
-                FROM inventories 
+                FROM inventories
                 WHERE inventories.created_at <= ?
                 GROUP BY inventories.sparepart_id
-            ) AS sd ON inventories.sparepart_id = sd.sparepart_id 
-            WHERE inventories.created_at BETWEEN ? AND ?
-            GROUP BY inventories.sparepart_id, inventories.sparepart_kode , inventories.sparepart_name, sd.saldo
-        ", [$endDate, $startDate, $endDate]);
+            ) AS sd ON a.id = sd.sparepart_id
+            GROUP BY a.id, a.kode, a.name, sd.saldo
+            $order_by
+        ", [$startDate, $endDate, $endDate]);
         // dd($results);
 
         return $results;

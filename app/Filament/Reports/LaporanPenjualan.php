@@ -9,6 +9,7 @@ use EightyNine\Reports\Components\Footer;
 use EightyNine\Reports\Components\Header;
 use EightyNine\Reports\Components\Text;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 
 class LaporanPenjualan extends Report
@@ -59,18 +60,19 @@ class LaporanPenjualan extends Report
                             Body\TextColumn::make("sparepart_name"),
                             Body\TextColumn::make("saldo"),
                             Body\TextColumn::make("qty_terjual"),
-                            Body\TextColumn::make("total_penjualan")
-                            ->money('IDR')
-                            ->alignRight()
-                            ->sum(),
+                            // Body\TextColumn::make("total_penjualan")
+                            // ->money('IDR')
+                            // ->alignRight()
+                            // ->sum(),
                         ])
                         ->data(
                             function (?array $filters) {
 
+                                $sort_by = $filters['sort_by']??null;
                                 $startDate = $filters['start'] ?? now()->startOfMonth();
                                 $endDate = $filters['end'] ?? now()->endOfMonth();
 
-                                $data = SalesReport::getData($startDate, $endDate);
+                                $data = SalesReport::getData($sort_by, $startDate, $endDate);
 
                                 return collect($data);
                             }
@@ -91,6 +93,20 @@ class LaporanPenjualan extends Report
     {
         return $form
             ->schema([
+                Select::make('sort_by')
+                ->label('Urutkan Menurut')
+                ->searchable()
+                ->options([
+                    'name_asc' => 'Nama A ke Z',
+                    'name_desc' => 'Nama Z ke A',
+                    'saldo_asc' => 'Saldo Kecil ke Besar',
+                    'saldo_desc' => 'Saldo Besar ke Kecil',
+                    'terjual_asc' => 'Terjual Kecil ke Besar',
+                    'terjual_desc' => 'Terjual Besar ke Kecil',
+                    // 'penjualan_asc' => 'Total Penjualan Kecil ke Besar',
+                    // 'penjualan_desc' => 'Total Penjualan Besar ke Kecil',
+                ])
+                ->preload(),
                 DatePicker::make('start')
                     ->label('Rentang Tanggal')
                     ->default(now()->startOfMonth()), // Default ke 1 bulan terakhir
