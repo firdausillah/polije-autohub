@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Filament\Reports\KartuStok;
 use App\Filament\Reports\LabaRugi;
+use App\Filament\Reports\LaporanPenjualan;
 use App\Filament\Reports\PemasukanPengeluaran;
 use Filament\Facades\Filament;
 use Filament\Navigation\NavigationItem;
@@ -48,6 +49,12 @@ class AppServiceProvider extends ServiceProvider
                         ->icon('heroicon-o-document-text')
                         ->group('Laporan')
                         ->isActiveWhen(fn () => str_contains(request()->url(), PemasukanPengeluaran::getUrl())),
+                    NavigationItem::make()
+                        ->label('Laporan Penjualan')
+                        ->url(LaporanPenjualan::getUrl())
+                        ->icon('heroicon-o-document-text')
+                        ->group('Laporan')
+                        ->isActiveWhen(fn () => str_contains(request()->url(), LaporanPenjualan::getUrl())),
                 ]);
             }
         });

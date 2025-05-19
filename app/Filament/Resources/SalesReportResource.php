@@ -34,6 +34,16 @@ class SalesReportResource extends Resource
         return 'Laporan Penjualan';
     }
 
+    public static function canAccess(): bool
+    {
+        return false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+    
     public static function form(Form $form): Form
     {
         return $form
