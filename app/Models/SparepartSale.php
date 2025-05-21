@@ -9,11 +9,51 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class SparepartSale extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $guarded;
+    use LogsActivity;
+
+    protected $guarded = [];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'id',
+                'name',
+                'kode',
+                'keterangan',
+                'created_by',
+                'updated_by',
+                'approved_by',
+                'approved_at',
+                'deleted_at',
+                'created_at',
+                'updated_at',
+                'customer_name',
+                'customer_nomor_telepon',
+                'is_approve',
+                'sub_total',
+                'discount_total',
+                'pajak_total',
+                'total',
+                'payment_change',
+                'tanggal_transaksi',
+                'photo',
+                'invoice_file',
+            ])
+            ->logOnlyDirty()
+            ->useLogName('sparepart_purchase');
+    }
+
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return "sparepart_purchase telah di{$eventName}";
+    }
 
     protected static function boot()
     {

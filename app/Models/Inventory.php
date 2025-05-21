@@ -10,13 +10,56 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Inventory extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
-    protected $guarded;
-    
+    protected $guarded = [];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'id',
+                'sparepart_id',
+                'satuan_id',
+                'transaksi_h_id',
+                'transaksi_d_id',
+                'name',
+                'kode',
+                'keterangan',
+                'created_by',
+                'updated_by',
+                'deleted_at',
+                'created_at',
+                'updated_at',
+                'transaksi_h_kode',
+                'sparepart_name',
+                'sparepart_kode',
+                'satuan_terkecil_name',
+                'satuan_terkecil_kode',
+                'tanggal_transaksi',
+                'jumlah_unit',
+                'jumlah_konversi',
+                'jumlah_terkecil',
+                'harga_unit',
+                'harga_terkecil',
+                'harga_subtotal',
+                'movement_type',
+                'relation_name',
+                'relation_nomor_telepon',
+            ])
+            ->logOnlyDirty()
+            ->useLogName('inventory');
+    }
+
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return "inventory telah di{$eventName}";
+    }
 
     protected static function boot()
     {
@@ -31,39 +74,6 @@ class Inventory extends Model
         });
     }
 
-    // public static function kartuStok()
-    // {
-    //     return self::query()
-    //         ->selectRaw("
-    //         CONCAT(transaksi_h_kode, '-', transaksi_d_id) AS id, -- Tambahkan kolom unik sebagai id
-    //         CONCAT(sparepart_name, ' - ', sparepart_kode) AS sparepart, -- Tambahkan kolom unik sebagai id
-    //         transaksi_h_kode AS transaksi_kode,
-    //         tanggal_transaksi,
-    //         sparepart_id,
-    //         sparepart_name,
-    //         sparepart_kode,
-    //         satuan_terkecil_name AS satuan,
-    //         relation_name,
-    //         movement_type,
-    //         jumlah_terkecil,
-    //         '' AS qty_masuk,
-    //         '' AS qty_keluar,
-
-    //         SUM(
-    //             CASE 
-    //                 WHEN movement_type = 'IN-PUR' THEN jumlah_terkecil
-    //                 WHEN movement_type = 'OUT-SAL' THEN -jumlah_terkecil
-    //                 ELSE 0 
-    //             END
-    //         ) OVER (PARTITION BY sparepart_id ORDER BY tanggal_transaksi, transaksi_h_id, transaksi_d_id) AS saldo
-    //     ")
-    //         // ->where('sparepart_id', $sparepart_id)
-    //         ->orderBy('tanggal_transaksi')
-    //         ->orderBy('transaksi_h_id')
-    //         ->orderBy('transaksi_d_id');
-    // }
-
-
     public function spareparts(): HasMany
     {
         return $this->hasMany(Sparepart::class, 'sparepart_id');
@@ -74,36 +84,4 @@ class Inventory extends Model
         return $this->belongsTo(Sparepart::class, 'sparepart_id');
     }
 
-    // public function qtyMasuk(): Attribute
-    // {
-    //     return Attribute::make(
-    //         get: fn () => $this->movement_type === 'IN-PUR' ? $this->jumlah_terkecil : 0
-    //     );
-    // }
-
-    // public function qtyKeluar(): Attribute
-    // {
-    //     return Attribute::make(
-    //         get: fn () => $this->movement_type === 'OUT-SAL' ? $this->jumlah_terkecil : 0
-    //     );
-    // }
-
-    // public function saldo($sparepart_id){
-    //     return $this->select(
-    //         "
-    //             SELECT
-    //                 SUM(
-    //                     CASE 
-    //                         WHEN movement_type = 'IN-PUR' THEN jumlah_terkecil 
-    //                         WHEN movement_type = 'OUT-SAL' THEN -jumlah_terkecil
-    //                         ELSE 0 
-    //                     END
-    //                 ) OVER (PARTITION BY sparepart_id ORDER BY tanggal_transaksi, transaksi_h_id, transaksi_d_id) AS saldo
-    //             FROM 
-    //                 inventories
-    //             WHERE sparepart_id = $sparepart_id
-    //             ORDER BY 
-    //                 sparepart_id, tanggal_transaksi, transaksi_h_id, transaksi_d_id"
-    //     )->get();
-    // }
 }

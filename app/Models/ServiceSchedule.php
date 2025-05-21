@@ -9,11 +9,73 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class ServiceSchedule extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $guarded;
+    use LogsActivity;
+
+    protected $guarded = [];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+            'id',
+            'vehicle_id',
+            'mekanik1_id',
+            'mekanik2_id',
+            'mekanik3_id',
+            'kepala_unit_id',
+            'name',
+            'kode',
+            'keterangan',
+            'created_by',
+            'updated_by',
+            'deleted_at',
+            'created_at',
+            'updated_at',
+            'approved_by',
+            'approved_at',
+            'is_approve',
+            'mekanik_name',
+            'registration_number',
+            'vehicle_kode',
+            'kepala_unit_name',
+            'customer_name',
+            'nomor_telepon',
+            'keluhan',
+            'km_datang',
+            'service_status',
+            'working_start',
+            'working_end',
+            'total_estimasi_waktu',
+            'harga_subtotal',
+            'discount',
+            'pajak_total',
+            'service_total',
+            'sparepart_total',
+            'total',
+            'discount_service_total',
+            'discount_sparepart_total',
+            'discount_total',
+            'payment_change',
+            'invoice_file',
+            'is_customer_umum',
+            'mekanik1_percentage',
+            'mekanik2_percentage',
+            'mekanik3_percentage',
+            ])
+            ->logOnlyDirty()
+            ->useLogName('service_schedule');
+    }
+
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return "service_schedule telah di{$eventName}";
+    }
 
     protected static function boot()
     {

@@ -8,11 +8,51 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class ServiceDServices extends Model
 {
 
-    protected $guarded;
+    use LogsActivity;
+
+    protected $guarded = [];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'id',
+                'service_schedule_id',
+                'service_id',
+                'service_m_type_id',
+                'name',
+                'kode',
+                'keterangan',
+                'created_by',
+                'updated_by',
+                'deleted_at',
+                'created_at',
+                'updated_at',
+                'service_name',
+                'service_kode',
+                'jumlah',
+                'harga_unit',
+                'harga_subtotal',
+                'total',
+                'discount',
+                'is_approve',
+                'estimasi_waktu_pengerjaan',
+                'checklist_hasil',
+            ])
+            ->logOnlyDirty()
+            ->useLogName('service_d_service');
+    }
+
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return "service_d_service telah di{$eventName}";
+    }
 
     protected static function boot()
     {

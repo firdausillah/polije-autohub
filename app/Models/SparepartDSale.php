@@ -10,11 +10,56 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class SparepartDSale extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $guarded;
+    use LogsActivity;
+
+    protected $guarded = [];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'id',
+                'sparepart_sale_id',
+                'sparepart_id',
+                'satuan_id',
+                'satuan_terkecil_id',
+                'sparepart_satuan_id',
+                'keterangan',
+                'created_by',
+                'updated_by',
+                'deleted_at',
+                'created_at',
+                'updated_at',
+                'sparepart_name',
+                'sparepart_kode',
+                'satuan_name',
+                'satuan_kode',
+                'satuan_terkecil_name',
+                'satuan_terkecil_kode',
+                'jumlah_unit',
+                'jumlah_konversi',
+                'jumlah_terkecil',
+                'harga_unit',
+                'harga_terkecil',
+                'harga_subtotal',
+                'pajak',
+                'discount',
+            ])
+            ->logOnlyDirty()
+            ->useLogName('sparepart_d_sale');
+    }
+
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return "sparepart_d_sale telah di{$eventName}";
+    }
+
 
     public function updateSparepartSaleTotal()
     {

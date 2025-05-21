@@ -10,11 +10,41 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Sparepart extends Model
 {
-    use HasFactory, SoftDeletes;
-    protected $guarded;
+    use HasFactory, SoftDeletes, LogsActivity;
+
+    protected $guarded = [];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'sparepart_m_category_id',
+                'name',
+                'kode',
+                'keterangan',
+                'created_by',
+                'updated_by',
+                'deleted_at',
+                'created_at',
+                'updated_at',
+                'is_original',
+                'part_number',
+                'margin',
+                'is_pajak',
+            ])
+            ->logOnlyDirty()
+            ->useLogName('sparepart');
+    }
+
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return "Sparepart telah di{$eventName}";
+    }
 
     protected static function boot()
     {

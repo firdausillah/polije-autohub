@@ -60,10 +60,10 @@ class LaporanPenjualan extends Report
                             Body\TextColumn::make("sparepart_name"),
                             Body\TextColumn::make("saldo"),
                             Body\TextColumn::make("qty_terjual"),
-                            // Body\TextColumn::make("total_penjualan")
-                            // ->money('IDR')
-                            // ->alignRight()
-                            // ->sum(),
+                            Body\TextColumn::make("total_penjualan")
+                            ->money('IDR')
+                            ->alignRight()
+                            ->sum(),
                         ])
                         ->data(
                             function (?array $filters) {
