@@ -14,9 +14,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::call(function(){
-    // Activity::where('created_at', '<', now()->subMonths(3))->delete();
-    DB::table('_blanks')->insert([
-        'created_by' => 1,
-        'created_at' => NOW()
-    ]);
-})->everyTwoSeconds();
+    Activity::where('created_at', '<', now()->subMonths(3))->delete();
+})->dailyAt('02:00');
