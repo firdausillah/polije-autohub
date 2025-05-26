@@ -12,7 +12,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Service extends Model
 {
-    use HasFactory, LogsActivity;
+    use SoftDeletes, HasFactory, LogsActivity;
 
     protected $guarded = [];
 
