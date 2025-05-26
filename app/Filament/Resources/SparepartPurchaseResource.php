@@ -61,6 +61,7 @@ class SparepartPurchaseResource extends Resource
     public static function InsertJurnal($record, $status): void
     {
         try {
+            // dd(($status == 'approved'), $status);
             if ($status == 'approved') {
 
                 // D. Persediaan Sparepart xxx  
@@ -153,11 +154,10 @@ class SparepartPurchaseResource extends Resource
                     // update harga sparepart
                     priceFix::priceFixer($val->sparepart_id);
                 }
-            } else {
-
+            }else {
                 // Cancel transaksi: rollback jurnal & inventory
                 Inventory::where([
-                    'transaksi_kodeh_kode' => $record->kode,
+                    'kode' => $record->kode,
                     'movement_type' => 'IN-PUR'
                 ])->delete();
 
