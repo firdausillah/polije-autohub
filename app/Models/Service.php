@@ -38,15 +38,13 @@ class Service extends Model
                 'estimasi_waktu_pengerjaan',
             ])
             ->logOnlyDirty()
-            ->useLogName('sparepart');
+            ->useLogName('service');
     }
 
     public function getDescriptionForEvent(string $eventName): string
     {
-        return "Sparepart telah di{$eventName}";
+        return "Service telah di{$eventName}";
     }
-
-
 
     protected static function boot()
     {
