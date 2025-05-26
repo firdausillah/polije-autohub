@@ -25,9 +25,6 @@ class ServiceSchedule extends Model
             ->logOnly([
             'id',
             'vehicle_id',
-            'mekanik1_id',
-            'mekanik2_id',
-            'mekanik3_id',
             'kepala_unit_id',
             'name',
             'kode',
@@ -64,9 +61,6 @@ class ServiceSchedule extends Model
             'payment_change',
             'invoice_file',
             'is_customer_umum',
-            'mekanik1_percentage',
-            'mekanik2_percentage',
-            'mekanik3_percentage',
             ])
             ->logOnlyDirty()
             ->useLogName('service_schedule');
@@ -86,6 +80,7 @@ class ServiceSchedule extends Model
             
             if(auth()->user()->hasRole('Kepala Unit')){
                 $model->kepala_unit_id = Auth::id();
+                $model->kepala_unit_name = Auth::user()->name;
                 $model->service_status = 'Proses Pengerjaan';
                 $model->working_start = NOW();
             }
@@ -113,20 +108,25 @@ class ServiceSchedule extends Model
         return $this->belongsTo(Vehicle::class);
     }
 
-    public function mekanik1(): BelongsTo
+    public function serviceDMekanik(): HasMany
     {
-        return $this->belongsTo(UserRole::class, 'mekanik1_id')->where('role_name', 'like', 'Mekanik%');
+        return $this->hasMany(ServiceDMekanik::class, 'service_schedule_id');
     }
 
-    public function mekanik2(): BelongsTo
-    {
-        return $this->belongsTo(UserRole::class, 'mekanik2_id')->where('role_name', 'like', 'Mekanik%');
-    }
+    // public function mekanik1(): BelongsTo
+    // {
+    //     return $this->belongsTo(UserRole::class, 'mekanik1_id')->where('role_name', 'like', 'Mekanik%');
+    // }
 
-    public function mekanik3(): BelongsTo
-    {
-        return $this->belongsTo(UserRole::class, 'mekanik3_id')->where('role_name', 'like', 'Mekanik%');
-    }
+    // public function mekanik2(): BelongsTo
+    // {
+    //     return $this->belongsTo(UserRole::class, 'mekanik2_id')->where('role_name', 'like', 'Mekanik%');
+    // }
+
+    // public function mekanik3(): BelongsTo
+    // {
+    //     return $this->belongsTo(UserRole::class, 'mekanik3_id')->where('role_name', 'like', 'Mekanik%');
+    // }
 
     public function kepalaMekanik(): BelongsTo
     {

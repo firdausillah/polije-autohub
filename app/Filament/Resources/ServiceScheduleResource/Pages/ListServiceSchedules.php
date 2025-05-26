@@ -57,13 +57,13 @@ class ListServiceSchedules extends ListRecords
             ->where('service_status', $status)
             ->whereDate('created_at', now()->toDateString());
         if (!in_array($status, ['Daftar', 'Selesai'])) {
-            if (auth()->user()->hasRole('Mekanik')) {
-                $query->where(function ($query) {
-                    $query->where('mekanik1_id', auth()->id())
-                        ->orWhere('mekanik2_id', auth()->id())
-                        ->orWhere('mekanik3_id', auth()->id());
-                });
-            }
+            // if (auth()->user()->hasRole('Mekanik')) {
+            //     $query->where(function ($query) {
+            //         $query->where('mekanik1_id', auth()->id())
+            //             ->orWhere('mekanik2_id', auth()->id())
+            //             ->orWhere('mekanik3_id', auth()->id());
+            //     });
+            // }
 
             if (auth()->user()->hasRole('Kepala Unit')) {
                 $query->where('kepala_unit_id', auth()->id());

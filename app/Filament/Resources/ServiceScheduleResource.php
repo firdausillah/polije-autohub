@@ -14,7 +14,9 @@ use App\Models\Checklist;
 use App\Models\Inventory;
 use App\Models\Jurnal;
 use App\Models\Modal;
+use App\Models\PayrollJurnal;
 use App\Models\ServiceDChecklist;
+use App\Models\ServiceDMekanik;
 use App\Models\ServiceDPayment;
 use App\Models\ServiceDServices;
 use App\Models\ServiceDSparepart;
@@ -56,6 +58,7 @@ use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ServiceScheduleResource extends Resource
@@ -76,235 +79,279 @@ class ServiceScheduleResource extends Resource
 
     public static function InsertJurnal($record, $status)
     {
-        if ($status == 'approved') {
-            // Jurnal Begin
+        try {
+            if ($status == 'approved') {
+                // Validasi jumlah bayar
+                $payment = ServiceDPayment::where('service_schedule_id', $record->id)->get();
+                if ($record->total > $payment->sum('jumlah_bayar')) {
+                    return [
+                        'title' => 'Approval Gagal',
+                        'body' => 'jumlah bayar tidak boleh lebih kecil dari total yang harus dibayarkan di detail payment',
+                        'status' => 'warning'
+                    ];
+                }
 
-            // Jurnal Penjualan Servis + Sparepart dalam Satu Transaksi
+                // Jurnal Penjualan Servis + Sparepart dalam Satu Transaksi
 
-            // D. Kas/Bank xxx  
-            //     C. Pendapatan Servis xxx  
-            //     C. Pendapatan Sparepart xxx  
-            //     C. Utang PPN Keluaran
+                // D. Kas/Bank xxx  
+                //     C. Pendapatan Servis xxx  
+                //     C. Pendapatan Sparepart xxx  
+                //     C. Utang PPN Keluaran
 
-            // Jurnal HPP (Harga Pokok Pelayanan Service)
+                // Jurnal HPP (Harga Pokok Pelayanan Service)
 
-            // D. Harga Pokok Penjualan xxx  
-            //     C. Persediaan Sparepart xxx  
+                // D. Harga Pokok Penjualan xxx  
+                //     C. Persediaan Sparepart xxx  
 
+                // Jurnal debit: Kas / Bank
+                foreach ($payment as $val) {
+                    Jurnal::create([
+                        'transaksi_h_id' => $val->service_schedule_id,
+                        'transaksi_d_id' => $val->id,
+                        'account_id' => $val->account_id,
+                        'keterangan' => $val->keterangan,
+                        'kode' => $record->kode,
+                        'tanggal_transaksi' => now(),
+                        'relation_name' => $record->customer_name,
+                        'relation_nomor_telepon' => $record->nomor_telepon,
+                        'account_name' => $val->account_name,
+                        'account_kode' => $val->account_kode,
+                        'transaction_type' => 'Pelayanan Service',
+                        'debit' => min($val->jumlah_bayar, $val->total_payable),
+                        'kredit' => 0,
+                    ]);
+                }
 
-            // debit
-            //Kas / Bank
-            $payment = ServiceDPayment::where('service_schedule_id', $record->id)->get();
-            if ($record->total > $payment->sum('jumlah_bayar')) {
-                return ['title' => 'Approval Gagal', 'body' => 'jumlah bayar tidak boleh lebih kecil dari total yang harus dibayarkan di detail payment', 'status' => 'warning'];
-            }
-            foreach ($payment as $key => $val) {
-                Jurnal::create([
-                    'transaksi_h_id'    => $val->service_schedule_id,
-                    'transaksi_d_id'    => $val->id,
-                    'account_id'    => $val->account_id, //
+                // Diskon
+                if ($record->discount_total) {
+                    $account_debit_discount = Account::findOrFail(25); //Diskon Penjualan
+                    Jurnal::create([
+                        'transaksi_h_id' => $record->id,
+                        'transaksi_d_id' => $record->id,
+                        'account_id' => $account_debit_discount->id,
+                        'keterangan' => $record->keterangan,
+                        'kode' => $record->kode,
+                        'tanggal_transaksi' => now(),
+                        'relation_name' => $record->customer_name,
+                        'relation_nomor_telepon' => $record->nomor_telepon,
+                        'account_name' => $account_debit_discount->name,
+                        'account_kode' => $account_debit_discount->kode,
+                        'transaction_type' => 'Pelayanan Service',
+                        'debit' => $record->discount_total,
+                        'kredit' => 0,
+                    ]);
+                }
 
-                    'keterangan'    => $val->keterangan,
-                    'kode'  => $record->kode,
-                    'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
-
-                    'relation_name' => $record->customer_name,
-                    'relation_nomor_telepon'    => $record->nomor_telepon,
-
-                    'account_name'  => $val->account_name, //
-                    'account_kode'  => $val->account_kode, //
-                    'transaction_type'  => 'Pelayanan Service',
-
-                    'debit' => (($val->jumlah_bayar - $val->total_payable) < 0 ? $val->jumlah_bayar : $val->total_payable),
-                    'kredit'    => 0,
-                ]);
-            }
-
-            if ($record->discount_total) {
-                $account_debit_discount = Account::find(25); //Diskon Penjualan
-                Jurnal::create([
-                    'transaksi_h_id'    => $record->id,
-                    'transaksi_d_id'    => $record->id,
-                    'account_id'    => $account_debit_discount->id,
-
-                    'keterangan'    => $record->keterangan,
-                    'kode'  => $record->kode,
-                    'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
-
-                    'relation_name' => $record->customer_name,
-                    'relation_nomor_telepon'    => $record->nomor_telepon,
-
-                    'account_name'  => $account_debit_discount->name,
-                    'account_kode'  => $account_debit_discount->kode,
-                    'transaction_type'  => 'Pelayanan Service',
-
-                    'debit'    => $record->discount_total,
-                    'kredit' => 0,
-                ]);
-            }
-
-            // kredit
-            $account_kredit_service = Account::find(6); //Pendapatan Jasa Service
-            Jurnal::create([
-                'transaksi_h_id'    => $record->id,
-                'transaksi_d_id'    => $record->id,
-                'account_id'    => $account_kredit_service->id,
-
-                'keterangan'    => $record->keterangan,
-                'kode'  => $record->kode,
-                'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
-
-                'relation_name' => $record->customer_name,
-                'relation_nomor_telepon'    => $record->nomor_telepon,
-
-                'account_name'  => $account_kredit_service->name,
-                'account_kode'  => $account_kredit_service->kode,
-                'transaction_type'  => 'Pelayanan Service',
-
-                'debit' => 0,
-                'kredit'    => ($record->service_total==null?0:$record->service_total-$record->discount_service_total),
-            ]);
-            
-            $account_kredit_sparepart = Account::find(7); //Pendapatan Penjualan Sparepart service
-            Jurnal::create([
-                'transaksi_h_id'    => $record->id,
-                'transaksi_d_id'    => $record->id,
-                'account_id'    => $account_kredit_sparepart->id,
-
-                'keterangan'    => $record->keterangan,
-                'kode'  => $record->kode,
-                'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
-
-                'relation_name' => $record->customer_name,
-                'relation_nomor_telepon'    => $record->nomor_telepon,
-
-                'account_name'  => $account_kredit_sparepart->name,
-                'account_kode'  => $account_kredit_sparepart->kode,
-                'transaction_type'  => 'Pelayanan Service',
-
-                'debit' => 0,
-                'kredit'    => ($record->sparepart_total==null?0:$record->sparepart_total-$record->discount_service_total),
-            ]);
-
-            if ($record->pajak_total) {
-                $account_kredit_pajak = Account::find(9); //Utang PPN Keluaran
-                Jurnal::create([
-                    'transaksi_h_id'    => $record->id,
-                    'transaksi_d_id'    => $record->id,
-                    'account_id'    => $account_kredit_pajak->id,
-
-                    'keterangan'    => $record->keterangan,
-                    'kode'  => $record->kode,
-                    'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
-
-                    'relation_name' => $record->customer_name,
-                    'relation_nomor_telepon'    => $record->nomor_telepon,
-
-                    'account_name'  => $account_kredit_pajak->name,
-                    'account_kode'  => $account_kredit_pajak->kode,
-                    'transaction_type'  => 'Pelayanan Service',
-
-                    'debit' => 0,
-                    'kredit'    => ($record->pajak_total==null?0:$record->pajak_total),
-                ]);
-            }
-
-
-            // hpp begin
-            $sparepart = ServiceDSparepart::where('service_schedule_id', $record->id)->get();
-            $account_hpp = Account::find(10); //Harga Pokok Penjualan
-            $account_persediaan = Account::find(3); //Persediaan Sparepart
-            foreach ($sparepart as $key => $val) {
-                $harga_modal = Modal::where('sparepart_id', $val->sparepart_id)->orderBy('id', 'desc')->first()->harga_modal;
+                // Kredit: Pendapatan Service, Sparepart, dan PPN
+                $account_kredit_service = Account::findOrFail(6);
+                $account_kredit_sparepart = Account::findOrFail(7);
+                $account_kredit_pajak = Account::find(9); // optional
 
                 Jurnal::create([
-                    'transaksi_h_id'    => $val->service_schedule_id,
-                    'transaksi_d_id'    => $val->sparepart_id,
-                    'account_id'    => $account_hpp->id, //
-
-                    'keterangan'    => $val->sparepart_kode . ' - ' . $val->sparepart_name,
-                    'kode'  => $record->kode,
-                    'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
-
-                    'relation_name' => $record->customer_name,
-                    'relation_nomor_telepon'    => $record->nomor_telepon,
-
-                    'account_name'  => $account_hpp->name, //
-                    'account_kode'  => $account_hpp->kode, //
-                    'transaction_type'  => 'HPP Penjualan',
-
-                    'debit' => ($harga_modal==null?0:$harga_modal * $val->jumlah_terkecil),
-                    'kredit'    => 0
-                ]);
-
-                Jurnal::create([
-                    'transaksi_h_id'    => $val->service_schedule_id,
-                    'transaksi_d_id'    => $val->sparepart_id,
-                    'account_id'    => $account_persediaan->id, //
-
-                    'keterangan'    => $val->sparepart_kode . ' - ' . $val->sparepart_name,
-                    'kode'  => $record->kode,
-                    'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
-
-                    'relation_name' => $record->customer_name,
-                    'relation_nomor_telepon'    => $record->nomor_telepon,
-
-                    'account_name'  => $account_persediaan->name, //
-                    'account_kode'  => $account_persediaan->kode, //
-                    'transaction_type'  => 'HPP Penjualan',
-
-                    'debit' => 0,
-                    'kredit'    => ($harga_modal == null ? 0 : $harga_modal * $val->jumlah_terkecil)
-                ]);
-            }
-            // hpp end
-            // jurnal end
-
-            // inventory begin
-            $serviceDSpareparts = ServiceDSparepart::where('service_schedule_id', $record->id)->get();
-            foreach ($serviceDSpareparts as $val) {
-                Inventory::create([
                     'transaksi_h_id' => $record->id,
-                    'transaksi_d_id' => $val->id,
-                    'sparepart_id' => $val->sparepart_id,
-                    'satuan_id' => $val->satuan_id,
-
-                    'name' => '',
-                    'kode' => $record->kode,
+                    'transaksi_d_id' => $record->id,
+                    'account_id' => $account_kredit_service->id,
                     'keterangan' => $record->keterangan,
-                    'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
-                    'transaksi_h_kode' => $record->kode,
-
-                    'sparepart_name' => $val->sparepart_name,
-                    'sparepart_kode' => $val->sparepart_kode,
-
-                    'satuan_terkecil_name' => $val->satuan_terkecil_name,
-                    'satuan_terkecil_kode' => $val->satuan_terkecil_kode,
-
-                    'movement_type' => 'OUT-SAL',
-
-                    'jumlah_unit' => $val->jumlah_unit,
-                    'jumlah_konversi' => $val->jumlah_konversi,
-                    'jumlah_terkecil' => $val->jumlah_terkecil,
-
-                    'harga_unit' => $val->harga_unit,
-                    'harga_terkecil' => $val->harga_terkecil,
-                    'harga_subtotal' => $val->harga_subtotal,
-
+                    'kode' => $record->kode,
+                    'tanggal_transaksi' => now(),
                     'relation_name' => $record->customer_name,
-                    'relation_nomor_telepon' => $record->nomor_telepon
+                    'relation_nomor_telepon' => $record->nomor_telepon,
+                    'account_name' => $account_kredit_service->name,
+                    'account_kode' => $account_kredit_service->kode,
+                    'transaction_type' => 'Pelayanan Service',
+                    'debit' => 0,
+                    'kredit' => max(0, $record->service_total - $record->discount_service_total),
                 ]);
-            }
-            // inventory end
-            return ['title' => 'Approval Berhasil', 'body' => 'Pelayanan Service Berhasil Diapprove', 'status' => 'success'];
-        } else {
-            Inventory::where(['transaksi_h_id' => $record->id, 'movement_type' => 'OUT-SAL'])->delete();
-            Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'Pelayanan Service'])->delete();
-            Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'HPP Penjualan'])->delete();
 
-            return ['title' => 'Reject Berhasil', 'body' => 'Pelayanan Service Berhasil Direject', 'status' => 'success'];
+                Jurnal::create([
+                    'transaksi_h_id' => $record->id,
+                    'transaksi_d_id' => $record->id,
+                    'account_id' => $account_kredit_sparepart->id,
+                    'keterangan' => $record->keterangan,
+                    'kode' => $record->kode,
+                    'tanggal_transaksi' => now(),
+                    'relation_name' => $record->customer_name,
+                    'relation_nomor_telepon' => $record->nomor_telepon,
+                    'account_name' => $account_kredit_sparepart->name,
+                    'account_kode' => $account_kredit_sparepart->kode,
+                    'transaction_type' => 'Pelayanan Service',
+                    'debit' => 0,
+                    'kredit' => max(0, $record->sparepart_total - $record->discount_sparepart_total),
+                ]);
+
+                if ($record->pajak_total && $account_kredit_pajak) {
+                    Jurnal::create([
+                        'transaksi_h_id' => $record->id,
+                        'transaksi_d_id' => $record->id,
+                        'account_id' => $account_kredit_pajak->id,
+                        'keterangan' => $record->keterangan,
+                        'kode' => $record->kode,
+                        'tanggal_transaksi' => now(),
+                        'relation_name' => $record->customer_name,
+                        'relation_nomor_telepon' => $record->nomor_telepon,
+                        'account_name' => $account_kredit_pajak->name,
+                        'account_kode' => $account_kredit_pajak->kode,
+                        'transaction_type' => 'Pelayanan Service',
+                        'debit' => 0,
+                        'kredit' => $record->pajak_total,
+                    ]);
+                }
+
+                // Payroll
+                PayrollJurnal::create([
+                    'transaksi_h_id' => $record->id,
+                    'user_id' => Auth::id(),
+                    'name' => User::find(Auth::id())->name,
+                    'keterangan' => 'Admin',
+                    'transaction_type' => 'Pelayanan Service',
+                    'nominal' => max(0, $record->sparepart_total - $record->discount_service_total),
+                ]);
+
+                PayrollJurnal::create([
+                    'transaksi_h_id' => $record->id,
+                    'user_id' => $record->kepala_unit_id,
+                    'name' => User::find($record->kepala_unit_id)->name,
+                    'keterangan' => 'Kepala Unit',
+                    'transaction_type' => 'Pelayanan Service',
+                    'nominal' => max(0, $record->service_total - $record->discount_service_total),
+                ]);
+
+                $mekanik = ServiceDMekanik::where('service_schedule_id', $record->id)->get();
+                foreach ($mekanik as $val) {
+                    $nominal = ($val->mekanik_percentage / 100) * max(0, $record->service_total - $record->discount_service_total);
+                    PayrollJurnal::create([
+                        'transaksi_h_id' => $record->id,
+                        'user_id' => $val->mekanik_id,
+                        'name' => User::find($val->mekanik_id)->name,
+                        'keterangan' => 'Mekanik',
+                        'transaction_type' => 'Pelayanan Service',
+                        'nominal' => $nominal,
+                    ]);
+                }
+
+                // HPP
+                $sparepart = ServiceDSparepart::where('service_schedule_id', $record->id)->get();
+                $account_hpp = Account::findOrFail(10);
+                $account_persediaan = Account::findOrFail(3);
+
+                foreach ($sparepart as $val) {
+                    $harga_modal = Modal::where('sparepart_id', $val->sparepart_id)->orderBy('id', 'desc')->first()->harga_modal ?? 0;
+
+                    Jurnal::create([
+                        'transaksi_h_id' => $val->service_schedule_id,
+                        'transaksi_d_id' => $val->sparepart_id,
+                        'account_id' => $account_hpp->id,
+                        'keterangan' => $val->sparepart_kode . ' - ' . $val->sparepart_name,
+                        'kode' => $record->kode,
+                        'tanggal_transaksi' => now(),
+                        'relation_name' => $record->customer_name,
+                        'relation_nomor_telepon' => $record->nomor_telepon,
+                        'account_name' => $account_hpp->name,
+                        'account_kode' => $account_hpp->kode,
+                        'transaction_type' => 'HPP Penjualan',
+                        'debit' => $harga_modal * $val->jumlah_terkecil,
+                        'kredit' => 0,
+                    ]);
+
+                    Jurnal::create([
+                        'transaksi_h_id' => $val->service_schedule_id,
+                        'transaksi_d_id' => $val->sparepart_id,
+                        'account_id' => $account_persediaan->id,
+                        'keterangan' => $val->sparepart_kode . ' - ' . $val->sparepart_name,
+                        'kode' => $record->kode,
+                        'tanggal_transaksi' => now(),
+                        'relation_name' => $record->customer_name,
+                        'relation_nomor_telepon' => $record->nomor_telepon,
+                        'account_name' => $account_persediaan->name,
+                        'account_kode' => $account_persediaan->kode,
+                        'transaction_type' => 'HPP Penjualan',
+                        'debit' => 0,
+                        'kredit' => $harga_modal * $val->jumlah_terkecil,
+                    ]);
+                }
+
+
+                // inventory begin
+                $serviceDSpareparts = ServiceDSparepart::where('service_schedule_id', $record->id)->get();
+                foreach ($serviceDSpareparts as $val) {
+                    Inventory::create([
+                        'transaksi_h_id' => $record->id,
+                        'transaksi_d_id' => $val->id,
+                        'sparepart_id' => $val->sparepart_id,
+                        'satuan_id' => $val->satuan_id,
+
+                        'name' => '',
+                        'kode' => $record->kode,
+                        'keterangan' => $record->keterangan,
+                        'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
+                        'transaksi_h_kode' => $record->kode,
+
+                        'sparepart_name' => $val->sparepart_name,
+                        'sparepart_kode' => $val->sparepart_kode,
+
+                        'satuan_terkecil_name' => $val->satuan_terkecil_name,
+                        'satuan_terkecil_kode' => $val->satuan_terkecil_kode,
+
+                        'movement_type' => 'OUT-SAL',
+
+                        'jumlah_unit' => $val->jumlah_unit,
+                        'jumlah_konversi' => $val->jumlah_konversi,
+                        'jumlah_terkecil' => $val->jumlah_terkecil,
+
+                        'harga_unit' => $val->harga_unit,
+                        'harga_terkecil' => $val->harga_terkecil,
+                        'harga_subtotal' => $val->harga_subtotal,
+
+                        'relation_name' => $record->customer_name,
+                        'relation_nomor_telepon' => $record->nomor_telepon
+                    ]);
+                }
+            // inventory end
+                
+                return [
+                    'title' => 'Berhasil',
+                    'body' => 'Jurnal berhasil dibuat.',
+                    'status' => 'success'
+                ];
+            }else{
+                // Cancel transaksi: rollback jurnal & inventory
+                Inventory::where([
+                    'kode' => $record->kode,
+                    'movement_type' => 'OUT-SAL'
+                ])->delete();
+
+                Jurnal::where([
+                    'kode' => $record->kode,
+                    'transaction_type' => 'Pelayanan Service'
+                ])->delete();
+
+                Jurnal::where([
+                    'kode' => $record->kode,
+                    'transaction_type' => 'HPP Penjualan'
+                ])->delete();
+
+                PayrollJurnal::where([
+                    'transaksi_h_id' => $record->id,
+                    'transaction_type' => 'Pelayanan Service'
+                ])->delete();
+
+                return [
+                    'title' => 'Berhasil',
+                    'body' => 'Jurnal berhasil dibatalkan.',
+                    'status' => 'success'
+                ];
+            }
+
+        } catch (\Exception $e) {
+            Log::error('InsertJurnal Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return [
+                'title' => 'Error',
+                'body' => 'Terjadi kesalahan saat membuat jurnal: ' . $e->getMessage(),
+                'status' => 'danger'
+            ];
         }
     }
+
     
     public static function form(Form $form): Form
     {
@@ -501,41 +548,22 @@ class ServiceScheduleResource extends Resource
                                 ->label('Kepala Unit')
                                 ->relationship('kepalaMekanik', 'user_name')
                                 ->disabled(),
-                            Fieldset::make('Mekanik')
+                            Repeater::make('serviceDMekanik')
+                            ->label('Mekanik')
+                            ->relationship()
                             ->schema([
-                                Grid::make(['sm' => 2])
-                                ->schema([
-                                    Select::make('mekanik1_id')
-                                        ->label('Mekanik 1')
-                                        ->nullable()
-                                        ->required()
-                                        ->relationship('mekanik1', 'user_name'),
-                                    TextInput::make('mekanik1_percentage')
-                                        ->label('Persentase Pekerjaan Mekanik 1')
-                                        ->numeric()
-                                        ->default(100)
-                                        ->suffix('%'),
-                                    Select::make('mekanik2_id')
-                                        ->label('Mekanik 2')
-                                        ->nullable()
-                                        ->required(false)
-                                        ->relationship('mekanik2', 'user_name'),
-                                    TextInput::make('mekanik2_percentage')
-                                        ->label('Persentase Pekerjaan Mekanik 2')
-                                        ->numeric()
-                                        ->suffix('%'),
-                                    Select::make('mekanik3_id')
-                                        ->label('Mekanik 3')
-                                        ->nullable()
-                                        ->required(false)
-                                        ->relationship('mekanik3', 'user_name'),
-                                    TextInput::make('mekanik3_percentage')
-                                        ->label('Persentase Pekerjaan Mekanik 3')
-                                        ->numeric()
-                                        ->suffix('%'),
-                                ]),
+                                Select::make('mekanik_id')
+                                ->searchable()
+                                ->required()
+                                ->preload()
+                                ->relationship('mekanik', 'user_name'),
+                                TextInput::make('mekanik_percentage')
+                                ->default(100)
                             ])
+                            ->columns(2)
+                            ->columnSpanFull()
                         ])
+                        ->columnSpan('full')
                     
                 ])
                 ->columnSpan('full')
@@ -552,13 +580,13 @@ class ServiceScheduleResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                if (auth()->user()->hasRole('Mekanik')) {
-                    $query->where(function ($query) {
-                        $query->where('mekanik1_id', auth()->id())
-                            ->orWhere('mekanik2_id', auth()->id())
-                            ->orWhere('mekanik3_id', auth()->id());
-                    });
-                }
+                // if (auth()->user()->hasRole('Mekanik')) {
+                //     $query->where(function ($query) {
+                //         $query->where('mekanik1_id', auth()->id())
+                //             ->orWhere('mekanik2_id', auth()->id())
+                //             ->orWhere('mekanik3_id', auth()->id());
+                //     });
+                // }
                 $query->where('created_at','like', (now()->toDateString().'%'));
             })
             ->poll('2s')
@@ -571,8 +599,6 @@ class ServiceScheduleResource extends Resource
                 TextColumn::make('customer_name')
                 ->searchable()
                 ->label('Customer'),
-                // TextColumn::make('mekanik_name')
-                // ->label('Mekanik'),
                 TextColumn::make('kepala_unit_name')
                 ->label('Kepala Unit'),
                 IconColumn::make('checklist_status')

@@ -10,11 +10,13 @@ use App\Models\Account;
 use App\Models\Inventory;
 use App\Models\Jurnal;
 use App\Models\Modal;
+use App\Models\PayrollJurnal;
 use App\Models\Sparepart;
 use App\Models\SparepartDSale;
 use App\Models\SparepartDSalePayment;
 use App\Models\SparepartSale;
 use App\Models\SparepartSatuans;
+use App\Models\User;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -43,6 +45,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Filters\Filter as FiltersFilter;
 use Filament\Tables\Actions\ActionGroup as TablesActionsActionGroup;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Mpdf\Mpdf;
 use Illuminate\Support\Str;
@@ -126,209 +129,206 @@ class SparepartSaleResource extends Resource
 
     public static function InsertJurnal($record, $status): void
     {
-        if ($status == 'approved') {
-            // jurnal begin
+        try {
+            if ($status == 'approved') {
+                // jurnal begin
 
-            // Jurnal Penjualan Sparepart
+                // Jurnal Penjualan Sparepart
 
-            // D. Kas/Bank xxx  
-            //     C. Pendapatan Sparepart xxx  
-            //     C. Utang PPN Keluaran
-
-
-            // Jurnal HPP (Harga Pokok Penjualan Sparepart)
-
-            // D. Harga Pokok Penjualan xxx  
-            //     C. Persediaan Sparepart xxx  
+                // D. Kas/Bank xxx  
+                //     C. Pendapatan Sparepart xxx  
+                //     C. Utang PPN Keluaran
 
 
-            // debit
-            //Kas / Bank
-            $payment = SparepartDSalePayment::where('sparepart_sale_id', $record->id)->get();
-            foreach ($payment as $key => $val) {
-                Jurnal::create([
-                    'transaksi_h_id'    => $val->sparepart_sale_id,
-                    'transaksi_d_id'    => $val->id,
-                    'account_id'    => $val->account_id, //
-    
-                    'keterangan'    => $val->keterangan,
-                    'kode'  => $record->kode,
-                    'tanggal_transaksi' => $record->tanggal_transaksi,
-    
-                    'relation_name' => $record->customer_name,
-                    'relation_nomor_telepon'    => $record->customer_nomor_telepon,
-    
-                    'account_name'  => $val->account_name, //
-                    'account_kode'  => $val->account_kode, //
-                    'transaction_type'  => 'penjualan sparepart',
-    
-                    'debit' => (($val->jumlah_bayar-$val->total_payable)<0?$val->jumlah_bayar:$val->total_payable),
-                    'kredit'    => 0,
-                ]);
-            }
+                // Jurnal HPP (Harga Pokok Penjualan Sparepart)
 
-            if($record->discount_total){
-                $account_debit_discount = Account::find(25); //Diskon Penjualan
-                Jurnal::create([
-                    'transaksi_h_id'    => $record->id,
-                    'transaksi_d_id'    => $record->id,
-                    'account_id'    => $account_debit_discount->id,
+                // D. Harga Pokok Penjualan xxx  
+                //     C. Persediaan Sparepart xxx  
 
-                    'keterangan'    => $record->keterangan,
-                    'kode'  => $record->kode,
-                    'tanggal_transaksi' => $record->tanggal_transaksi,
+                // Jurnal Penjualan Sparepart
+                $payment = SparepartDSalePayment::where('sparepart_sale_id', $record->id)->get();
+                foreach ($payment as $key => $val) {
+                    Jurnal::create([
+                        'transaksi_h_id'    => $val->sparepart_sale_id,
+                        'transaksi_d_id'    => $val->id,
+                        'account_id'        => $val->account_id,
+                        'keterangan'        => $val->keterangan,
+                        'kode'              => $record->kode,
+                        'tanggal_transaksi' => $record->tanggal_transaksi,
+                        'relation_name'     => $record->customer_name,
+                        'relation_nomor_telepon' => $record->customer_nomor_telepon,
+                        'account_name'      => $val->account_name,
+                        'account_kode'      => $val->account_kode,
+                        'transaction_type'  => 'penjualan sparepart',
+                        'debit'             => (($val->jumlah_bayar - $val->total_payable) < 0 ? $val->jumlah_bayar : $val->total_payable),
+                        'kredit'            => 0,
+                    ]);
+                }
 
-                    'relation_name' => $record->customer_name,
-                    'relation_nomor_telepon'    => $record->customer_nomor_telepon,
+                if ($record->discount_total) {
+                    $account_debit_discount = Account::find(25);
+                    Jurnal::create([
+                        'transaksi_h_id'    => $record->id,
+                        'transaksi_d_id'    => $record->id,
+                        'account_id'        => $account_debit_discount->id,
+                        'keterangan'        => $record->keterangan,
+                        'kode'              => $record->kode,
+                        'tanggal_transaksi' => $record->tanggal_transaksi,
+                        'relation_name'     => $record->customer_name,
+                        'relation_nomor_telepon' => $record->customer_nomor_telepon,
+                        'account_name'      => $account_debit_discount->name,
+                        'account_kode'      => $account_debit_discount->kode,
+                        'transaction_type'  => 'penjualan sparepart',
+                        'debit'             => $record->discount_total,
+                        'kredit'            => 0,
+                    ]);
+                }
 
-                    'account_name'  => $account_debit_discount->name,
-                    'account_kode'  => $account_debit_discount->kode,
-                    'transaction_type'  => 'penjualan sparepart',
-
-                    'debit'    => $record->discount_total,
-                    'kredit' => 0,
-                ]);
-            }
-
-            // kredit
-            $account_kredit = Account::find(7); //Pendapatan Penjualan Sparepart
-            Jurnal::create([
-                'transaksi_h_id'    => $record->id,
-                'transaksi_d_id'    => $record->id,
-                'account_id'    => $account_kredit->id,
-
-                'keterangan'    => $record->keterangan,
-                'kode'  => $record->kode,
-                'tanggal_transaksi' => $record->tanggal_transaksi,
-
-                'relation_name' => $record->customer_name,
-                'relation_nomor_telepon'    => $record->customer_nomor_telepon,
-
-                'account_name'  => $account_kredit->name,
-                'account_kode'  => $account_kredit->kode,
-                'transaction_type'  => 'penjualan sparepart',
-
-                'debit' => 0,
-                'kredit'    => $record->total + $record->discount_total,
-                // 'kredit'    => $record->total - $record->pajak_total,
-            ]);
-
-            if($record->pajak_total){
-                $account_kredit_pajak = Account::find(9); //Utang PPN Keluaran
+                $account_kredit = Account::find(7);
                 Jurnal::create([
                     'transaksi_h_id'    => $record->id,
                     'transaksi_d_id'    => $record->id,
-                    'account_id'    => $account_kredit_pajak->id,
-    
-                    'keterangan'    => $record->keterangan,
-                    'kode'  => $record->kode,
+                    'account_id'        => $account_kredit->id,
+                    'keterangan'        => $record->keterangan,
+                    'kode'              => $record->kode,
                     'tanggal_transaksi' => $record->tanggal_transaksi,
-    
-                    'relation_name' => $record->customer_name,
-                    'relation_nomor_telepon'    => $record->customer_nomor_telepon,
-    
-                    'account_name'  => $account_kredit_pajak->name,
-                    'account_kode'  => $account_kredit_pajak->kode,
+                    'relation_name'     => $record->customer_name,
+                    'relation_nomor_telepon' => $record->customer_nomor_telepon,
+                    'account_name'      => $account_kredit->name,
+                    'account_kode'      => $account_kredit->kode,
                     'transaction_type'  => 'penjualan sparepart',
-    
-                    'debit' => 0,
-                    'kredit'    => $record->pajak_total,
-                ]);
-            }
-
-
-            // hpp begin
-            $sparepart = SparepartDSale::where('sparepart_sale_id', $record->id)->get();
-            $account_hpp = Account::find(10); //Harga Pokok Penjualan
-            $account_persediaan = Account::find(3); //Persediaan Sparepart
-            foreach ($sparepart as $key => $val) {
-                $harga_modal = Modal::where('sparepart_id', $val->sparepart_id)->orderBy('id', 'desc')->first()->harga_modal;
-
-                Jurnal::create([
-                    'transaksi_h_id'    => $val->sparepart_sale_id,
-                    'transaksi_d_id'    => $val->sparepart_id,
-                    'account_id'    => $account_hpp->id, //
-
-                    'keterangan'    => $val->sparepart_kode.' - '. $val->sparepart_name,
-                    'kode'  => $record->kode,
-                    'tanggal_transaksi' => $record->tanggal_transaksi,
-
-                    'relation_name' => $record->customer_name,
-                    'relation_nomor_telepon'    => $record->customer_nomor_telepon,
-
-                    'account_name'  => $account_hpp->name, //
-                    'account_kode'  => $account_hpp->kode, //
-                    'transaction_type'  => 'HPP Penjualan',
-
-                    'debit' => $harga_modal * $val->jumlah_terkecil,
-                    'kredit'    => 0
+                    'debit'             => 0,
+                    'kredit'            => $record->total + $record->discount_total,
                 ]);
 
-                Jurnal::create([
+                if ($record->pajak_total) {
+                    $account_kredit_pajak = Account::find(9);
+                    Jurnal::create([
+                        'transaksi_h_id'    => $record->id,
+                        'transaksi_d_id'    => $record->id,
+                        'account_id'        => $account_kredit_pajak->id,
+                        'keterangan'        => $record->keterangan,
+                        'kode'              => $record->kode,
+                        'tanggal_transaksi' => $record->tanggal_transaksi,
+                        'relation_name'     => $record->customer_name,
+                        'relation_nomor_telepon' => $record->customer_nomor_telepon,
+                        'account_name'      => $account_kredit_pajak->name,
+                        'account_kode'      => $account_kredit_pajak->kode,
+                        'transaction_type'  => 'penjualan sparepart',
+                        'debit'             => 0,
+                        'kredit'            => $record->pajak_total,
+                    ]);
+                }
+
+                // Jurnal HPP
+                $sparepart = SparepartDSale::where('sparepart_sale_id', $record->id)->get();
+                $account_hpp = Account::find(10);
+                $account_persediaan = Account::find(3);
+                foreach ($sparepart as $val) {
+                    $harga_modal = Modal::where('sparepart_id', $val->sparepart_id)->orderBy('id', 'desc')->first()->harga_modal;
+
+                    Jurnal::create([
                         'transaksi_h_id'    => $val->sparepart_sale_id,
                         'transaksi_d_id'    => $val->sparepart_id,
-                        'account_id'    => $account_persediaan->id, //
-
-                        'keterangan'    => $val->sparepart_kode.' - '. $val->sparepart_name,
-                        'kode'  => $record->kode,
+                        'account_id'        => $account_hpp->id,
+                        'keterangan'        => $val->sparepart_kode . ' - ' . $val->sparepart_name,
+                        'kode'              => $record->kode,
                         'tanggal_transaksi' => $record->tanggal_transaksi,
-
-                        'relation_name' => $record->customer_name,
-                        'relation_nomor_telepon'    => $record->customer_nomor_telepon,
-
-                        'account_name'  => $account_persediaan->name, //
-                        'account_kode'  => $account_persediaan->kode, //
+                        'relation_name'     => $record->customer_name,
+                        'relation_nomor_telepon' => $record->customer_nomor_telepon,
+                        'account_name'      => $account_hpp->name,
+                        'account_kode'      => $account_hpp->kode,
                         'transaction_type'  => 'HPP Penjualan',
+                        'debit'             => $harga_modal * $val->jumlah_terkecil,
+                        'kredit'            => 0,
+                    ]);
 
-                        'debit' => 0,
-                        'kredit'    => $harga_modal * $val->jumlah_terkecil
-                ]);
-            }
-            // hpp end
-            // jurnal end
+                    Jurnal::create([
+                        'transaksi_h_id'    => $val->sparepart_sale_id,
+                        'transaksi_d_id'    => $val->sparepart_id,
+                        'account_id'        => $account_persediaan->id,
+                        'keterangan'        => $val->sparepart_kode . ' - ' . $val->sparepart_name,
+                        'kode'              => $record->kode,
+                        'tanggal_transaksi' => $record->tanggal_transaksi,
+                        'relation_name'     => $record->customer_name,
+                        'relation_nomor_telepon' => $record->customer_nomor_telepon,
+                        'account_name'      => $account_persediaan->name,
+                        'account_kode'      => $account_persediaan->kode,
+                        'transaction_type'  => 'HPP Penjualan',
+                        'debit'             => 0,
+                        'kredit'            => $harga_modal * $val->jumlah_terkecil,
+                    ]);
+                }
 
-            // inventory begin
-            $sparepartDSales = SparepartDSale::where('sparepart_sale_id', $record->id)->get();
-            foreach ($sparepartDSales as $val) {
-                Inventory::create([
+                // Payroll
+                PayrollJurnal::create([
                     'transaksi_h_id' => $record->id,
-                    'transaksi_d_id' => $val->id,
-                    'sparepart_id' => $val->sparepart_id,
-                    'satuan_id' => $val->satuan_id,
-
-                    'name' => '',
-                    'kode' => $record->kode,
-                    'keterangan' => $record->keterangan,
-                    'tanggal_transaksi' => $record->tanggal_transaksi,
-                    'transaksi_h_kode' => $record->kode,
-
-                    'sparepart_name' => $val->sparepart_name,
-                    'sparepart_kode' => $val->sparepart_kode,
-
-                    'satuan_terkecil_name' => $val->satuan_terkecil_name,
-                    'satuan_terkecil_kode' => $val->satuan_terkecil_kode,
-
-                    'movement_type' => 'OUT-SAL',
-
-                    'jumlah_unit' => $val->jumlah_unit,
-                    'jumlah_konversi' => $val->jumlah_konversi,
-                    'jumlah_terkecil' => $val->jumlah_terkecil,
-
-                    'harga_unit' => $val->harga_unit,
-                    'harga_terkecil' => $val->harga_terkecil,
-                    'harga_subtotal' => $val->harga_subtotal,
-
-                    'relation_name' => $record->customer_name,
-                    'relation_nomor_telepon' => $record->customer_nomor_telepon
+                    'user_id' => FacadesAuth::id(),
+                    'name' => User::find(FacadesAuth::id())->name,
+                    'keterangan' => 'Admin',
+                    'transaction_type' => 'Penjualan Sparepart',
+                    'nominal' => max(0, $record->total + $record->discount_total),
                 ]);
+
+                // Inventory OUT
+                $sparepartDSales = SparepartDSale::where('sparepart_sale_id', $record->id)->get();
+                foreach ($sparepartDSales as $val) {
+                    Inventory::create([
+                        'transaksi_h_id' => $record->id,
+                        'transaksi_d_id' => $val->id,
+                        'sparepart_id'   => $val->sparepart_id,
+                        'satuan_id'      => $val->satuan_id,
+                        'name'           => '',
+                        'kode'           => $record->kode,
+                        'keterangan'     => $record->keterangan,
+                        'tanggal_transaksi' => $record->tanggal_transaksi,
+                        'transaksi_h_kode' => $record->kode,
+                        'sparepart_name' => $val->sparepart_name,
+                        'sparepart_kode' => $val->sparepart_kode,
+                        'satuan_terkecil_name' => $val->satuan_terkecil_name,
+                        'satuan_terkecil_kode' => $val->satuan_terkecil_kode,
+                        'movement_type'  => 'OUT-SAL',
+                        'jumlah_unit'    => $val->jumlah_unit,
+                        'jumlah_konversi' => $val->jumlah_konversi,
+                        'jumlah_terkecil' => $val->jumlah_terkecil,
+                        'harga_unit'     => $val->harga_unit,
+                        'harga_terkecil' => $val->harga_terkecil,
+                        'harga_subtotal' => $val->harga_subtotal,
+                        'relation_name'  => $record->customer_name,
+                        'relation_nomor_telepon' => $record->customer_nomor_telepon
+                    ]);
+                }
+            } else {
+                // dd('dibatalkan');
+                // Cancel transaksi: rollback jurnal & inventory
+                Inventory::where([
+                    'kode' => $record->kode,
+                    'movement_type' => 'OUT-SAL'
+                ])->delete();
+
+                Jurnal::where([
+                    'kode' => $record->kode,
+                    'transaction_type' => 'penjualan sparepart'
+                ])->delete();
+
+                Jurnal::where([
+                    'kode' => $record->kode,
+                    'transaction_type' => 'HPP Penjualan'
+                ])->delete();
+
+                PayrollJurnal::where([
+                    'transaksi_h_id' => $record->id,
+                    'transaction_type' => 'penjualan sparepart'
+                ])->delete();
             }
-            // inventory end
-        } else {
-            Inventory::where(['transaksi_h_id' => $record->id, 'movement_type' => 'OUT-SAL'])->delete();
-            Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'penjualan sparepart'])->delete();
-            Jurnal::where(['transaksi_h_id' => $record->id, 'transaction_type' => 'HPP Penjualan'])->delete();
+        } catch (\Throwable $th) {
+            Log::error('Gagal InsertJurnal untuk penjualan sparepart: ' . $th->getMessage(), [
+                'record_id' => $record->id,
+                'trace' => $th->getTraceAsString(),
+            ]);
         }
     }
+
 
     public static function form(Form $form): Form
     {
