@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Devonab\FilamentEasyFooter\EasyFooterPlugin;
 use EightyNine\Reports\ReportsPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -18,6 +19,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -59,7 +61,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
-                ReportsPlugin::make()
+                ReportsPlugin::make(),
+                EasyFooterPlugin::make()
+                ->withSentence(new HtmlString('Powered By.<i>Al-Fanani</i>')),
             ])
             ->authMiddleware([
                 Authenticate::class,
