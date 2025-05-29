@@ -9,6 +9,7 @@
         "php": "^8.2 || ^8.3 || ^8.4",
         "bezhansalleh/filament-shield": "^3.3",
         "calebporzio/sushi": "^2.4",
+        "devonab/filament-easy-footer": "^1.1",
         "eightynine/filament-reports": "^3.0",
         "filament/filament": "^3.2",
         "guava/filament-modal-relation-managers": "^1.2",
