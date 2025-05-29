@@ -131,6 +131,7 @@ class SparepartSaleResource extends Resource
     {
         try {
             if ($status == 'approved') {
+                // dd('ini');
                 // jurnal begin
 
                 // Jurnal Penjualan Sparepart
@@ -221,10 +222,10 @@ class SparepartSaleResource extends Resource
                 }
 
                 // Jurnal HPP
-                $sparepart = SparepartDSale::where('sparepart_sale_id', $record->id)->get();
+                $sparepart = SparepartDSale::where('sparepart_sale_id', $record->id);
                 $account_hpp = Account::find(10);
                 $account_persediaan = Account::find(3);
-                foreach ($sparepart as $val) {
+                foreach ($sparepart->get() as $val) {
                     $harga_modal = Modal::where('sparepart_id', $val->sparepart_id)->orderBy('id', 'desc')->first()->harga_modal;
 
                     Jurnal::create([
@@ -267,6 +268,7 @@ class SparepartSaleResource extends Resource
                     'name' => User::find(FacadesAuth::id())->name,
                     'keterangan' => 'Admin',
                     'transaction_type' => 'Penjualan Sparepart',
+                    'jumlah_sparepart' => $sparepart->sum('jumlah_unit'),
                     'nominal' => max(0, $record->total + $record->discount_total),
                 ]);
 
@@ -298,7 +300,7 @@ class SparepartSaleResource extends Resource
                         'relation_nomor_telepon' => $record->customer_nomor_telepon
                     ]);
                 }
-            } else {
+            }else {
                 // dd('dibatalkan');
                 // Cancel transaksi: rollback jurnal & inventory
                 Inventory::where([

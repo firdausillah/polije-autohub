@@ -198,12 +198,16 @@ class ServiceScheduleResource extends Resource
                 }
 
                 // Payroll
+                $jumlah_unit_terjual = ServiceDSparepart::where('service_schedule_id', $record->id)->sum('jumlah_unit');
+                $jumlah_service_terlayani   = ServiceDServices::where('service_schedule_id', $record->id)->sum('jumlah');
+
                 PayrollJurnal::create([
                     'transaksi_h_id' => $record->id,
                     'user_id' => Auth::id(),
                     'name' => User::find(Auth::id())->name,
                     'keterangan' => 'Admin',
                     'transaction_type' => 'Pelayanan Service',
+                    'jumlah_sparepart' => $jumlah_unit_terjual,
                     'nominal' => max(0, $record->sparepart_total - $record->discount_service_total),
                 ]);
 
@@ -213,6 +217,7 @@ class ServiceScheduleResource extends Resource
                     'name' => User::find($record->kepala_unit_id)->name,
                     'keterangan' => 'Kepala Unit',
                     'transaction_type' => 'Pelayanan Service',
+                    'jumlah_service' => $jumlah_service_terlayani,
                     'nominal' => max(0, $record->service_total - $record->discount_service_total),
                 ]);
 
@@ -225,6 +230,7 @@ class ServiceScheduleResource extends Resource
                         'name' => User::find($val->mekanik_id)->name,
                         'keterangan' => 'Mekanik',
                         'transaction_type' => 'Pelayanan Service',
+                        'jumlah_service' => $jumlah_service_terlayani,
                         'nominal' => $nominal,
                     ]);
                 }

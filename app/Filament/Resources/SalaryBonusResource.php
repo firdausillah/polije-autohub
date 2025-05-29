@@ -40,6 +40,16 @@ class SalaryBonusResource extends Resource
         return 'Gaji dan Bonus';
     }
 
+    public static function canAccess(): bool
+    {
+        return false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function InsertCashFlow($record, $status): void
     {
         if ($status == 'approved') {
