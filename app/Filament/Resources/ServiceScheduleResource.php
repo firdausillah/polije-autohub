@@ -578,18 +578,6 @@ class ServiceScheduleResource extends Resource
 
             // Hidden::make('mekanik_name'),
             ])
-            // ->footerActions([
-            //     Action::make('Generate Total')
-            //         ->action(function () {
-            //             $record = $this->getRecord();
-            //             updateServiceTotal::updateTotal($record->id);
-            //             Notification::make()
-            //                 ->title("Berhasil")
-            //                 ->success()
-            //                 ->body("Total Biaya berhasil digenerate!")
-            //                 ->send();
-            //         }),
-            // ])
             
             ->disabled(auth()->user()->hasRole(['super_admin', 'Manager', 'Admin', 'Kepala Unit']) ? false:true)
             ->columns([
