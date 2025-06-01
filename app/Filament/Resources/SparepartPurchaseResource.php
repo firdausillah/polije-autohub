@@ -215,7 +215,9 @@ class SparepartPurchaseResource extends Resource
                 Hidden::make('account_name'),
                 Hidden::make('account_kode'),
                 
-            ])->disabled(fn ($record) => $record && $record->is_approve === 'approved');
+            ])
+            ->columns(['sm' => 2])
+            ->disabled(fn ($record) => $record && $record->is_approve === 'approved');
     }
 
     public static function table(Table $table): Table

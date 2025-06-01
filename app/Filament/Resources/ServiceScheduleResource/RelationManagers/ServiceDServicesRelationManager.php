@@ -176,11 +176,11 @@ class ServiceDServicesRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make()->hidden(fn () => $this->getOwnerRecord()->is_approve === 'approved')
+                Tables\Actions\CreateAction::make()->hidden(fn () => $this->getOwnerRecord()->is_approve === 'approved' OR $this->getOwnerRecord()->service_status == 'Menunggu Pembayaran')
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()->hidden(fn () => $this->getOwnerRecord()->is_approve === 'approved'),
+                Tables\Actions\DeleteAction::make()->hidden(fn () => $this->getOwnerRecord()->is_approve === 'approved' OR $this->getOwnerRecord()->service_status == 'Menunggu Pembayaran'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

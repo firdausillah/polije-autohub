@@ -129,7 +129,7 @@
         <div>
             <strong>Kepada:</strong><br>
             Nama: {{$transaction->customer_name}}<br>
-            No WA: {{$transaction->customer_nomor_telepon}}
+            No WA: {{$transaction->nomor_telepon}}
         </div>
 
         <?php if($transaction_d_service->isNotEmpty()): ?>

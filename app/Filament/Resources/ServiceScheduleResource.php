@@ -371,6 +371,7 @@ class ServiceScheduleResource extends Resource
                             ->schema([
                                 Select::make('vehicle_id')
                                     ->relationship('vehicle', 'registration_number')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->registration_number} - ({$record->nomor_rangka})")
                                     ->searchable()
                                     ->preload()
                                     ->required()
@@ -386,6 +387,9 @@ class ServiceScheduleResource extends Resource
                                                 TextInput::make('kode')
                                                     ->default(fn () => CodeGenerator::generateSimpleCode('V', 'vehicles', 'kode'))
                                                     ->readOnly(),
+                                                TextInput::make('nomor_rangka')
+                                                ->required(),
+                                                TextInput::make('nomor_mesin'),
                                                 Select::make('category')
                                                     ->required()
                                                     ->options([
@@ -459,8 +463,6 @@ class ServiceScheduleResource extends Resource
                                                     ->numeric()
                                                     ->maxLength(4),
                                                 TextInput::make('cc'),
-                                                TextInput::make('nomor_rangka'),
-                                                TextInput::make('nomor_mesin'),
                                                 TextInput::make('warna'),
                                                 Select::make('bahan_bakar')
                                                     ->options([
@@ -502,7 +504,7 @@ class ServiceScheduleResource extends Resource
                                     ->default(1)
                                     ->options([
                                         1 => 'Umum',
-                                        0 => 'Mahasiswa'
+                                        0 => 'Mahasiswa / Karyawan / Ojol'
                                     ]),
                                 TextInput::make('km_datang')
                                     ->required()
@@ -668,20 +670,29 @@ class ServiceScheduleResource extends Resource
                     Action::make('Approve Service')
                         ->color('success')
                         ->action(function(ServiceSchedule $record){
-                                $record->service_status = 'Menunggu Pembayaran';
-                                $record->working_end = NOW();
+
+                                $isApproving = $record->service_status == 'Proses Pengerjaan';
+                                $status = $isApproving ? 'Menunggu Pembayaran' : 'Proses Pengerjaan';
+                                
+                                $record->service_status = $status;
+                                $record->working_end = $isApproving?NOW():NULL;
                                 $record->save();
                                 Notification::make()
-                                    ->title("Service Selesai, sedang Menunggu Pembayaran")
+                                    ->title($isApproving?"Service Selesai, sedang Menunggu Pembayaran":"Service Berhasil dibatalkan")
                                     ->success()
-                                    ->body("Service sedang Menunggu Pembayaran.")
+                                    ->body($isApproving ? "Service sedang Menunggu Pembayaran.":"Service Berhasil Dibatalkan")
                                     ->send();
                             })
+                        ->color(fn (ServiceSchedule $record) => $record->service_status === 'Menunggu Pembayaran' ? 'danger' : 'info')
+                        ->icon(fn (ServiceSchedule $record) => $record->service_status === 'Menunggu Pembayaran' ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
+                        ->requiresConfirmation()
+                        ->label(fn (ServiceSchedule $record) => $record->service_status === 'Menunggu Pembayaran' ? 'Reject Service' : 'Approve Service')
                         ->visible(function (ServiceSchedule $record){
-                            if ($record->service_status == "Proses Pengerjaan" && auth()->user()->hasRole('Kepala Unit')) {
+                            if ($record->service_status == "Proses Pengerjaan" OR $record->service_status == "Menunggu Pembayaran" && auth()->user()->hasRole('Kepala Unit')) {
                                 return true;
                             }
-                    }),
+                        }
+                    ),
                     Action::make('Approve Pembayaran')
                     ->action(function (ServiceSchedule $record) {
                         if (empty($record->kode)) {

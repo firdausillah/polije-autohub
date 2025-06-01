@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ServiceScheduleResource\RelationManagers;
 
+use App\Helpers\updateServiceTotal;
 use App\Models\Account;
 use App\Models\ServiceDPayment;
 use App\Policies\ServicePolicy;
@@ -13,6 +14,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Columns\ImageColumn;
@@ -137,6 +139,17 @@ class ServiceDPaymentRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
+                Tables\Actions\Action::make('Generate Total')
+                ->action(function(\Filament\Tables\Actions\Action $action){
+
+                    $ownerRecord = $action->getLivewire()->getOwnerRecord();
+                    updateServiceTotal::updateTotal($ownerRecord->id);
+                    Notification::make()
+                        ->title("Berhasil")
+                        ->success()
+                        ->body("Total Biaya berhasil digenerate!")
+                        ->send();
+                }),
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),
