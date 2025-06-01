@@ -34,7 +34,7 @@ class ServiceDSparepartRelationManager extends RelationManager
         $sparepart_satuan = SparepartSatuans::where(['id' => $get('sparepart_satuan_id')])->with('sparepart')->first();
         if($sparepart_satuan != null){
             $harga_subtotal = floatval($sparepart_satuan->harga) * floatval(($get('jumlah_unit')??0));
-            $discount = $get('discount');
+            $discount = (float) $get('discount');
         
             $is_pajak = Sparepart::find($sparepart_satuan->sparepart_id)->is_pajak;
             if ($is_pajak == 1) {

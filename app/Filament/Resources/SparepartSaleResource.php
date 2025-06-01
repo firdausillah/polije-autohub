@@ -403,6 +403,7 @@ class SparepartSaleResource extends Resource
                             ->columns('3')
                             ->schema([
                                 TextInput::make('sub_total')
+                                    
                                     ->default(0)
                                     ->prefix('Rp ')
                                     ->numeric()

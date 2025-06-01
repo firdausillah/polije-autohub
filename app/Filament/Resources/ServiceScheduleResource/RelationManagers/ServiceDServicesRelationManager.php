@@ -33,7 +33,7 @@ class ServiceDServicesRelationManager extends RelationManager
         $service = Service::find($get('service_id'));
         // dd($service);
         $harga = $is_customer_umum==1?$service->harga_1: $service->harga_2;
-        $discount = $get('discount');
+        $discount = (float)$get('discount');
 
         $harga_subtotal = floatval($harga ?? 0) * floatval($get('jumlah') ?? 0);
         $estimasi_waktu_pengerjaan = ($service->estimasi_waktu_pengerjaan ?? 0) * floatval(($get('jumlah') ?? 0));

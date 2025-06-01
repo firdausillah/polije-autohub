@@ -63,7 +63,7 @@ class AdminPanelProvider extends PanelProvider
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
                 ReportsPlugin::make(),
                 EasyFooterPlugin::make()
-                ->withSentence(new HtmlString('<i>Al-Fanani</i>')),
+                ->withSentence(new HtmlString('<i>Alfanani</i>')),
             ])
             ->authMiddleware([
                 Authenticate::class,
