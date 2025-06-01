@@ -196,8 +196,7 @@ class SparepartPurchaseResource extends Resource
                 TextInput::make('supplier_nomor_telepon')
                 ->numeric(),
                 TextInput::make('purchase_receipt')
-                ->required()
-                ->label('Nota Pembelian'),
+                ->label('Nota Pembelian (Foto)'),
                 Select::make('account_id')
                 ->relationship('account', 'name')
                 ->required()
