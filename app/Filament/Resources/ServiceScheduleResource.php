@@ -387,8 +387,7 @@ class ServiceScheduleResource extends Resource
                                                 TextInput::make('kode')
                                                     ->default(fn () => CodeGenerator::generateSimpleCode('V', 'vehicles', 'kode'))
                                                     ->readOnly(),
-                                                TextInput::make('nomor_rangka')
-                                                ->required(),
+                                                TextInput::make('nomor_rangka'),
                                                 TextInput::make('nomor_mesin'),
                                                 Select::make('category')
                                                     ->required()
