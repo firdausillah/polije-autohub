@@ -138,18 +138,7 @@ class ServiceDPaymentRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
-                Tables\Actions\Action::make('Generate Total')
-                ->action(function(\Filament\Tables\Actions\Action $action){
-
-                    $ownerRecord = $action->getLivewire()->getOwnerRecord();
-                    updateServiceTotal::updateTotal($ownerRecord->id);
-                    Notification::make()
-                        ->title("Berhasil")
-                        ->success()
-                        ->body("Total Biaya berhasil digenerate!")
-                        ->send();
-                }),
+                Tables\Actions\CreateAction::make()
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),

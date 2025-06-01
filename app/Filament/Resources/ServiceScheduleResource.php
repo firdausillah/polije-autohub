@@ -9,6 +9,7 @@ use App\Filament\Resources\ServiceScheduleResource\RelationManagers\ServiceDPaym
 use App\Filament\Resources\ServiceScheduleResource\RelationManagers\ServiceDServicesRelationManager;
 use App\Filament\Resources\ServiceScheduleResource\RelationManagers\ServiceDSparepartRelationManager;
 use App\Helpers\CodeGenerator;
+use App\Helpers\updateServiceTotal;
 use App\Models\Account;
 use App\Models\Checklist;
 use App\Models\Inventory;
@@ -577,6 +578,19 @@ class ServiceScheduleResource extends Resource
 
             // Hidden::make('mekanik_name'),
             ])
+            ->footerActions([
+                Action::make('Generate Total')
+                    ->action(function () {
+                        $record = $this->getRecord();
+                        updateServiceTotal::updateTotal($record->id);
+                        Notification::make()
+                            ->title("Berhasil")
+                            ->success()
+                            ->body("Total Biaya berhasil digenerate!")
+                            ->send();
+                    }),
+            ])
+            
             ->disabled(auth()->user()->hasRole(['super_admin', 'Manager', 'Admin', 'Kepala Unit']) ? false:true)
             ->columns([
                 'sm' => 2,
