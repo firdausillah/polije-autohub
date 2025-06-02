@@ -56,6 +56,7 @@ class SparepartDPurchaseRelationManager extends RelationManager
                 ->required()
                 ->gt(0),
                 TextInput::make('harga_unit')
+                ->currencyMask(',')
                 ->label('Harga satuan')
                 ->gt(0)
                 ->prefix('Rp ')

@@ -46,11 +46,13 @@ class ServiceResource extends Resource
                 ->label('Tipe Service')
                 ->required(),
                 TextInput::make('harga_1')
+                ->currencyMask(',')
                 ->label('Biaya Umum')
                 ->prefix('Rp ')
                 ->numeric()
                 ->required(),
                 TextInput::make('harga_2')
+                ->currencyMask(',')
                 ->label('Biaya Mahasiswa')
                 ->prefix('Rp ')
                 ->numeric()

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ServiceScheduleReport extends Model
 {
     protected $table = 'service_schedules';
+    protected $guarded = [];
 
     public function vehicle(): BelongsTo
     {

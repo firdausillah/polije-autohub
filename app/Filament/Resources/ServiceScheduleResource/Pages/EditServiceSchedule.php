@@ -32,10 +32,11 @@ class EditServiceSchedule extends EditRecord
             ->label('Generate Total')
             ->color('info')
             ->icon('heroicon-m-calculator')
-            ->action(function () {
+            ->action(function ($livewire) {
                 $record = $this->getRecord();
 
                 updateServiceTotal::updateTotal($record->id);
+                $livewire->fillForm();
 
                 \Filament\Notifications\Notification::make()
                     ->title('Sukses')

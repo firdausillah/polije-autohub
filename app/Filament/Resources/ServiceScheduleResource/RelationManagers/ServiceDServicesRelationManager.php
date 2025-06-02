@@ -84,6 +84,7 @@ class ServiceDServicesRelationManager extends RelationManager
                 )
                 ->gt(0),
                 TextInput::make('discount')
+                ->currencyMask(',')
                 ->prefix('Rp')
                 ->live(debounce: 500)
                 ->default(0)
@@ -97,15 +98,18 @@ class ServiceDServicesRelationManager extends RelationManager
                 Grid::make(['sm' => 3])
                 ->schema([
                     TextInput::make('harga_unit')
+                    ->currencyMask(',')
                     ->required()
                     ->label('Harga')
                     ->prefix('Rp')
                     ->readOnly(),
                     TextInput::make('harga_subtotal')
+                    ->currencyMask(',')
                     ->required()
                     ->prefix('Rp')
                     ->readOnly(),
                     TextInput::make('total')
+                    ->currencyMask(',')
                     ->required()
                     ->prefix('Rp')
                     ->readOnly(),

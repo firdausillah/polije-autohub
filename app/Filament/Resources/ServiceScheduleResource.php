@@ -524,27 +524,34 @@ class ServiceScheduleResource extends Resource
                             Grid::make(['sm'=>3])
                             ->schema([
                                 TextInput::make('harga_subtotal')
+                                    ->currencyMask(',')
                                     ->prefix('Rp')
                                     ->readOnly(),
                                 TextInput::make('discount_total')
+                                    ->currencyMask(',')
                                     ->prefix('Rp')
                                     ->readOnly(),
                                 TextInput::make('total')
+                                    ->currencyMask(',')
                                     ->prefix('Rp')
                                     ->readOnly(),
                             ]),
                             Fieldset::make('Rekap Biaya')
                             ->schema([
                                 TextInput::make('service_total')
+                                    ->currencyMask(',')
                                     ->prefix('Rp')
                                     ->readOnly(),
                                 TextInput::make('discount_service_total')
+                                    ->currencyMask(',')
                                     ->prefix('Rp')
                                     ->readOnly(),
                                 TextInput::make('sparepart_total')
+                                    ->currencyMask(',')
                                     ->prefix('Rp')
                                     ->readOnly(),
                                 TextInput::make('discount_sparepart_total')
+                                    ->currencyMask(',')
                                     ->prefix('Rp')
                                     ->readOnly(),
                             ])

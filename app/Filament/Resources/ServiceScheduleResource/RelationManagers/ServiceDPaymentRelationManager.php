@@ -57,6 +57,7 @@ class ServiceDPaymentRelationManager extends RelationManager
                 Hidden::make('account_name'),
                 Hidden::make('account_kode'),
                 TextInput::make('jumlah_bayar')
+                ->currencyMask(',')
                 ->required()
                 ->label('Jumlah Bayar')
                 ->live(debounce: 500)
@@ -79,6 +80,7 @@ class ServiceDPaymentRelationManager extends RelationManager
                     }
                 ),
                 TextInput::make('total_payable')
+                ->currencyMask(',')
                 // ->required()
                 ->readOnly()
                 ->label('Total yang harus dibayar')
@@ -94,6 +96,7 @@ class ServiceDPaymentRelationManager extends RelationManager
                 }
                 ),
                 TextInput::make('payment_change')
+                ->currencyMask(',')
                 ->label('kembalian')
                 ->numeric()
                 ->readOnly(),

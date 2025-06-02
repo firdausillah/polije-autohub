@@ -381,10 +381,12 @@ class SparepartSaleResource extends Resource
                                 ->live()
                                 ->label('Harga subtotal')
                                 ->default(0)
-                                ->prefix('Rp ')
+                                ->currencyMask(',')
+                                // ->prefix('Rp ')
                                 ->numeric()
                                 ->readOnly(),
                                 TextInput::make('discount')
+                                ->currencyMask(',')
                                 ->numeric()
                                 ->live(debounce: 500)
                                 ->afterStateUpdated(
@@ -403,12 +405,13 @@ class SparepartSaleResource extends Resource
                             ->columns('3')
                             ->schema([
                                 TextInput::make('sub_total')
-                                    
+                                    ->currencyMask(',')
                                     ->default(0)
                                     ->prefix('Rp ')
                                     ->numeric()
                                     ->readOnly(),
                                 TextInput::make('discount_total')
+                                ->currencyMask(',')
                                     ->default(0)
                                     ->prefix('Rp ')
                                     ->numeric()
@@ -418,6 +421,7 @@ class SparepartSaleResource extends Resource
                                     })
                                     ->readOnly(fn($state) => $state!=0),
                                 TextInput::make('total')
+                                ->currencyMask(',')
                                     ->default(0)
                                     ->prefix('Rp ')
                                     ->numeric()
@@ -444,12 +448,14 @@ class SparepartSaleResource extends Resource
                         Grid::make(2)
                         ->schema([
                             TextInput::make('total')
+                                ->currencyMask(',')
                                 ->default(0)
                                 ->prefix('Rp ')
                                 ->label('Jumlah yang harus dibayar')
                                 ->numeric()
                                 ->readOnly(),
                             TextInput::make('payment_change')
+                                ->currencyMask(',')
                                 ->default(0)
                                 ->prefix('Rp ')
                                 ->label('Kembalian')
@@ -488,6 +494,7 @@ class SparepartSaleResource extends Resource
                                         
                                     }),
                                     TextInput::make('jumlah_bayar')
+                                    ->currencyMask(',')
                                     ->required(),
                                     FileUpload::make('photo')
                                         ->label('Bukti pembayaran')

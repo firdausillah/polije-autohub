@@ -117,6 +117,7 @@ class ServiceDSparepartRelationManager extends RelationManager
                     ->gt(0)
                     ->disabled(fn (Get $get) => !$get('sparepart_satuan_id')),
                 TextInput::make('discount')
+                ->currencyMask(',')
                 ->live(debounce: 500)
                 ->default(0)
                 ->afterStateUpdated(
@@ -129,15 +130,18 @@ class ServiceDSparepartRelationManager extends RelationManager
                 Grid::make(['sm' => 3])
                 ->schema([
                     TextInput::make('harga_unit')
+                    ->currencyMask(',')
                     ->required()
                     ->label('Harga')
                     ->prefix('Rp')
                     ->readOnly(),
                     TextInput::make('harga_subtotal')
+                    ->currencyMask(',')
                     ->required()
                     ->prefix('Rp')
                     ->readOnly(),
                     TextInput::make('total')
+                    ->currencyMask(',')
                     ->required()
                     ->prefix('Rp')
                     ->readOnly(),
