@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\SparepartResource\RelationManagers;
 
+use App\Helpers\CodeGenerator;
 use Filament\Forms;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -18,9 +20,14 @@ class ModalsRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('transaksi_h_kode')
+                Forms\Components\TextInput::make('harga_modal')
+                    ->currencyMask(',')
+                    ->prefix('Rp')
                     ->required()
                     ->maxLength(255),
+                TextInput::make('transaksi_h_kode')
+                    ->default(fn () => CodeGenerator::generateTransactionCode('MA', 'modals', 'transaksi_h_kode'))
+                    ->readOnly(),
             ]);
     }
 
@@ -42,16 +49,16 @@ class ModalsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                // Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make(),
             ])
             ->actions([
-                // Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make(),
                 // Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                // Tables\Actions\BulkActionGroup::make([
-                //     Tables\Actions\DeleteBulkAction::make(),
-                // ]),
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }

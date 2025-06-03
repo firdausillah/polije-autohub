@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\priceFix;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\LogOptions;
@@ -48,5 +49,11 @@ class Modal extends Model
         static::updating(function ($model) {
             $model->updated_by = Auth::id();
         });
+
+        static::saved(function ($model) {
+            // update harga sparepart
+            priceFix::priceFixer($model->sparepart_id);
+        });
     }
+
 }

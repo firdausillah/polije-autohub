@@ -694,7 +694,7 @@ class ServiceScheduleResource extends Resource
                         ->color(fn (ServiceSchedule $record) => $record->service_status === 'Menunggu Pembayaran' ? 'danger' : 'info')
                         ->icon(fn (ServiceSchedule $record) => $record->service_status === 'Menunggu Pembayaran' ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                         ->requiresConfirmation()
-                        ->label(fn (ServiceSchedule $record) => $record->service_status === 'Menunggu Pembayaran' ? 'Reject Service' : 'Approve Service')
+                        ->label(fn (ServiceSchedule $record) => $record->service_status === 'Menunggu Pembayaran' ? 'Cancle Approve Service' : 'Approve Service')
                         ->visible(function (ServiceSchedule $record){
                             if ($record->service_status == "Proses Pengerjaan" OR $record->service_status == "Menunggu Pembayaran" && auth()->user()->hasRole('Kepala Unit')) {
                                 return true;
