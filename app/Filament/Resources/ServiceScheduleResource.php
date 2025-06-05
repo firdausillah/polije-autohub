@@ -313,7 +313,33 @@ class ServiceScheduleResource extends Resource
                         'relation_nomor_telepon' => $record->nomor_telepon
                     ]);
                 }
-            // inventory end
+                // inventory end
+
+                // // Generate Invoice begin
+                // if (!$record->invoice_file) {
+                //     // Generate PDF
+                //     $pdf = new \Mpdf\Mpdf([
+                //         'tempDir' => storage_path('app/mpdf-temp')
+                //     ]);
+
+                //     $html = view(
+                //         'invoices.service_template',
+                //         [
+                //             'transaction' => $record,
+                //             'transaction_d_service' => ServiceDServices::where(['service_schedule_id' => $record->id])->get(),
+                //             'transaction_d_sparepart' => ServiceDSparepart::where(['service_schedule_id' => $record->id])->get()
+                //         ]
+                //     )
+                //         ->render();
+                //     $filename = 'invoice-' . \Illuminate\Support\Str::random(5) . $record->id . \Illuminate\Support\Str::random(5) . '.pdf';
+                //     $path = storage_path("app/invoices/service/{$filename}");
+                //     $pdf->WriteHTML($html);
+                //     $pdf->Output($path, \Mpdf\Output\Destination::FILE);
+
+                //     // Simpan nama file di database
+                //     $record->update(['invoice_file' => $filename]);
+                // }
+                // // Generate Invoice end
                 
                 return [
                     'title' => 'Berhasil',
@@ -483,10 +509,14 @@ class ServiceScheduleResource extends Resource
                                             if ($riwayat_service !== null) {
                                                 $set('customer_name', $riwayat_service->customer_name);
                                                 $set('nomor_telepon', $riwayat_service->nomor_telepon);
+                                                $set('customer_email', $riwayat_service->customer_email);
+                                                $set('customer_alamat', $riwayat_service->customer_alamat);
                                                 $set('is_customer_umum', $riwayat_service->is_customer_umum);
                                             } else {
                                                 $set('customer_name', '');
                                                 $set('nomor_telepon', '+62');
+                                                $set('customer_email', '');
+                                                $set('customer_alamat', '');
                                                 $set('is_customer_umum', 1);
                                             }
                                         }
@@ -499,6 +529,11 @@ class ServiceScheduleResource extends Resource
                                 TextInput::make('nomor_telepon')
                                     ->default('+62')
                                     ->helperText('tambahkan kode negara (+62). contoh: +62856781234'),
+                                TextInput::make('customer_email')
+                                ->email()
+                                ->label('Email'),
+                                TextInput::make('customer_alamat')
+                                ->label('Alamat'),
                                 Select::make('is_customer_umum')
                                     ->label('Jenis Customer')
                                     ->default(1)
@@ -770,7 +805,7 @@ class ServiceScheduleResource extends Resource
                                     'transaction_d_sparepart' => ServiceDSparepart::where(['service_schedule_id' => $record->id])->get()
                                 ])
                                 ->render();
-                            $filename = 'invoice-' . \Illuminate\Support\Str::random(5) . $record->id . \Illuminate\Support\Str::random(5) . '.pdf';
+                            $filename = 'invoice-' . \Illuminate\Support\Str::random(15) . $record->id . \Illuminate\Support\Str::random(5) . '.pdf';
                             $path = storage_path("app/invoices/service/{$filename}");
                             $pdf->WriteHTML($html);
                             $pdf->Output($path, \Mpdf\Output\Destination::FILE);

@@ -78,6 +78,7 @@ class ServiceDSparepartRelationManager extends RelationManager
                 ->searchable()
                 ->preload(),
                 Select::make('sparepart_satuan_id')
+                ->label('Sparepart')
                 ->required()
                 ->preload()
                 ->live()

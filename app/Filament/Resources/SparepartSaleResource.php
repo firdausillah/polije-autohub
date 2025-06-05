@@ -616,7 +616,7 @@ class SparepartSaleResource extends Resource
                             ]);
 
                             $html = view('invoices.template', ['transaction' => $record, 'transaction_d' => SparepartDSale::where(['sparepart_sale_id' => $record->id])->get()])->render();
-                            $filename = 'invoice-' . \Illuminate\Support\Str::random(5) . $record->id .\Illuminate\Support\Str::random(5) . '.pdf';
+                            $filename = 'invoice-' . \Illuminate\Support\Str::random(15) . $record->id .\Illuminate\Support\Str::random(5) . '.pdf';
                             $path = storage_path("app/invoices/sales/{$filename}");
                             $pdf->WriteHTML($html);
                             $pdf->Output($path, \Mpdf\Output\Destination::FILE);

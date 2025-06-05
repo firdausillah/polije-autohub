@@ -80,6 +80,7 @@ class ServiceDPaymentRelationManager extends RelationManager
                     }
                 ),
                 TextInput::make('total_payable')
+                ->prefix('Rp ')
                 ->currencyMask(',')
                 // ->required()
                 ->readOnly()
@@ -96,6 +97,7 @@ class ServiceDPaymentRelationManager extends RelationManager
                 }
                 ),
                 TextInput::make('payment_change')
+                ->prefix('Rp ')
                 ->currencyMask(',')
                 ->label('kembalian')
                 ->numeric()
