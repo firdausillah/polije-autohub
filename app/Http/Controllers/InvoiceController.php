@@ -17,9 +17,13 @@ class InvoiceController extends Controller
     {
 
         $mpdf = new Mpdf([
-            'tempDir' => storage_path('app/mpdf-temp')
-            // 'format' => 'A4',
-            // 'orientation' => 'P',
+            'tempDir' => storage_path('app/mpdf-temp'),
+            'margin_left'   => 15,
+            'margin_right'  => 15,
+            'margin_top'    => 5,
+            'margin_bottom' => 5,
+            'margin_header' => 9, 
+            'margin_footer' => 9, 
         ]);
 
         $data = [
@@ -41,32 +45,13 @@ class InvoiceController extends Controller
 
     public function service($transaksi)
     {
-
-        $mpdf = new Mpdf([
-            'tempDir' => storage_path('app/mpdf-temp'),
-            'margin_left'   => 15,
-            'margin_right'  => 15,
-            'margin_top'    => 5,
-            'margin_bottom' => 5,
-            'margin_header' => 9, 
-            'margin_footer' => 9, 
-        ]);
-
         $data = [
-            'transaction' => ServiceSchedule::find($transaksi),
+            'transaction' => ServiceSchedule::where(['invoice_file' => $transaksi])->firstOrFail(),
             'transaction_d_service' => ServiceDServices::where(['service_schedule_id' => $transaksi])->get(),
             'transaction_d_sparepart' => ServiceDSparepart::where(['service_schedule_id' => $transaksi])->get()
         ];
-        // dd($data);
+        // dd($data['transaction']);
 
-        // return view('invoices.template', $data);
-        $html = view('invoices.service_template', $data)->render();
-
-        $mpdf->WriteHTML($html);
-
-        // stream tanpa download
-        return response($mpdf->Output('', 'S'), 200, [
-            'Content-Type' => 'application/pdf',
-        ]);
+        return view('invoices.service_template2', $data);
     }
 }

@@ -14,7 +14,7 @@
         }
 
         .bg-header {
-            background-color: green;
+            background-color: #6fc534;
             width: 600px;
             height: 340px;
             z-index: 1;
@@ -25,7 +25,7 @@
         }
 
         .bg-footer {
-            background-color: green;
+            background-color: #6fc534;
             width: 380px;
             height: 120px;
             z-index: 1;
@@ -76,7 +76,7 @@
         }
 
         .table th {
-            background: #00a957;
+            background: #6fc534;
             color: white;
         }
 
@@ -87,7 +87,7 @@
         }
 
         .table tbody tr:nth-child(even) {
-            background: #d8f1e0;
+            background: #f5fcf0;
             border-radius: 10px;
         }
     </style>
@@ -161,7 +161,7 @@
                     <?php foreach ($transaction_d_sparepart as $key => $value) : ?>
                         <tr>
                             <td>{{$key+1}}</td>
-                            <td>{{$value->service_name}}</td>
+                            <td>{{$value->sparepart_name}}</td>
                             <td>{{$value->jumlah}}</td>
                             <td>{{"Rp " . number_format($value->harga_unit, 2, ",", ".")}}</td>
                             <td>{{"Rp " . number_format($value->harga_subtotal, 2, ",", ".")}}</td>
@@ -172,7 +172,6 @@
         <?php endif ?>
 
         <div class="" style="width: 100%; position: relative;">
-            <!-- <div style="width: 100px; height: 100px; background-color: #333; position: absolute; right: 10px;">as</div> -->
             <table width="100%">
                 <tr>
                     <td width="50%" style="border: none;"></td>

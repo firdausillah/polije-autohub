@@ -11,8 +11,8 @@ Route::get('/', function () {
 });
 
 // routes/web.php
-Route::get('/invoice/sales/{transaksi}', [InvoiceController::class, 'sales'])->name('invoice.sales_preview');
-Route::get('/invoice/service/{transaksi}', [InvoiceController::class, 'service'])->name('invoice.service_preview');
+Route::get('/invoice/sales/{transaksi}', [InvoiceController::class, 'sales'])->name('invoice.sales');
+Route::get('/invoice/service/{transaksi}', [InvoiceController::class, 'service'])->name('invoice.service');
 Route::get('/history/service/{transaksi}', [HistoryController::class, 'service'])->name('service.history');
 
 

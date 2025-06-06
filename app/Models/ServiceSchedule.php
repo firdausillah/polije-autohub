@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -100,6 +101,17 @@ class ServiceSchedule extends Model
                 ]);
             }
         });
+    }
+
+    public function deleteFile()
+    {
+        dd($this);
+        if ($this->path && Storage::exists($this->path)) {
+            Storage::delete($this->path);
+        }
+
+        $this->path = null;
+        $this->save();
     }
 
     // Belongsto

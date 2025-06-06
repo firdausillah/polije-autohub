@@ -9,6 +9,7 @@ use App\Filament\Resources\ServiceScheduleResource\RelationManagers\ServiceDPaym
 use App\Filament\Resources\ServiceScheduleResource\RelationManagers\ServiceDServicesRelationManager;
 use App\Filament\Resources\ServiceScheduleResource\RelationManagers\ServiceDSparepartRelationManager;
 use App\Helpers\CodeGenerator;
+use App\Helpers\FormatRupiah;
 use App\Helpers\updateServiceTotal;
 use App\Models\Account;
 use App\Models\Checklist;
@@ -315,31 +316,33 @@ class ServiceScheduleResource extends Resource
                 }
                 // inventory end
 
-                // // Generate Invoice begin
-                // if (!$record->invoice_file) {
-                //     // Generate PDF
-                //     $pdf = new \Mpdf\Mpdf([
-                //         'tempDir' => storage_path('app/mpdf-temp')
-                //     ]);
+                // Generate Invoice begin
+                $pdf = new \Mpdf\Mpdf([
+                    'tempDir' => storage_path('app/mpdf-temp'),'margin_left'   => 15,
+                    'margin_right'  => 15,
+                    'margin_top'    => 5,
+                    'margin_bottom' => 5,
+                    'margin_header' => 9,
+                    'margin_footer' => 9, 
+                ]);
 
-                //     $html = view(
-                //         'invoices.service_template',
-                //         [
-                //             'transaction' => $record,
-                //             'transaction_d_service' => ServiceDServices::where(['service_schedule_id' => $record->id])->get(),
-                //             'transaction_d_sparepart' => ServiceDSparepart::where(['service_schedule_id' => $record->id])->get()
-                //         ]
-                //     )
-                //         ->render();
-                //     $filename = 'invoice-' . \Illuminate\Support\Str::random(5) . $record->id . \Illuminate\Support\Str::random(5) . '.pdf';
-                //     $path = storage_path("app/invoices/service/{$filename}");
-                //     $pdf->WriteHTML($html);
-                //     $pdf->Output($path, \Mpdf\Output\Destination::FILE);
+                $html = view(
+                    'invoices.service_template',
+                    [
+                        'transaction' => $record,
+                        'transaction_d_service' => ServiceDServices::where(['service_schedule_id' => $record->id])->get(),
+                        'transaction_d_sparepart' => ServiceDSparepart::where(['service_schedule_id' => $record->id])->get()
+                    ]
+                )
+                ->render();
+                $filename = 'invoice-' . \Illuminate\Support\Str::random(15) . $record->id . \Illuminate\Support\Str::random(15) . '.pdf';
+                $path = storage_path("app/invoices/service/{$filename}");
+                $pdf->WriteHTML($html);
+                $pdf->Output($path, \Mpdf\Output\Destination::FILE);
 
-                //     // Simpan nama file di database
-                //     $record->update(['invoice_file' => $filename]);
-                // }
-                // // Generate Invoice end
+                // Simpan nama file di database
+                $record->update(['invoice_file' => $filename]);
+                // Generate Invoice end
                 
                 return [
                     'title' => 'Berhasil',
@@ -788,43 +791,32 @@ class ServiceScheduleResource extends Resource
                     ->requiresConfirmation()
                     ->modalHeading('Kirim invoice ke WhatsApp?')
                     ->modalDescription('Invoice akan dikirim ke nomor pelanggan.')
-                    ->openUrlInNewTab()
-                    ->action(function ($record) {
-                        // Cek apakah file sudah ada
-                        if (!$record->invoice_file) {
-                            // Generate PDF
-                            $pdf = new \Mpdf\Mpdf([
-                                'tempDir' => storage_path('app/mpdf-temp')
-                            ]);
-
-                            $html = view(
-                                'invoices.service_template', 
-                                [
-                                    'transaction' => $record, 
-                                    'transaction_d_service' => ServiceDServices::where(['service_schedule_id' => $record->id])->get(), 
-                                    'transaction_d_sparepart' => ServiceDSparepart::where(['service_schedule_id' => $record->id])->get()
-                                ])
-                                ->render();
-                            $filename = 'invoice-' . \Illuminate\Support\Str::random(15) . $record->id . \Illuminate\Support\Str::random(5) . '.pdf';
-                            $path = storage_path("app/invoices/service/{$filename}");
-                            $pdf->WriteHTML($html);
-                            $pdf->Output($path, \Mpdf\Output\Destination::FILE);
-
-                            // Simpan nama file di database
-                            $record->update(['invoice_file' => $filename]);
-                        }
-
-                        // Gunakan file yang sudah ada
+                    ->url(function ($record) {
+                        if ($record->invoice_file) {
+                        $payments = ServiceDPayment::where(['service_schedule_id'=> $record->id])->get();
+                        $total_bayar = $payments->sum('jumlah_bayar');
+                        $total_kembalian = $payments->sum('payment_change');
+                        // dd($total_bayar);
                         $downloadUrl = route('service.invoice.download', ['filename' => $record->invoice_file]);
-                        $message = "Halo! Terimakasih sudah mempercayai Polije Autohub untuk meningkatkan kenyamanan berkendara anda. Berikut adalah invoice anda: \n{$downloadUrl}";
-                        $waLink = 'https://wa.me/' . $record->nomor_telepon . '?text=' . urlencode($message);
 
-                        return redirect($waLink);
+                        // $message = "Halo! Terima kasih telah mempercayai Polije Autohub.\nBerikut adalah invoice Anda:\n{$downloadUrl}\n\nJika ada pertanyaan, silakan hubungi kami kembali. 🙏";
+
+                        $message = "Polije Autohub \nJl. Mastrip No.164, Sumbersari, Jember.\n\nPelanggan Yth,\n$record->customer_name\nTanggal : $record->approved_at\n\nBerikut adalah invoice Anda:\n{$downloadUrl}\n\n====================\nDetail Biaya :\nTotal Tagihan : ".FormatRupiah::rupiah($record->harga_subtotal, true)."\nDiscount : ".FormatRupiah::rupiah($record->discount_total, true)."\nTotal Bayar : ".FormatRupiah::rupiah($total_bayar, true)."\nKembalian : ".FormatRupiah::rupiah($total_kembalian, true). "\n\nJika ada pertanyaan, silakan hubungi kami kembali.\nContact Person : 081132211515";
+
+                        return 'https://wa.me/' . $record->nomor_telepon . '?text=' . rawurlencode($message);
+
+
+                        }
                     })
+                    ->openUrlInNewTab()
                     ->visible(fn ($record) => !empty($record->nomor_telepon && $record->is_approve == 'approved')),
                     Tables\Actions\Action::make('preview_invoice')
                     ->label('Lihat Invoice')
-                    ->url(fn ($record) => route('invoice.service_preview', $record))
+                    ->url(function($record) {
+                        if ($record->invoice_file) {
+                            return route('service.invoice.download', ['filename' => $record->invoice_file]);
+                        }
+                    })
                     ->openUrlInNewTab()
                     ->icon('heroicon-o-document-text')
                     ->visible(fn ($record) => !empty($record->nomor_telepon && $record->is_approve == 'approved')),

@@ -6,6 +6,7 @@ use App\Filament\Resources\SparepartSaleResource\Pages;
 use App\Filament\Resources\SparepartSaleResource\RelationManagers;
 use App\Filament\Resources\SparepartSaleResource\RelationManagers\SparepartDSaleRelationManager;
 use App\Helpers\CodeGenerator;
+use App\Helpers\FormatRupiah;
 use App\Models\Account;
 use App\Models\Inventory;
 use App\Models\Jurnal;
@@ -300,6 +301,28 @@ class SparepartSaleResource extends Resource
                         'relation_nomor_telepon' => $record->customer_nomor_telepon
                     ]);
                 }
+
+                // Generate Invoice begin
+                $pdf = new \Mpdf\Mpdf([
+                    'tempDir' => storage_path('app/mpdf-temp'),
+                    'margin_left'   => 15,
+                    'margin_right'  => 15,
+                    'margin_top'    => 5,
+                    'margin_bottom' => 5,
+                    'margin_header' => 9,
+                    'margin_footer' => 9, 
+                    
+                ]);
+
+                $html = view('invoices.template', ['transaction' => $record, 'transaction_d' => SparepartDSale::where(['sparepart_sale_id' => $record->id])->get()])->render();
+                $filename = 'invoice-' . \Illuminate\Support\Str::random(15) . $record->id . \Illuminate\Support\Str::random(15) . '.pdf';
+                $path = storage_path("app/invoices/sales/{$filename}");
+                $pdf->WriteHTML($html);
+                $pdf->Output($path, \Mpdf\Output\Destination::FILE);
+
+                // Simpan nama file di database
+                $record->update(['invoice_file' => $filename]);
+                // Generate Invoice end
             }else {
                 // dd('dibatalkan');
                 // Cancel transaksi: rollback jurnal & inventory
@@ -606,36 +629,34 @@ class SparepartSaleResource extends Resource
                     ->requiresConfirmation()
                     ->modalHeading('Kirim invoice ke WhatsApp?')
                     ->modalDescription('Invoice akan dikirim ke nomor pelanggan.')
-                    ->openUrlInNewTab()
-                    ->action(function ($record) {
-                        // Cek apakah file sudah ada
-                        if (!$record->invoice_file) {
-                            // Generate PDF
-                            $pdf = new \Mpdf\Mpdf([
-                                'tempDir' => storage_path('app/mpdf-temp')
-                            ]);
+                    ->url(function ($record) {
+                        if ($record->invoice_file) {
+                            // $downloadUrl = route('sales.invoice.download', ['filename' => $record->invoice_file]);
+                            // $message = "Halo! Terimakasih sudah berbelanja Sparepart di Polije Autohub. Berikut adalah invoice belanja anda: \n{$downloadUrl}";
+                            // $waLink = 'https://wa.me/' . $record->customer_nomor_telepon . '?text=' . urlencode($message);
 
-                            $html = view('invoices.template', ['transaction' => $record, 'transaction_d' => SparepartDSale::where(['sparepart_sale_id' => $record->id])->get()])->render();
-                            $filename = 'invoice-' . \Illuminate\Support\Str::random(15) . $record->id .\Illuminate\Support\Str::random(5) . '.pdf';
-                            $path = storage_path("app/invoices/sales/{$filename}");
-                            $pdf->WriteHTML($html);
-                            $pdf->Output($path, \Mpdf\Output\Destination::FILE);
+                            $payments = SparepartDSalePayment::where(['sparepart_sale_id' => $record->id])->get();
+                            $total_bayar = $payments->sum('jumlah_bayar');
+                            // $total_kembalian = $payments->sum('payment_change');
+                            // dd($record);
+                            $downloadUrl = route('sales.invoice.download', ['filename' => $record->invoice_file]);
 
-                            // Simpan nama file di database
-                            $record->update(['invoice_file' => $filename]);
+                            // $message = "Halo! Terima kasih telah mempercayai Polije Autohub.\nBerikut adalah invoice Anda:\n{$downloadUrl}\n\nJika ada pertanyaan, silakan hubungi kami kembali. 🙏";
+
+                            $message = "Polije Autohub \nJl. Mastrip No.164, Sumbersari, Jember.\n\nPelanggan Yth,\n$record->customer_name\nTanggal : $record->approved_at\n\nBerikut adalah invoice Anda:\n{$downloadUrl}\n\n====================\nDetail Biaya :\nTotal Tagihan : " . FormatRupiah::rupiah($record->sub_total, true) . "\nDiscount : " . FormatRupiah::rupiah($record->discount_total, true) . "\nTotal Bayar : " . FormatRupiah::rupiah($total_bayar, true) . "\nKembalian : " . FormatRupiah::rupiah($record->payment_change, true) . "\n\nJika ada pertanyaan, silakan hubungi kami kembali.\nContact Person : 081132211515";
+
+                            return 'https://wa.me/' . $record->nomor_telepon . '?text=' . rawurlencode($message);
                         }
-
-                        // Gunakan file yang sudah ada
-                        $downloadUrl = route('sales.invoice.download', ['filename' => $record->invoice_file]);
-                        $message = "Halo! Terimakasih sudah berbelanja Sparepart di Polije Autohub. Berikut adalah invoice belanja anda: \n{$downloadUrl}";
-                        $waLink = 'https://wa.me/' . $record->customer_nomor_telepon . '?text=' . urlencode($message);
-
-                        return redirect($waLink);
                     })
+                    ->openUrlInNewTab()
                     ->visible(fn ($record) => !empty($record->customer_nomor_telepon && $record->is_approve == 'approved')),
                     Tables\Actions\Action::make('preview_invoice')
                     ->label('Lihat Invoice')
-                    ->url(fn ($record) => route('invoice.sales_preview', $record))
+                    ->url(function ($record) {
+                        if ($record->invoice_file) {
+                            return route('sales.invoice.download', ['filename' => $record->invoice_file]);
+                        }
+                    })
                     ->openUrlInNewTab()
                     ->icon('heroicon-o-document-text')
                     ->visible(fn ($record) => !empty($record->customer_nomor_telepon && $record->is_approve == 'approved')),
