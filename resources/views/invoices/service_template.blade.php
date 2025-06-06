@@ -10,38 +10,34 @@
             font-family: Arial, sans-serif;
             font-size: 14px;
             color: #333;
-            padding: 20px;
+            padding-top: 200px;
         }
 
         .bg-header {
             background-color: green;
-            width: 300px;
-            height: 160px;
+            width: 600px;
+            height: 340px;
             z-index: 1;
-            top: 0;
-            right: 0;
+            top: -180px;
+            right: -100px;
             position: absolute;
+            border-radius: 100px;
         }
 
         .bg-footer {
             background-color: green;
-            width: 100%;
-            height: 60px;
+            width: 380px;
+            height: 120px;
             z-index: 1;
-            bottom: 0;
-            right: 0;
-            /* left: 0; */
+            bottom: -80px;
+            left: -60px;
             position: absolute;
+            border-radius: 30px;
         }
 
         .invoice-box {
             z-index: 100;
             position: relative;
-            /* max-width: 800px;
-            margin: auto;
-            border: 1px solid #eee;
-            padding: 30px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); */
         }
 
         .header {
@@ -60,30 +56,6 @@
             color: white;
         }
 
-        table {
-            width: 100%;
-            line-height: 1.5;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table th {
-            background: #f5f5f5;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-            padding: 8px;
-        }
-
-        table td {
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-        }
-
-        /* .total {
-            text-align: right;
-            margin-top: 20px;
-        } */
-
         .note {
             margin-top: 30px;
             font-size: 13px;
@@ -96,30 +68,43 @@
             font-size: 12px;
             color: #999;
         }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        .table th {
+            background: #00a957;
+            color: white;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background: #d8f1e0;
+            border-radius: 10px;
+        }
     </style>
 </head>
 
 <body>
     <div class="bg-header"></div>
     <div class="invoice-box">
-        <!-- <div class="header">
-            <div class="logo">
-                <img src="{{ public_path('logo autohub sm.png') }}" alt="Logo Bengkel" height="60" >
-            </div>
-            <div class="info">
-                <strong>INVOICE</strong><br>
-                No: INV-20250413-002<br>
-                Tanggal: 13 Apr 2025
-            </div>
-        </div> -->
 
-        <table style="width: 100%; margin-bottom: 25px;">
+        <table style="width: 100%; margin-bottom: 50px;">
             <tr style="border: none;">
                 <td>
                     <img src="{{ public_path('logo autohub sm.png') }}" alt="Logo Bengkel" height="90">
                 </td>
                 <td style="text-align: right; color: white;">
-                    <strong>INVOICE PELAYANAN SERVICE</strong><br>
+                    <strong style="font-size: 3rem;">INVOICE</strong><br>
+                    <strong>PELAYANAN SERVICE</strong><br>
                     No: {{$transaction->kode}}<br>
                     Tanggal: {{date_format(date_create($transaction->approved_at), 'd M Y')}}<br>
                 </td>
@@ -132,60 +117,58 @@
             No WA: {{$transaction->nomor_telepon}}
         </div>
 
-        <?php if($transaction_d_service->isNotEmpty()): ?>
-        <h4 style="margin-top: 30px; margin-bottom: 10px;">Detail Service</h4>
+        <?php if ($transaction_d_service->isNotEmpty()) : ?>
+            <h4 style="margin-top: 30px; margin-bottom: 10px;">Detail Service</h4>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Deskripsi</th>
-                    <th>Qty</th>
-                    <th>Harga</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($transaction_d_service as $key => $value) : ?>
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>{{$key+1}}</td>
-                        <td>{{$value->service_name}}</td>
-                        <td>{{$value->jumlah}}</td>
-                        <td>{{"Rp " . number_format($value->harga_unit, 2, ",", ".")}}</td>
-                        <td>{{"Rp " . number_format($value->harga_subtotal, 2, ",", ".")}}</td>
+                        <th>No</th>
+                        <th>Deskripsi</th>
+                        <th>Qty</th>
+                        <th>Harga</th>
+                        <th>Subtotal</th>
                     </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php foreach ($transaction_d_service as $key => $value) : ?>
+                        <tr>
+                            <td>{{$key+1}}</td>
+                            <td>{{$value->service_name}}</td>
+                            <td>{{$value->jumlah}}</td>
+                            <td>{{"Rp " . number_format($value->harga_unit, 2, ",", ".")}}</td>
+                            <td>{{"Rp " . number_format($value->harga_subtotal, 2, ",", ".")}}</td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         <?php endif ?>
 
-        <?php if($transaction_d_sparepart->isNotEmpty()): ?>
-        <h4 style="margin-top: 30px; margin-bottom: 10px;">Detail Sparepart</h4>
+        <?php if ($transaction_d_sparepart->isNotEmpty()) : ?>
+            <h4 style="margin-top: 30px; margin-bottom: 10px;">Detail Sparepart</h4>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Deskripsi</th>
-                    <th>Satuan</th>
-                    <th>Qty</th>
-                    <th>Harga</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($transaction_d_sparepart as $key => $value) : ?>
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>{{$key+1}}</td>
-                        <td>{{$value->sparepart_name}}</td>
-                        <td>{{$value->satuan_name}}</td>
-                        <td>{{$value->jumlah_unit}}</td>
-                        <td>{{"Rp " . number_format($value->harga_unit, 2, ",", ".")}}</td>
-                        <td>{{"Rp " . number_format($value->harga_subtotal, 2, ",", ".")}}</td>
+                        <th>No</th>
+                        <th>Deskripsi</th>
+                        <th>Qty</th>
+                        <th>Harga</th>
+                        <th>Subtotal</th>
                     </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php foreach ($transaction_d_sparepart as $key => $value) : ?>
+                        <tr>
+                            <td>{{$key+1}}</td>
+                            <td>{{$value->service_name}}</td>
+                            <td>{{$value->jumlah}}</td>
+                            <td>{{"Rp " . number_format($value->harga_unit, 2, ",", ".")}}</td>
+                            <td>{{"Rp " . number_format($value->harga_subtotal, 2, ",", ".")}}</td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         <?php endif ?>
 
         <div class="" style="width: 100%; position: relative;">
@@ -193,17 +176,22 @@
             <table width="100%">
                 <tr>
                     <td width="50%" style="border: none;"></td>
-                    <td style="background: #f5f5f5;">Subtotal Service</td>
+                    <td>Subtotal Service</td>
                     <td>{{"Rp " . number_format($transaction->service_total, 2, ",", ".")}}</td>
                 </tr>
                 <tr>
                     <td width="50%" style="border: none;"></td>
-                    <td style="background: #f5f5f5;">Subtotal Sparepart</td>
+                    <td>Subtotal Sparepart</td>
                     <td>{{"Rp " . number_format($transaction->sparepart_total, 2, ",", ".")}}</td>
                 </tr>
                 <tr>
                     <td width="50%" style="border: none;"></td>
-                    <td style="background: #f5f5f5; font-weight: bold;">Total</td>
+                    <td>Total Discount</td>
+                    <td>{{"Rp " . number_format($transaction->discount_total, 2, ",", ".")}}</td>
+                </tr>
+                <tr>
+                    <td width="50%" style="border: none;"></td>
+                    <td style=" font-weight: bold;">Total</td>
                     <td>{{"Rp " . number_format($transaction->total, 2, ",", ".")}}</td>
                 </tr>
             </table>
@@ -214,14 +202,11 @@
             Terima kasih atas kepercayaannya 🙏
         </div>
 
-        <!-- <div class="footer">
-            Dicetak oleh Sistem Bengkel - 13 Apr 2025, 15:02
-        </div> -->
+        <div class="footer">
+            Dicetak oleh Sistem Bengkel Polije Autohub - {{date_format(NOW(), 'd M Y H:i:s')}}
+        </div>
     </div>
     <div class="bg-footer" style="text-align: center; color: white;">
-        <p>
-            Dicetak oleh Sistem Bengkel Polije Autohub - {{date_format(NOW(), 'd M Y H:i:s')}}
-        </p>
     </div>
 </body>
 
