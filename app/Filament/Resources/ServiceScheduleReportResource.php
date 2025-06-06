@@ -100,7 +100,7 @@ class ServiceScheduleReportResource extends Resource
 
                         // $message = "Halo! Terima kasih telah mempercayai Polije Autohub.\nBerikut adalah invoice Anda:\n{$downloadUrl}\n\nJika ada pertanyaan, silakan hubungi kami kembali. 🙏";
 
-                        $message = "Polije Autohub \nJl. Mastrip No.164, Sumbersari, Jember.\n\nPelanggan Yth,\n$record->customer_name\nTanggal : $record->approved_at\n\nBerikut adalah invoice Anda:\n{$downloadUrl}\n\n====================\nDetail Biaya :\nTotal Tagihan : " . FormatRupiah::rupiah($record->harga_subtotal, true) . "\nDiscount : " . FormatRupiah::rupiah($record->discount_total, true) . "\nTotal Bayar : " . FormatRupiah::rupiah($total_bayar, true) . "\nKembalian : " . FormatRupiah::rupiah($total_kembalian, true) . "\n\nJika ada pertanyaan, silakan hubungi kami kembali.\nContact Person : 081132211515";
+                        $message = "Polije Autohub \nJl. Mastrip No.164, Sumbersari, Jember.\n\nPelanggan Yth,\n$record->customer_name\nTanggal : $record->approved_at\n\nBerikut adalah invoice Anda:\n{$downloadUrl}\n\n====================\nDetail Biaya :\nTotal Tagihan : " . FormatRupiah::rupiah($record->harga_subtotal, true) . "\nDiscount : " . FormatRupiah::rupiah($record->discount_total, true) . "\nTotal : ".FormatRupiah::rupiah($record->total, true)."\n-------------------------------\nTotal Bayar : " . FormatRupiah::rupiah($total_bayar, true) . "\nKembalian : " . FormatRupiah::rupiah($total_kembalian, true) . "\n\nJika ada pertanyaan, silakan hubungi kami kembali.\nContact Person : 081132211515";
 
                         return 'https://wa.me/' . $record->nomor_telepon . '?text=' . rawurlencode($message);
                     }
