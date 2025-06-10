@@ -2,12 +2,12 @@
 
 # Konfigurasi
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M")
-BACKUP_DIR="/var/www/html/polije-autohub/backups/"
+BACKUP_DIR=""
 FILENAME="db-backup-$TIMESTAMP.sql"
 ZIPFILE="db-backup-$TIMESTAMP.zip"
-DB_USER="root"
-DB_PASSWORD='M4str!pj4y4'
-DB_NAME="polije_autohub"  # Ganti sesuai nama databasenya
+DB_USER=""
+DB_PASSWORD=''
+DB_NAME=""  # Ganti sesuai nama databasenya
 RCLONE_REMOTE="gdrive"
 RCLONE_FOLDER="backup-polijeautohub"
 
