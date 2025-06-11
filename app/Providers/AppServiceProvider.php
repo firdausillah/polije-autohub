@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
 
         Filament::serving(function () {
             // Pastikan user login & punya role super_admin
-            if (auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager', 'Admin'])) {
+            if (auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager', 'Admin', 'Pimpinan'])) {
                 Filament::registerNavigationItems([
                     NavigationItem::make()
                         ->label('Laba Rugi')
