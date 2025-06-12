@@ -634,14 +634,7 @@ class ServiceScheduleResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                // if (auth()->user()->hasRole('Mekanik')) {
-                //     $query->where(function ($query) {
-                //         $query->where('mekanik1_id', auth()->id())
-                //             ->orWhere('mekanik2_id', auth()->id())
-                //             ->orWhere('mekanik3_id', auth()->id());
-                //     });
-                // }
-                $query->where('created_at','like', (now()->toDateString().'%'));
+                // $query->where('created_at','like', (now()->toDateString().'%'));
             })
             ->poll('2s')
             ->columns([

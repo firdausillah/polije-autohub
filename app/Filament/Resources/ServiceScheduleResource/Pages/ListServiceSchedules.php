@@ -34,7 +34,8 @@ class ListServiceSchedules extends ListRecords
 
     protected function baseQueryWithRoleFilter(): Builder
     {
-        $query = ServiceSchedule::query()->whereDate('created_at', now()->toDateString());
+        $query = ServiceSchedule::query();
+        // $query = ServiceSchedule::query()->whereDate('created_at', now()->toDateString());
 
         if (auth()->user()->hasRole('Mekanik')) {
             $query->where(function ($query) {
@@ -47,23 +48,16 @@ class ListServiceSchedules extends ListRecords
         if (auth()->user()->hasRole('Kepala Unit')) {
             $query->where('kepala_unit_id', auth()->id());
         }
-        // dd($query->get());
+        
         return $query;
     }
 
     protected function generateTab(string $status, string $color): Tab
     {
         $query = ServiceSchedule::query()
-            ->where('service_status', $status)
-            ->whereDate('created_at', now()->toDateString());
+            ->where('service_status', $status);
+            // ->whereDate('created_at', now()->toDateString());
         if (!in_array($status, ['Daftar', 'Selesai'])) {
-            // if (auth()->user()->hasRole('Mekanik')) {
-            //     $query->where(function ($query) {
-            //         $query->where('mekanik1_id', auth()->id())
-            //             ->orWhere('mekanik2_id', auth()->id())
-            //             ->orWhere('mekanik3_id', auth()->id());
-            //     });
-            // }
 
             if (auth()->user()->hasRole('Kepala Unit')) {
                 $query->where('kepala_unit_id', auth()->id());

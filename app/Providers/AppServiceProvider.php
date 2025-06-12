@@ -38,12 +38,6 @@ class AppServiceProvider extends ServiceProvider
                         ->group('Laporan')
                         ->isActiveWhen(fn () => str_contains(request()->url(), LabaRugi::getUrl())),
                     NavigationItem::make()
-                        ->label('Kartu Stok')
-                        ->url(KartuStok::getUrl())
-                        ->icon('heroicon-o-document-text')
-                        ->group('Laporan')
-                        ->isActiveWhen(fn () => str_contains(request()->url(), KartuStok::getUrl())),
-                    NavigationItem::make()
                         ->label('Pemasukan & Pengeluaran')
                         ->url(PemasukanPengeluaran::getUrl())
                         ->icon('heroicon-o-document-text')
@@ -55,6 +49,16 @@ class AppServiceProvider extends ServiceProvider
                         ->icon('heroicon-o-document-text')
                         ->group('Laporan')
                         ->isActiveWhen(fn () => str_contains(request()->url(), LaporanPenjualan::getUrl())),
+                ]);
+            }
+            if (auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager', 'Admin'])) {
+                Filament::registerNavigationItems([
+                    NavigationItem::make()
+                        ->label('Kartu Stok')
+                        ->url(KartuStok::getUrl())
+                        ->icon('heroicon-o-document-text')
+                        ->group('Laporan')
+                        ->isActiveWhen(fn () => str_contains(request()->url(), KartuStok::getUrl())),
                 ]);
             }
         });
