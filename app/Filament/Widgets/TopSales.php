@@ -13,6 +13,11 @@ class TopSales extends BaseWidget
 {
     protected static ?int $sort = 3;
 
+    public static function canView(): bool
+    {
+        return auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager','Admin', 'Kepala Unit']);
+    }
+
     public function table(Table $table): Table
     {
 
