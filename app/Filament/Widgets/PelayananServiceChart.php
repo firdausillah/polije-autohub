@@ -18,26 +18,27 @@ class PelayananServiceChart extends ChartWidget
 
         $data = DB::select("
                     SELECT 
-                    COALESCE(COUNT(ss.approved_at), 0) AS count
+                        COALESCE(COUNT(ss.approved_at), 0) AS count
                     FROM 
-                    (SELECT 1 AS month_number UNION
-                    SELECT 2 UNION
-                    SELECT 3 UNION
-                    SELECT 4 UNION
-                    SELECT 5 UNION
-                    SELECT 6 UNION
-                    SELECT 7 UNION
-                    SELECT 8 UNION
-                    SELECT 9 UNION
-                    SELECT 10 UNION
-                    SELECT 11 UNION
-                    SELECT 12) m
-                    LEFT JOIN service_schedules ss
+                        (SELECT 1 AS month_number UNION
+                        SELECT 2 UNION
+                        SELECT 3 UNION
+                        SELECT 4 UNION
+                        SELECT 5 UNION
+                        SELECT 6 UNION
+                        SELECT 7 UNION
+                        SELECT 8 UNION
+                        SELECT 9 UNION
+                        SELECT 10 UNION
+                        SELECT 11 UNION
+                        SELECT 12) m
+                    LEFT JOIN (SELECT * FROM service_schedules WHERE is_approve = 'approved') ss
                         ON MONTH(ss.approved_at) = m.month_number
+                    
                     GROUP BY 
-                    m.month_number
+                        m.month_number
                     ORDER BY 
-                    m.month_number
+                        m.month_number
                 ");
 
                 foreach ($data as  $value) {
