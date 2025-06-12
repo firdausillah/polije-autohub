@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class PelayananServiceChart extends ChartWidget
 {
-    protected static ?string $heading = 'Pelanggan';
+    protected static ?string $heading = 'Grafik Jumlah Pelanggan';
 
     protected static ?int $sort = 5;
 
@@ -47,7 +47,7 @@ class PelayananServiceChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Grafik Jumlah Customer',
+                    'label' => 'Jumlah Pelanggan',
                     'data' => $jumlah,
                     // 'data' => [0, 10, 5, 2, 21, 32, 45, 74, 65, 45, 77, 89],
                 ],
