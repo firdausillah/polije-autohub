@@ -26,6 +26,16 @@ class SaleServicePerformance extends Page implements Tables\Contracts\HasTable
 
     protected static ?string $navigationGroup = 'Laporan';
 
+    public static function canAccess(): bool
+    {
+        return auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager', 'Admin']);
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager', 'Admin']);
+    }
+
 
     public function table(Table $table): Table
     {
