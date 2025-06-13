@@ -26,7 +26,7 @@ class WeekStatsOverview extends BaseWidget
         // ==================== //
         //   Data Minggu Lalu   //
         // ==================== //
-        $laba_kotor_minggu_lalu = LabaRugi::getLabaKotor($startLastWeek->toDateString(), $endLastWeek->toDateString())[0]['jumlah'] ?? 0;
+        $laba_kotor_minggu_lalu = LabaRugi::getTotalPendapatan($startLastWeek->toDateString(), $endLastWeek->toDateString())[0]->jumlah ?? 0;
 
         $item_terjual_minggu_lalu = DB::table('inventories')
         ->selectRaw('SUM(CASE WHEN movement_type = "OUT-SAL" THEN jumlah_terkecil ELSE 0 END) as total_qty_terjual')
@@ -41,7 +41,7 @@ class WeekStatsOverview extends BaseWidget
         // ==================== //
         //   Data Minggu Ini    //
         // ==================== //
-        $laba_kotor_minggu = LabaRugi::getLabaKotor($startWeekDate->toDateString(), $endWeekDate->toDateString())[0]['jumlah'] ?? 0;
+        $laba_kotor_minggu = LabaRugi::getTotalPendapatan($startWeekDate->toDateString(), $endWeekDate->toDateString())[0]->jumlah ?? 0;
 
         $item_terjual_minggu = DB::table('inventories')
         ->selectRaw('SUM(CASE WHEN movement_type = "OUT-SAL" THEN jumlah_terkecil ELSE 0 END) as total_qty_terjual')
@@ -66,7 +66,7 @@ class WeekStatsOverview extends BaseWidget
         $tanggalMingguan = collect(range(0, 6))->map(fn ($i) => $startWeekDate->copy()->addDays($i)->format('Y-m-d'));
 
         $labaChart = $tanggalMingguan->map(function ($tanggal) {
-            return (float) LabaRugi::getLabaKotor($tanggal, $tanggal. ' 23:59:59')[0]['jumlah'] ?? 0;
+            return (float) LabaRugi::getTotalPendapatan($tanggal, $tanggal. ' 23:59:59')[0]->jumlah ?? 0;
         })->toArray();
 
         $itemChart = $tanggalMingguan->map(function ($tanggal) {
@@ -85,7 +85,7 @@ class WeekStatsOverview extends BaseWidget
         })->toArray();
 
         return [
-            Stat::make('Pendapatan Minggu Ini', 'Rp ' . number_format($laba_kotor_minggu, 2, ',', '.'))
+            Stat::make('Pendapatan Minggu Ini', 'Rp ' . number_format($laba_kotor_minggu, 0, ',', '.'))
                 ->description('Perubahan: Rp ' . number_format($growthLabaMinggu, 0, ',', '.'))
                 ->descriptionIcon($growthLabaMinggu >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color($growthLabaMinggu >= 0 ? 'success' : 'danger')

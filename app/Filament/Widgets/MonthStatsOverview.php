@@ -25,7 +25,7 @@ class MonthStatsOverview extends BaseWidget
         // ==================== //
         //   Data Bulan Lalu    //
         // ==================== //
-        $laba_kotor_bulan_lalu = LabaRugi::getLabaKotor($startLastMonth->toDateString(), $endLastMonth->toDateString())[0]['jumlah'] ?? 0;
+        $laba_kotor_bulan_lalu = LabaRugi::getTotalPendapatan($startLastMonth->toDateString(), $endLastMonth->toDateString())[0]->jumlah ?? 0;
         $item_terjual_bulan_lalu = DB::table('inventories')
         ->where('movement_type', 'OUT-SAL')
         ->whereBetween('created_at', [$startLastMonth, $endLastMonth])
@@ -38,7 +38,7 @@ class MonthStatsOverview extends BaseWidget
         // ==================== //
         //   Data  Bulan Ini    //
         // ==================== //
-        $laba_kotor_bulan = LabaRugi::getLabaKotor($startDate->toDateString(), $endDate->toDateString())[0]['jumlah'] ?? 0;
+        $laba_kotor_bulan = LabaRugi::getTotalPendapatan($startDate->toDateString(), $endDate->toDateString())[0]->jumlah ?? 0;
         $item_terjual_bulan = DB::table('inventories')
         ->where('movement_type', 'OUT-SAL')
         ->whereBetween('created_at', [$startDate, $endDate])
@@ -64,7 +64,7 @@ class MonthStatsOverview extends BaseWidget
         });
 
         $labaChart = $tanggalArray->map(function ($date) {
-            return (float) LabaRugi::getLabaKotor($date, $date . ' 23:59:59')[0]['jumlah'] ?? 0;
+            return (float) LabaRugi::getTotalPendapatan($date, $date . ' 23:59:59')[0]->jumlah ?? 0;
         })->toArray();
         // dd($labaChart);
 
@@ -83,7 +83,7 @@ class MonthStatsOverview extends BaseWidget
         })->toArray();
 
         return [
-            Stat::make('Pendapatan Bulan Ini', 'Rp ' . number_format($laba_kotor_bulan, 2, ',', '.'))
+            Stat::make('Pendapatan Bulan Ini', 'Rp ' . number_format($laba_kotor_bulan, 0, ',', '.'))
             ->description('Perubahan: Rp ' . number_format($growthLabaBulan, 0, ',', '.'))
             ->descriptionIcon($growthLabaBulan >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
             ->color($growthLabaBulan >= 0 ? 'success' : 'danger')
