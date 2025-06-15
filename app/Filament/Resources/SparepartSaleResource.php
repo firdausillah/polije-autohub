@@ -227,11 +227,11 @@ class SparepartSaleResource extends Resource
                 $account_hpp = Account::find(10);
                 $account_persediaan = Account::find(3);
                 foreach ($sparepart->get() as $val) {
-                    dd($val);
+
                     try {
                     $harga_modal = Modal::where('sparepart_id', $val->sparepart_id)->orderBy('id', 'desc')->first()->harga_modal;
 
-                    Jurnal::create([
+                    $jur = Jurnal::create([
                         'transaksi_h_id'    => $val->sparepart_sale_id,
                         'transaksi_d_id'    => $val->sparepart_id,
                         'account_id'        => $account_hpp->id,
@@ -246,6 +246,7 @@ class SparepartSaleResource extends Resource
                         'debit'             => $harga_modal * $val->jumlah_terkecil,
                         'kredit'            => 0,
                     ]);
+                        dd($jur);
 
                     Jurnal::create([
                         'transaksi_h_id'    => $val->sparepart_sale_id,
