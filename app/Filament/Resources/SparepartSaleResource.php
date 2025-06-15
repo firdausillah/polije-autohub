@@ -221,7 +221,7 @@ class SparepartSaleResource extends Resource
                         'kredit'            => $record->pajak_total,
                     ]);
                 }
-                
+
                 // Jurnal HPP
                 $sparepart = SparepartDSale::where('sparepart_sale_id', $record->id);
                 $account_hpp = Account::find(10);
@@ -261,28 +261,19 @@ class SparepartSaleResource extends Resource
                         'kredit'            => $harga_modal * $val->jumlah_terkecil,
                     ]);
                 }
-                dd('sampai sini');
+                // dd('sampai sini');
 
-                try {
-                    // Payroll
-                    $payrollJurnal = PayrollJurnal::create([
-                        'transaksi_h_id' => $record->id,
-                        'user_id' => FacadesAuth::id(),
-                        'name' => User::find(FacadesAuth::id())->name,
-                        'keterangan' => 'Admin',
-                        'transaction_type' => 'Penjualan Sparepart',
-                        'jumlah_sparepart' => $sparepart->sum('jumlah_unit'),
-                        'nominal' => max(0, $record->total + $record->discount_total),
-                    ]);
+                // Payroll
+                $payrollJurnal = PayrollJurnal::create([
+                    'transaksi_h_id' => $record->id,
+                    'user_id' => FacadesAuth::id(),
+                    'name' => User::find(FacadesAuth::id())->name,
+                    'keterangan' => 'Admin',
+                    'transaction_type' => 'Penjualan Sparepart',
+                    'jumlah_sparepart' => $sparepart->sum('jumlah_unit'),
+                    'nominal' => max(0, $record->total + $record->discount_total),
+                ]);
 
-                    Log::info('✅ Inventory created', ['id' => $payrollJurnal->id]);
-                } catch (\Throwable $e) {
-                    Log::error('❌ Gagal create inventory', [
-                        'message' => $e->getMessage(),
-                        'data' => $val->toArray(),
-                        'record_id' => $record->id
-                    ]);
-                }
 
                 // Inventory OUT
                 $sparepartDSales = SparepartDSale::where('sparepart_sale_id', $record->id)->get();
