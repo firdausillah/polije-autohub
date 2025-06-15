@@ -370,7 +370,7 @@ class SparepartSaleResource extends Resource
                                 ])
                             ->schema([
                                 Select::make('sparepart_satuan_id')
-                                    ->relationship('sparepartSatuan', 'sparepart_name')
+                                    ->relationship('sparepartSatuan', 'spareparts.name')
                                     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name} ({$record->harga})")
                                     ->searchable()
                                     ->preload()
