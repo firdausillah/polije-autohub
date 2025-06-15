@@ -262,22 +262,30 @@ class SparepartSaleResource extends Resource
                     ]);
                 }
 
-                // Payroll
-                PayrollJurnal::create([
-                    'transaksi_h_id' => $record->id,
-                    'user_id' => FacadesAuth::id(),
-                    'name' => User::find(FacadesAuth::id())->name,
-                    'keterangan' => 'Admin',
-                    'transaction_type' => 'Penjualan Sparepart',
-                    'jumlah_sparepart' => $sparepart->sum('jumlah_unit'),
-                    'nominal' => max(0, $record->total + $record->discount_total),
-                ]);
+                try {
+                    // Payroll
+                    $payrollJurnal = PayrollJurnal::create([
+                        'transaksi_h_id' => $record->id,
+                        'user_id' => FacadesAuth::id(),
+                        'name' => User::find(FacadesAuth::id())->name,
+                        'keterangan' => 'Admin',
+                        'transaction_type' => 'Penjualan Sparepart',
+                        'jumlah_sparepart' => $sparepart->sum('jumlah_unit'),
+                        'nominal' => max(0, $record->total + $record->discount_total),
+                    ]);
+
+                    Log::info('✅ Inventory created', ['id' => $payrollJurnal->id]);
+                } catch (\Throwable $e) {
+                    Log::error('❌ Gagal create inventory', [
+                        'message' => $e->getMessage(),
+                        'data' => $val->toArray(),
+                        'record_id' => $record->id
+                    ]);
+                }
 
                 // Inventory OUT
                 $sparepartDSales = SparepartDSale::where('sparepart_sale_id', $record->id)->get();
-                dd($sparepartDSales);
                 foreach ($sparepartDSales as $val) {
-                    dd($val);
                     try {
                         $inventory = Inventory::create([
                             'transaksi_h_id' => $record->id,
