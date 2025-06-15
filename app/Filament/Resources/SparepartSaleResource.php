@@ -230,6 +230,7 @@ class SparepartSaleResource extends Resource
 
                     try {
                     $harga_modal = Modal::where('sparepart_id', $val->sparepart_id)->orderBy('id', 'desc')->first()->harga_modal;
+                    dd($harga_modal);
 
                     $jur = Jurnal::create([
                         'transaksi_h_id'    => $val->sparepart_sale_id,
@@ -246,7 +247,6 @@ class SparepartSaleResource extends Resource
                         'debit'             => $harga_modal * $val->jumlah_terkecil,
                         'kredit'            => 0,
                     ]);
-                        dd($jur);
 
                     Jurnal::create([
                         'transaksi_h_id'    => $val->sparepart_sale_id,
