@@ -369,17 +369,29 @@ class SparepartSaleResource extends Resource
                                 'md' =>2,
                                 ])
                             ->schema([
-                                Select::make('sparepart_satuan_id')
-                                    ->relationship('sparepartSatuan', 'spareparts.name')
-                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name} ({$record->harga})")
-                                    ->searchable()
-                                    ->preload()
-                                    ->afterStateUpdated(
-                                        function (Get $get, Set $set, $state) {
-                                            ($state != '' ? self::updateSubtotal($get, $set) : 0);
-                                        }
-                                    )
-                                    ->live(),
+                        // Select::make('sparepart_satuan_id')
+                        //     ->relationship('sparepartSatuan', 'sparepart.name')
+                        //     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name} ({$record->harga})")
+                        //     ->searchable()
+                        //     ->preload()
+                        //     ->afterStateUpdated(
+                        //         function (Get $get, Set $set, $state) {
+                        //             ($state != '' ? self::updateSubtotal($get, $set) : 0);
+                        //         }
+                        //     )
+                        //     ->live(),
+                        Select::make('sparepart_satuan_id')
+                        ->label('Sparepart & Satuan')
+                        ->relationship('sparepartSatuan', 'id') // pakai 'id', aman buat relasi
+                        ->getOptionLabelFromRecordUsing(
+                            fn ($record) =>
+                            $record->sparepart->name . ' - ' . $record->satuan_name . ' (' . number_format($record->harga) . ')'
+                        )
+                        ->searchable()
+                        ->preload()
+                        ->live()
+                        ->afterStateUpdated(fn (Get $get, Set $set, $state) => $state ? self::updateSubtotal($get, $set) : null),
+
 
                                 Hidden::make('sparepart_id'),
                                 Hidden::make('satuan_id'),
