@@ -227,6 +227,7 @@ class SparepartSaleResource extends Resource
                 $account_hpp = Account::find(10);
                 $account_persediaan = Account::find(3);
                 foreach ($sparepart->get() as $val) {
+                    try {
                     $harga_modal = Modal::where('sparepart_id', $val->sparepart_id)->orderBy('id', 'desc')->first()->harga_modal;
 
                     Jurnal::create([
@@ -260,11 +261,18 @@ class SparepartSaleResource extends Resource
                         'debit'             => 0,
                         'kredit'            => $harga_modal * $val->jumlah_terkecil,
                     ]);
+                    } catch (\Throwable $e) {
+                        Log::error('❌ Gagal create inventory', [
+                            'message' => $e->getMessage(),
+                            'data' => $val->toArray(),
+                            'record_id' => $record->id
+                        ]);
+                    }
                 }
                 // dd('sampai sini');
 
                 // Payroll
-                $payrollJurnal = PayrollJurnal::create([
+                PayrollJurnal::create([
                     'transaksi_h_id' => $record->id,
                     'user_id' => FacadesAuth::id(),
                     'name' => User::find(FacadesAuth::id())->name,
