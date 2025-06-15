@@ -221,7 +221,7 @@ class SparepartSaleResource extends Resource
                         'kredit'            => $record->pajak_total,
                     ]);
                 }
-
+                dd('sampai sini');
                 // Jurnal HPP
                 $sparepart = SparepartDSale::where('sparepart_sale_id', $record->id);
                 $account_hpp = Account::find(10);
