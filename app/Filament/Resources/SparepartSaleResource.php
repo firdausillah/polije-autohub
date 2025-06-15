@@ -275,6 +275,7 @@ class SparepartSaleResource extends Resource
 
                 // Inventory OUT
                 $sparepartDSales = SparepartDSale::where('sparepart_sale_id', $record->id)->get();
+                dd($sparepartDSales);
                 foreach ($sparepartDSales as $val) {
                     dd($val);
                     try {
