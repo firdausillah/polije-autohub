@@ -276,6 +276,7 @@ class SparepartSaleResource extends Resource
                 // Inventory OUT
                 $sparepartDSales = SparepartDSale::where('sparepart_sale_id', $record->id)->get();
                 foreach ($sparepartDSales as $val) {
+                    dd($val);
                     try {
                         $inventory = Inventory::create([
                             'transaksi_h_id' => $record->id,
