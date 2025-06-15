@@ -385,6 +385,11 @@ class SparepartSaleResource extends Resource
                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name} (" . number_format($record->harga, 0, ',', '.') . ")")
                             ->searchable()
                             ->preload()
+                            ->afterStateUpdated(
+                                function (Get $get, Set $set, $state) {
+                                    ($state != '' ? self::updateSubtotal($get, $set) : 0);
+                                }
+                            )
                             ->getSearchResultsUsing(function (string $search) {
                                 return \App\Models\SparepartSatuans::query()
                                     ->whereHas('sparepart', fn ($query) => 
