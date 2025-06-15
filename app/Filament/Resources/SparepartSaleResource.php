@@ -227,8 +227,6 @@ class SparepartSaleResource extends Resource
                 $account_hpp = Account::find(10);
                 $account_persediaan = Account::find(3);
                 foreach ($sparepart->get() as $val) {
-
-                    dd($val, Modal::where('sparepart_id', $val->sparepart_id)->orderBy('id', 'desc')->first());
                     $harga_modal = Modal::where('sparepart_id', $val->sparepart_id)->orderBy('id', 'desc')->first()->harga_modal;
 
                     Jurnal::create([
