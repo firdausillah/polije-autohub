@@ -381,16 +381,20 @@ class SparepartSaleResource extends Resource
                         //     )
                         //     ->live(),
                         Select::make('sparepart_satuan_id')
-                        ->label('Sparepart & Satuan')
-                        ->relationship('sparepartSatuan', 'id') // pakai 'id', aman buat relasi
-                        ->getOptionLabelFromRecordUsing(
-                            fn ($record) =>
-                            $record->sparepart->name . ' - ' . $record->satuan_name . ' (' . number_format($record->harga) . ')'
-                        )
-                        ->searchable()
-                        ->preload()
-                        ->live()
-                        ->afterStateUpdated(fn (Get $get, Set $set, $state) => $state ? self::updateSubtotal($get, $set) : null),
+                            ->relationship('sparepartSatuan', 'id')
+                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name} (" . number_format($record->harga, 0, ',', '.') . ")")
+                            ->searchable()
+                            ->preload()
+                            ->getSearchResultsUsing(function (string $search) {
+                                return \App\Models\SparepartSatuans::query()
+                                    ->whereHas('sparepart', fn ($query) => 
+                                        $query->where('name', 'like', "%{$search}%")
+                                    )
+                                    ->get()
+                                    ->mapWithKeys(function ($record) {
+                                        return [$record->id => "{$record->sparepart->name} - {$record->satuan_name} (" . number_format($record->harga, 0, ',', '.') . ")"];
+                                    });
+                            }),
 
 
                                 Hidden::make('sparepart_id'),
