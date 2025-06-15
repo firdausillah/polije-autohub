@@ -276,31 +276,42 @@ class SparepartSaleResource extends Resource
                 // Inventory OUT
                 $sparepartDSales = SparepartDSale::where('sparepart_sale_id', $record->id)->get();
                 foreach ($sparepartDSales as $val) {
-                    Inventory::create([
-                        'transaksi_h_id' => $record->id,
-                        'transaksi_d_id' => $val->id,
-                        'sparepart_id'   => $val->sparepart_id,
-                        'satuan_id'      => $val->satuan_id,
-                        'name'           => '',
-                        'kode'           => $record->kode,
-                        'keterangan'     => $record->keterangan,
-                        'tanggal_transaksi' => $record->tanggal_transaksi,
-                        'transaksi_h_kode' => $record->kode,
-                        'sparepart_name' => $val->sparepart_name,
-                        'sparepart_kode' => $val->sparepart_kode,
-                        'satuan_terkecil_name' => $val->satuan_terkecil_name,
-                        'satuan_terkecil_kode' => $val->satuan_terkecil_kode,
-                        'movement_type'  => 'OUT-SAL',
-                        'jumlah_unit'    => $val->jumlah_unit,
-                        'jumlah_konversi' => $val->jumlah_konversi,
-                        'jumlah_terkecil' => $val->jumlah_terkecil,
-                        'harga_unit'     => $val->harga_unit,
-                        'harga_terkecil' => $val->harga_terkecil,
-                        'harga_subtotal' => $val->harga_subtotal,
-                        'relation_name'  => $record->customer_name,
-                        'relation_nomor_telepon' => $record->customer_nomor_telepon
-                    ]);
+                    try {
+                        $inventory = Inventory::create([
+                            'transaksi_h_id' => $record->id,
+                            'transaksi_d_id' => $val->id,
+                            'sparepart_id'   => $val->sparepart_id,
+                            'satuan_id'      => $val->satuan_id,
+                            'name'           => '',
+                            'kode'           => $record->kode,
+                            'keterangan'     => $record->keterangan,
+                            'tanggal_transaksi' => $record->tanggal_transaksi,
+                            'transaksi_h_kode' => $record->kode,
+                            'sparepart_name' => $val->sparepart_name,
+                            'sparepart_kode' => $val->sparepart_kode,
+                            'satuan_terkecil_name' => $val->satuan_terkecil_name,
+                            'satuan_terkecil_kode' => $val->satuan_terkecil_kode,
+                            'movement_type'  => 'OUT-SAL',
+                            'jumlah_unit'    => $val->jumlah_unit,
+                            'jumlah_konversi' => $val->jumlah_konversi,
+                            'jumlah_terkecil' => $val->jumlah_terkecil,
+                            'harga_unit'     => $val->harga_unit,
+                            'harga_terkecil' => $val->harga_terkecil,
+                            'harga_subtotal' => $val->harga_subtotal,
+                            'relation_name'  => $record->customer_name,
+                            'relation_nomor_telepon' => $record->customer_nomor_telepon
+                        ]);
+
+                        Log::info('✅ Inventory created', ['id' => $inventory->id]);
+                    } catch (\Throwable $e) {
+                        Log::error('❌ Gagal create inventory', [
+                            'message' => $e->getMessage(),
+                            'data' => $val->toArray(),
+                            'record_id' => $record->id
+                        ]);
+                    }
                 }
+
 
                 // Generate Invoice begin
                 $pdf = new \Mpdf\Mpdf([
