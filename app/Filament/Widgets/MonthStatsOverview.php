@@ -19,6 +19,8 @@ class MonthStatsOverview extends BaseWidget
         $startDate = Carbon::now()->startOfMonth();
         $endDate = Carbon::now()->endOfMonth();
 
+        $today = Carbon::now();
+
         $startLastMonth = Carbon::now()->subMonth()->startOfMonth();
         $endLastMonth = Carbon::now()->subMonth()->endOfMonth();
 
@@ -59,7 +61,7 @@ class MonthStatsOverview extends BaseWidget
         //     Chart Harian     //
         // ==================== //
 
-        $tanggalArray = collect(range(0, $endDate->day - 1))->map(function ($day) use ($startDate) {
+        $tanggalArray = collect(range(0, $today->day))->map(function ($day) use ($startDate) {
             return $startDate->copy()->addDays($day)->format('Y-m-d');
         });
 

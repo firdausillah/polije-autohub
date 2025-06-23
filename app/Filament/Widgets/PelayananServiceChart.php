@@ -11,7 +11,7 @@ class PelayananServiceChart extends ChartWidget
 
     protected static ?int $sort = 5;
 
-    protected int | string | array $columnSpan = 'full';
+    // protected int | string | array $columnSpan = 'full';
 
     protected function getData(): array
     {
@@ -41,9 +41,11 @@ class PelayananServiceChart extends ChartWidget
                         m.month_number
                 ");
 
+                
                 foreach ($data as  $value) {
                     $jumlah[] = $value->count;
                 }
+                // dd($jumlah);
             
         return [
             'datasets' => [

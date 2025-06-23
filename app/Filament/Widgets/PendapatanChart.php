@@ -2,64 +2,78 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\LabaRugi;
+use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
 
 class PendapatanChart extends ChartWidget
 {
-    protected static ?string $heading = 'Grafik Jumlah Pelanggan';
+    protected static ?string $heading = 'Grafik Penapatan Bulan Ini';
 
     protected static ?int $sort = 5;
 
-    protected int | string | array $columnSpan = 'full';
+    // protected int | string | array $columnSpan = 'full';
 
-    public static function canView(): bool
-    {
-        return false;
-    }
+    // public static function canView(): bool
+    // {
+    //     return false;
+    // }
 
     protected function getData(): array
     {
 
-        $data = DB::select("
-                    SELECT 
-                        COALESCE(COUNT(ss.approved_at), 0) AS count
-                    FROM 
-                        (SELECT 1 AS month_number UNION
-                        SELECT 2 UNION
-                        SELECT 3 UNION
-                        SELECT 4 UNION
-                        SELECT 5 UNION
-                        SELECT 6 UNION
-                        SELECT 7 UNION
-                        SELECT 8 UNION
-                        SELECT 9 UNION
-                        SELECT 10 UNION
-                        SELECT 11 UNION
-                        SELECT 12) m
-                    LEFT JOIN (SELECT * FROM service_schedules WHERE is_approve = 'approved') ss
-                        ON MONTH(ss.approved_at) = m.month_number
-                    
-                    GROUP BY 
-                        m.month_number
-                    ORDER BY 
-                        m.month_number
-                ");
 
-                foreach ($data as  $value) {
-                    $jumlah[] = $value->count;
-                }
+        $startDate = Carbon::now()->startOfMonth();
+        $endDate = Carbon::now()->endOfMonth();
+        $today = Carbon::now();
+
+        $tanggalArray = collect(range(0, $today->day))->map(function ($day) use ($startDate) {
+            return $startDate->copy()->addDays($day)->format('Y-m-d');
+        });
+        
+        $labaChart = $tanggalArray->map(function ($date) {
+            return (float) LabaRugi::getTotalPendapatan($date. ' 00:00:01', $date . ' 23:59:59')[0]->jumlah ?? 0;
+        })->toArray();
+        // foreach ($labaChart as  $value) {
+        //     $jumlah[] = $value;
+        // }
+        // dd($labaChart);
             
         return [
             'datasets' => [
                 [
-                    'label' => 'Jumlah Pelanggan',
-                    'data' => $jumlah,
+                    'label' => 'Jumlah Pendapatan',
+                    'data' => $labaChart,
                     // 'data' => [0, 10, 5, 2, 21, 32, 45, 74, 65, 45, 77, 89],
                 ],
             ],
-            'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            'labels' => range(0, $today->day),
         ];
+        // $startDate = Carbon::now()->startOfMonth();
+        // $endDate = Carbon::now()->endOfMonth();
+
+        // $tanggalArray = collect(range(1, 12))->map(function ($month) {
+        //     return Carbon::createFromDate(now()->year, $month, 1)->format('Y-m');
+        // });
+        // $labaChart = $tanggalArray->map(function ($date) {
+        //     return (float) LabaRugi::getTotalPendapatan($date. '-01 00:00:01', $date . '-31 23:59:59')[0]->jumlah ?? 0;
+        // })->toArray();
+        // // foreach ($labaChart as  $value) {
+        // //     $jumlah[] = $value;
+        // // }
+        // // dd($tanggalArray[10].);
+            
+        // return [
+        //     'datasets' => [
+        //         [
+        //             'label' => 'Jumlah Pelanggan',
+        //             'data' => $labaChart,
+        //             // 'data' => [0, 10, 5, 2, 21, 32, 45, 74, 65, 45, 77, 89],
+        //         ],
+        //     ],
+        //     'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        // ];
     }
 
     protected function getType(): string
