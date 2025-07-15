@@ -50,7 +50,7 @@ class InvoiceController extends Controller
             'transaction_d_service' => ServiceDServices::where(['service_schedule_id' => $transaksi])->get(),
             'transaction_d_sparepart' => ServiceDSparepart::where(['service_schedule_id' => $transaksi])->get()
         ];
-        // dd($data['transaction']);
+        // dd($data);
 
         return view('invoices.service_template2', $data);
     }

@@ -32,6 +32,8 @@ Route::get('/service-invoice-download/{filename}', function ($filename) {
     return response()->file($path);
 })->name('service.invoice.download');
 
+// Route::get('/service-invoice/{filename}', [InvoiceController""])->name('service.invoice.download');
+
 // Route::get('/', function () {
 //     return view('welcome');
 // });

@@ -80,7 +80,7 @@ class PemasukanPengeluaran extends Report
                         ->primary(),
                     Body\Table::make()
                         ->columns([
-                            Body\TextColumn::make("created_at")
+                            Body\TextColumn::make("tanggal_transaksi")
                             ->label('Tanggal')
                             ->dateTime('d/M/Y'),
                             // Body\TextColumn::make("account_name")

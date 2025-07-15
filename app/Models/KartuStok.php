@@ -20,7 +20,7 @@ class KartuStok extends Model
 
         $saldo_awal = DB::table('inventories')
         ->where('sparepart_id', $sparepartId)
-            ->where('created_at', '<', $startDate)
+            ->where('tanggal_transaksi', '<', $startDate)
             ->selectRaw("
                 COALESCE(SUM(
                     CASE 
@@ -35,15 +35,15 @@ class KartuStok extends Model
 
         $transaksi = DB::table('inventories')
         ->where('sparepart_id', $sparepartId)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->orderBy('created_at')
+            ->whereBetween('tanggal_transaksi', [$startDate, $endDate])
+            ->orderBy('tanggal_transaksi')
             ->orderBy('transaksi_h_kode')
             ->orderBy('transaksi_d_id')
             ->get([
                 DB::raw("CONCAT(transaksi_h_kode, '-', transaksi_d_id) AS id"),
                 DB::raw("CONCAT(sparepart_name, ' - ', sparepart_kode) AS sparepart"),
                 'transaksi_h_kode AS transaksi_kode',
-                'created_at',
+                'tanggal_transaksi',
                 'sparepart_id',
                 'sparepart_name',
                 'sparepart_kode',

@@ -30,7 +30,7 @@ class WeekStatsOverview extends BaseWidget
 
         $item_terjual_minggu_lalu = DB::table('inventories')
         ->selectRaw('SUM(CASE WHEN movement_type = "OUT-SAL" THEN jumlah_terkecil ELSE 0 END) as total_qty_terjual')
-        ->whereBetween('created_at', [$startLastWeek, $endLastWeek])
+        ->whereBetween('tanggal_transaksi', [$startLastWeek, $endLastWeek])
             ->value('total_qty_terjual') ?? 0;
 
         $service_selesai_minggu_lalu = DB::table('service_schedules')
@@ -45,7 +45,7 @@ class WeekStatsOverview extends BaseWidget
 
         $item_terjual_minggu = DB::table('inventories')
         ->selectRaw('SUM(CASE WHEN movement_type = "OUT-SAL" THEN jumlah_terkecil ELSE 0 END) as total_qty_terjual')
-        ->whereBetween('created_at', [$startWeekDate, $endWeekDate])
+        ->whereBetween('tanggal_transaksi', [$startWeekDate, $endWeekDate])
             ->value('total_qty_terjual') ?? 0;
 
         $service_selesai_minggu = DB::table('service_schedules')
@@ -72,7 +72,7 @@ class WeekStatsOverview extends BaseWidget
         $itemChart = $tanggalMingguan->map(function ($tanggal) {
             return (float) DB::table('inventories')
             ->where('movement_type', 'OUT-SAL')
-            ->whereDate('created_at', $tanggal)
+            ->whereDate('tanggal_transaksi', $tanggal)
                 ->sum('jumlah_terkecil');
         })->toArray();
         // dd($tanggalMingguan);

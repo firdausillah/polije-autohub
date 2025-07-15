@@ -30,7 +30,7 @@ class MonthStatsOverview extends BaseWidget
         $laba_kotor_bulan_lalu = LabaRugi::getTotalPendapatan($startLastMonth->toDateString(), $endLastMonth->toDateString())[0]->jumlah ?? 0;
         $item_terjual_bulan_lalu = DB::table('inventories')
         ->where('movement_type', 'OUT-SAL')
-        ->whereBetween('created_at', [$startLastMonth, $endLastMonth])
+        ->whereBetween('tanggal_transaksi', [$startLastMonth, $endLastMonth])
             ->sum('jumlah_terkecil') ?? 0;
         $service_selesai_bulan_lalu = DB::table('service_schedules')
         ->where('is_approve', 'approved')
@@ -43,7 +43,7 @@ class MonthStatsOverview extends BaseWidget
         $laba_kotor_bulan = LabaRugi::getTotalPendapatan($startDate->toDateString(), $endDate->toDateString())[0]->jumlah ?? 0;
         $item_terjual_bulan = DB::table('inventories')
         ->where('movement_type', 'OUT-SAL')
-        ->whereBetween('created_at', [$startDate, $endDate])
+        ->whereBetween('tanggal_transaksi', [$startDate, $endDate])
             ->sum('jumlah_terkecil') ?? 0;
         $service_selesai_bulan = DB::table('service_schedules')
         ->where('is_approve', 'approved')
@@ -73,7 +73,7 @@ class MonthStatsOverview extends BaseWidget
         $itemChart = $tanggalArray->map(function ($date) {
             return (float) DB::table('inventories')
             ->where('movement_type', 'OUT-SAL')
-            ->whereDate('created_at', $date)
+            ->whereDate('tanggal_transaksi', $date)
                 ->sum('jumlah_terkecil');
         })->toArray();
 

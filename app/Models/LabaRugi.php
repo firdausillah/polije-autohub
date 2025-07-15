@@ -17,7 +17,7 @@ class LabaRugi extends Model
             ->select('accounts.name', 'accounts.kode', DB::raw('SUM(CASE WHEN jurnals.debit = 0 THEN jurnals.kredit ELSE jurnals.debit END) as jumlah'))
             ->leftJoin('accounts', 'jurnals.account_id', '=', 'accounts.id')
             ->whereIn('accounts.type', ['Pendapatan', 'Pendapatan Lain-lain'])
-            ->whereBetween('jurnals.created_at', [$startDate, $endDate])
+            ->whereBetween('jurnals.tanggal_transaksi', [$startDate, $endDate])
             ->groupBy('accounts.id', 'accounts.name', 'accounts.kode')
             ->get()
             ->toArray();
@@ -33,7 +33,7 @@ class LabaRugi extends Model
         ->select(DB::raw("'Total' as name"), DB::raw("'' as kode"), DB::raw('SUM(CASE WHEN jurnals.debit = 0 THEN jurnals.kredit ELSE jurnals.debit END) as jumlah'))
         ->leftJoin('accounts', 'jurnals.account_id', '=', 'accounts.id')
         ->whereIn('accounts.type', ['Pendapatan', 'Pendapatan Lain-lain'])
-        ->whereBetween('jurnals.created_at', [$startDate, $endDate])
+        ->whereBetween('jurnals.tanggal_transaksi', [$startDate, $endDate])
             ->get()
             ->toArray();
             
@@ -46,7 +46,7 @@ class LabaRugi extends Model
             ->select('accounts.name', 'accounts.kode', DB::raw('SUM(debit) as jumlah'))
             ->leftJoin('accounts', 'jurnals.account_id', '=', 'accounts.id')
             ->where('accounts.kode', '5000')
-            ->whereBetween('jurnals.created_at', [$startDate, $endDate])
+            ->whereBetween('jurnals.tanggal_transaksi', [$startDate, $endDate])
             ->groupBy('accounts.id', 'accounts.name', 'accounts.kode')
             ->get()
             ->toArray();
@@ -77,7 +77,7 @@ class LabaRugi extends Model
         ->leftJoin('accounts', 'jurnals.account_id', '=', 'accounts.id')
         ->whereIN('accounts.type', ['Beban', 'Beban Lain-lain'])
         ->where('accounts.kode', '!=', '5000')
-        ->whereBetween('jurnals.created_at', [$startDate, $endDate])
+        ->whereBetween('jurnals.tanggal_transaksi', [$startDate, $endDate])
             ->groupBy('accounts.id', 'accounts.name', 'accounts.kode')
             ->get()
             ->toArray();
@@ -94,7 +94,7 @@ class LabaRugi extends Model
         ->leftJoin('accounts', 'jurnals.account_id', '=', 'accounts.id')
         ->whereIn('accounts.type', ['Beban', 'Beban Lain-lain'])
         ->where('accounts.kode', '!=', '5000')
-        ->whereBetween('jurnals.created_at', [$startDate, $endDate])
+        ->whereBetween('jurnals.tanggal_transaksi', [$startDate, $endDate])
             ->get()
             ->toArray();
 
