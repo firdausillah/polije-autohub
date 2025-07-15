@@ -12,7 +12,7 @@ class PemasukanPengeluaran extends Model
 
         // dd($endDate);
         $content_data = DB::table('jurnals')
-            ->whereBetween('jurnals.created_at', [$startDate, $endDate])
+            ->whereBetween('jurnals.tanggal_transaksi', [$startDate, $endDate])
             ->get()
             ->toArray();
 
@@ -25,7 +25,7 @@ class PemasukanPengeluaran extends Model
     {
 
         $saldo_awal = DB::table('jurnals')
-            ->where('created_at', '<', $startDate)
+            ->where('tanggal_transaksi', '<', $startDate)
             ->where('account_id', '=', $accountId)
             ->selectRaw("
                 COALESCE(SUM(debit)-SUM(kredit), 0) AS saldo_awal
@@ -34,13 +34,13 @@ class PemasukanPengeluaran extends Model
 
 
         $transaksi = DB::table('jurnals')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->orderBy('created_at')
+            ->whereBetween('tanggal_transaksi', [$startDate, $endDate])
+            ->orderBy('tanggal_transaksi')
             ->where('account_id', '=', $accountId)
             ->get([
                 'id',
                 'kode',
-                'created_at',
+                'tanggal_transaksi',
                 'account_id',
                 'transaction_type',
                 'account_name',
