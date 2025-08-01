@@ -196,6 +196,7 @@ class StockAdjustmentResource extends Resource
                     'rejected' => 'danger',
                 }),
                 TextColumn::make('user.name')
+                ->label('Petugas')
 
             ])
             ->filters([Tables\Filters\TrashedFilter::make(),
