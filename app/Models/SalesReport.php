@@ -55,14 +55,15 @@ class SalesReport extends Model
                 IFNULL(sd.saldo, 0) AS saldo,
                 IFNULL(SUM(
                     IF(
-                        b.movement_type = 'OUT-SAL',
+                        b.movement_type IN ('OUT-SAL', 'OUT-ADJ'),
                         b.jumlah_terkecil,
                         0
                     )
                 ), 0) AS qty_terjual,
+
                 IFNULL(SUM(
                     IF(
-                        b.movement_type = 'OUT-SAL',
+                        b.movement_type IN ('OUT-SAL', 'OUT-ADJ'),
                         b.harga_subtotal,
                         0
                     )
@@ -78,8 +79,8 @@ class SalesReport extends Model
                     COALESCE(
                         SUM(
                             CASE 
-                                WHEN inventories.movement_type = 'IN-PUR' THEN inventories.jumlah_terkecil 
-                                WHEN inventories.movement_type = 'OUT-SAL' THEN -inventories.jumlah_terkecil 
+                                WHEN inventories.movement_type IN ('IN-PUR', 'IN-ADJ') THEN inventories.jumlah_terkecil 
+                                WHEN inventories.movement_type IN ('OUT-SAL', 'OUT-ADJ') THEN -inventories.jumlah_terkecil 
                                 ELSE 0
                             END
                         ),

@@ -30,8 +30,8 @@ class JsonData extends Model
             ->selectRaw("
                 COALESCE(SUM(
                     CASE 
-                        WHEN movement_type = 'IN-PUR' THEN jumlah_terkecil 
-                        WHEN movement_type = 'OUT-SAL' THEN -jumlah_terkecil 
+                        WHEN movement_type IN ('IN-PUR', 'IN-ADJ') THEN jumlah_terkecil 
+                        WHEN movement_type IN ('OUT-SAL', 'OUT-ADJ') THEN -jumlah_terkecil 
                         ELSE 0 
                     END
                 ), 0) AS saldo_awal
@@ -57,18 +57,19 @@ class JsonData extends Model
                 'satuan_terkecil_name AS satuan',
                 'relation_name',
                 'movement_type',
-                DB::raw("IF(movement_type = 'IN-PUR', jumlah_terkecil, 0) AS qty_masuk"),
-                DB::raw("IF(movement_type = 'OUT-SAL', jumlah_terkecil, 0) AS qty_keluar"),
+                DB::raw("IF(movement_type IN ('IN-PUR', 'IN-ADJ'), jumlah_terkecil, 0) AS qty_masuk"),
+                DB::raw("IF(movement_type IN ('OUT-SAL', 'OUT-ADJ'), jumlah_terkecil, 0) AS qty_keluar"),
                 'jumlah_terkecil AS jumlah'
             ])
             ->toArray();
 
         // Hitung saldo berjalan
         $saldo = $saldo_awal->saldo_awal ?? 0;
+
         foreach ($transaksi as &$row) {
-            if ($row->movement_type === 'IN-PUR') {
+            if (in_array($row->movement_type, ['IN-PUR', 'IN-ADJ'])) {
                 $saldo += $row->jumlah;
-            } elseif ($row->movement_type === 'OUT-SAL') {
+            } elseif (in_array($row->movement_type, ['OUT-SAL', 'OUT-ADJ'])) {
                 $saldo -= $row->jumlah;
             }
             $row->saldo = $saldo; // Tambahkan saldo ke tiap transaksi

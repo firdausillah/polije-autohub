@@ -382,37 +382,26 @@ class SparepartSaleResource extends Resource
                                 'md' =>2,
                                 ])
                             ->schema([
-                        // Select::make('sparepart_satuan_id')
-                        //     ->relationship('sparepartSatuan', 'sparepart.name')
-                        //     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name} ({$record->harga})")
-                        //     ->searchable()
-                        //     ->preload()
-                        //     ->afterStateUpdated(
-                        //         function (Get $get, Set $set, $state) {
-                        //             ($state != '' ? self::updateSubtotal($get, $set) : 0);
-                        //         }
-                        //     )
-                        //     ->live(),
-                        Select::make('sparepart_satuan_id')
-                            ->relationship('sparepartSatuan', 'id')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name} (" . number_format($record->harga, 0, ',', '.') . ")")
-                            ->searchable()
-                            ->preload()
-                            ->afterStateUpdated(
-                                function (Get $get, Set $set, $state) {
-                                    ($state != '' ? self::updateSubtotal($get, $set) : 0);
-                                }
-                            )
-                            ->getSearchResultsUsing(function (string $search) {
-                                return \App\Models\SparepartSatuans::query()
-                                    ->whereHas('sparepart', fn ($query) => 
-                                        $query->where('name', 'like', "%{$search}%")
-                                    )
-                                    ->get()
-                                    ->mapWithKeys(function ($record) {
-                                        return [$record->id => "{$record->sparepart->name} - {$record->satuan_name} (" . number_format($record->harga, 0, ',', '.') . ")"];
-                                    });
-                            }),
+                                Select::make('sparepart_satuan_id')
+                                ->relationship('sparepartSatuan', 'id')
+                                ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name} (" . number_format($record->harga, 0, ',', '.') . ")")
+                                ->searchable()
+                                ->preload()
+                                ->afterStateUpdated(
+                                    function (Get $get, Set $set, $state) {
+                                        ($state != '' ? self::updateSubtotal($get, $set) : 0);
+                                    }
+                                )
+                                ->getSearchResultsUsing(function (string $search) {
+                                    return \App\Models\SparepartSatuans::query()
+                                        ->whereHas('sparepart', fn ($query) => 
+                                            $query->where('name', 'like', "%{$search}%")
+                                        )
+                                        ->get()
+                                        ->mapWithKeys(function ($record) {
+                                            return [$record->id => "{$record->sparepart->name} - {$record->satuan_name} (" . number_format($record->harga, 0, ',', '.') . ")"];
+                                        });
+                                }),
 
 
                                 Hidden::make('sparepart_id'),
