@@ -92,7 +92,7 @@ class SalesReport extends Model
             ) AS sd ON a.id = sd.sparepart_id
             GROUP BY a.id, a.kode, a.name, sd.saldo
             $order_by
-        ", [$startDate, $endDate, $endDate]);
+        ", [$startDate, $toDate, $toDate]);
         // dd($results);
 
         return $results;
