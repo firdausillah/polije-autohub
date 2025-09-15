@@ -162,7 +162,7 @@
                         <tr>
                             <td>{{$key+1}}</td>
                             <td>{{$value->sparepart_name}}</td>
-                            <td>{{$value->jumlah}}</td>
+                            <td>{{$value->jumlah_unit}}</td>
                             <td>{{"Rp " . number_format($value->harga_unit, 2, ",", ".")}}</td>
                             <td>{{"Rp " . number_format($value->harga_subtotal, 2, ",", ".")}}</td>
                         </tr>
