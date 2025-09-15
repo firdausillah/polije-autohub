@@ -93,8 +93,8 @@ class SalesReport extends Model
             GROUP BY a.id, a.kode, a.name, sd.saldo
             $order_by
         ", [$startDate, $toDate, $toDate]);
-        // dd($results);
+        // dd($toDate);
 
-        return $results;
+        return $toDate;
     }
 }

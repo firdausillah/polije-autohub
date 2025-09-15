@@ -210,7 +210,7 @@ class ServiceScheduleResource extends Resource
                     'keterangan' => 'Admin',
                     'transaction_type' => 'Pelayanan Service',
                     'jumlah_sparepart' => $jumlah_unit_terjual,
-                    'nominal' => max(0, $record->sparepart_total - $record->discount_service_total),
+                    'nominal' => max(0, $record->sparepart_total - $record->discount_sparepart_total),
                 ]);
 
                 PayrollJurnal::create([
@@ -735,7 +735,7 @@ class ServiceScheduleResource extends Resource
                     Action::make('Approve Pembayaran')
                     ->action(function (ServiceSchedule $record) {
                         if (empty($record->kode)) {
-                            $record->kode = CodeGenerator::generateTransactionCode('SCD', 'service_schedules', 'kode');
+                            $record->kode = CodeGenerator::generateTransactionCode('SSJ', 'service_schedules', 'kode');
                         }
                         
                         $isApproving = in_array($record->is_approve, ['pending', 'rejected']);
