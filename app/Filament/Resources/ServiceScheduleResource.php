@@ -636,7 +636,7 @@ class ServiceScheduleResource extends Resource
             ->modifyQueryUsing(function (Builder $query) {
                 // $query->where('created_at','like', (now()->toDateString().'%'));
             })
-            ->deferLoading()
+            // ->deferLoading()
             ->poll('2s')
             ->columns([
                 TextColumn::make('vehicle.registration_number')
