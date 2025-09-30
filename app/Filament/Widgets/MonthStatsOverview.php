@@ -40,7 +40,7 @@ class MonthStatsOverview extends BaseWidget
         // ==================== //
         //   Data  Bulan Ini    //
         // ==================== //
-        $laba_kotor_bulan = LabaRugi::getTotalPendapatan($startDate->toDateString(), $endDate->toDateString())[0]->jumlah ?? 0;
+        $laba_kotor_bulan = LabaRugi::getTotalPendapatan($startDate->toDateString(), $endDate->toDateString()  . ' 23:59:59')[0]->jumlah ?? 0;
         $item_terjual_bulan = DB::table('inventories')
         ->where('movement_type', 'OUT-SAL')
         ->whereBetween('tanggal_transaksi', [$startDate, $endDate  . ' 23:59:59'])
