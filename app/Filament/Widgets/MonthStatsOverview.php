@@ -17,7 +17,7 @@ class MonthStatsOverview extends BaseWidget
     protected function getStats(): array
     {
         $startDate = Carbon::now()->startOfMonth();
-        $endDate = Carbon::now()->endOfMonth();
+        $endDate = Carbon::now()->endOfMonth() . ' 23:59:59';
 
         $today = Carbon::now();
 
