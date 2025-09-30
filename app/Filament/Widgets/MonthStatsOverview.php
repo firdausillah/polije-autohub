@@ -43,11 +43,11 @@ class MonthStatsOverview extends BaseWidget
         $laba_kotor_bulan = LabaRugi::getTotalPendapatan($startDate->toDateString(), $endDate->toDateString())[0]->jumlah ?? 0;
         $item_terjual_bulan = DB::table('inventories')
         ->where('movement_type', 'OUT-SAL')
-        ->whereBetween('tanggal_transaksi', [$startDate, $endDate])
+        ->whereBetween('tanggal_transaksi', [$startDate, $endDate  . ' 23:59:59'])
             ->sum('jumlah_terkecil') ?? 0;
         $service_selesai_bulan = DB::table('service_schedules')
         ->where('is_approve', 'approved')
-        ->whereBetween('approved_at', [$startDate, $endDate])
+        ->whereBetween('approved_at', [$startDate, $endDate  . ' 23:59:59'])
             ->count();
 
         // ==================== //
