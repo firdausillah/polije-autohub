@@ -61,11 +61,21 @@ class SparepartResource extends Resource
                     ]),
 
                 ]),
-                TextInput::make('part_number'),
-                TextInput::make('margin')
-                ->numeric()
-                ->suffix('%')
-                ->required(),
+                Grid::make(3)
+                ->schema([
+                    Select::make('is_liquid')
+                        ->label('Part Liquid')
+                        ->required()
+                        ->options([
+                            1 => 'Iya',
+                            0 => 'Tidak'
+                    ]),
+                    TextInput::make('part_number'),
+                    TextInput::make('margin')
+                    ->numeric()
+                    ->suffix('%')
+                    ->required(),
+                ]),
                 Textarea::make('keterangan'),
             ]);
     }
@@ -91,6 +101,11 @@ class SparepartResource extends Resource
                 ->boolean()
                 ->trueColor('success')
                 ->falseColor('danger'),
+                IconColumn::make('is_liquid')
+                ->label('Liquid')
+                ->boolean()
+                ->trueColor('success')
+                ->falseColor('warning'),
                 TextColumn::make('margin')
             ])
             ->filters([
