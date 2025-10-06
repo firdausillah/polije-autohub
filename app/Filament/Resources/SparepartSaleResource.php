@@ -261,18 +261,36 @@ class SparepartSaleResource extends Resource
                         'kredit'            => $harga_modal * $val->jumlah_terkecil,
                     ]);
                 }
-                // dd('sampai sini');
 
                 // Payroll
-                PayrollJurnal::create([
-                    'transaksi_h_id' => $record->id,
-                    'user_id' => FacadesAuth::id(),
-                    'name' => User::find(FacadesAuth::id())->name,
-                    'keterangan' => 'Admin',
-                    'transaction_type' => 'Penjualan Sparepart',
-                    'jumlah_sparepart' => $sparepart->sum('jumlah_unit'),
-                    'nominal' => max(0, $record->total + $record->discount_total),
-                ]);
+                // part total
+                if($record->liquid_total > 0){
+                    PayrollJurnal::create([
+                        'transaksi_h_id' => $record->id,
+                        'user_id' => FacadesAuth::id(),
+                        'name' => User::find(FacadesAuth::id())->name,
+                        'keterangan' => 'Admin',
+                        'transaction_type' => 'Penjualan Sparepart',
+                        'jumlah_sparepart' => $record->liquid_jumlah,
+                        'nominal' => max(0,  $record->liquid_total),
+                        'is_liquid' => 1,
+                        'jenis_pendapatan' => 'liquid',
+                    ]);
+
+                }
+                // liquid total
+                if($record->liquid_total > 0){
+                    PayrollJurnal::create([
+                        'transaksi_h_id' => $record->id,
+                        'user_id' => FacadesAuth::id(),
+                        'name' => User::find(FacadesAuth::id())->name,
+                        'keterangan' => 'Admin',
+                        'transaction_type' => 'Penjualan Sparepart',
+                        'jumlah_sparepart' => $record->part_jumlah,
+                        'nominal' => max(0, $record->part_total),
+                        'jenis_pendapatan' => 'part',
+                    ]);
+                }
 
 
                 // Inventory OUT

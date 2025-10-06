@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\SparepartDetailUpdate;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -67,6 +68,10 @@ class SparepartSale extends Model
         static::updating(function ($model) {
             $model->updated_by = Auth::id();
         });
+
+        // static::saved(fn ($model) => SparepartDetailUpdate::updateSparepartSaleTotal($model->sparepart_sale_id));
+        // static::deleted(fn ($model) => SparepartDetailUpdate::updateSparepartSaleTotal($model->sparepart_sale_id));
+        // static::restored(fn ($model) => SparepartDetailUpdate::updateSparepartSaleTotal($model->sparepart_sale_id));
     }
 
     public function sparepartDSale(): HasMany

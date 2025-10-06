@@ -60,17 +60,33 @@ class SparepartDSale extends Model
         return "sparepart_d_sale telah di{$eventName}";
     }
 
+    // akan digantikan
+    // public function updateSparepartSaleTotal()
+    // {
+    //     $subTotal = self::where('sparepart_sale_id', $this->sparepart_sale_id)
+    //         ->sum('harga_subtotal');
+    //     $discountTotal = self::where('sparepart_sale_id', $this->sparepart_sale_id)
+    //         ->sum('discount');
+            
+    //     $part = SparepartDSale::where('sparepart_sale_id', $this->sparepart_sale_id)
+    //                     ->whereHas('sparepart', fn ($q) => $q->where('is_liquid', false))
+    //                     ->selectRaw('SUM(harga_subtotal) as total_liquid, SUM(jumlah_terkecil) as total_jumlah')
+    //                     ->first();
 
-    public function updateSparepartSaleTotal()
-    {
-        $subTotal = self::where('sparepart_sale_id', $this->sparepart_sale_id)
-            ->sum('harga_subtotal');
-        $discountTotal = self::where('sparepart_sale_id', $this->sparepart_sale_id)
-            ->sum('discount');
+    //     $liquid = SparepartDSale::where('sparepart_sale_id', $this->sparepart_sale_id)
+    //                     ->whereHas('sparepart', fn ($q) => $q->where('is_liquid', true))
+    //                     ->selectRaw('SUM(harga_subtotal) as total_liquid, SUM(jumlah_terkecil) as total_jumlah')
+    //                     ->first();
 
-        SparepartSale::where('id', $this->sparepart_sale_id)
-            ->update(['total' => $subTotal - $discountTotal]);
-    }
+    //     SparepartSale::where('id', $this->sparepart_sale_id)
+    //         ->update([
+    //             'total' => $subTotal - $discountTotal, 
+    //             'part_total' => $part->part_total, 
+    //             'part_jumlah' =>$part->total_jumlah, 
+    //             'liquid_total' => $liquid->liquid_total, 
+    //             'liquid_jumlah' => $liquid->total_jumlah
+    //         ]);
+    // }
 
     protected static function boot()
     {
@@ -86,9 +102,9 @@ class SparepartDSale extends Model
             SparepartDetailUpdate::prepareSparepartData($model);
         });
 
-        static::saved(fn ($model) => $model->updateSparepartSaleTotal());
-        static::deleted(fn ($model) => $model->updateSparepartSaleTotal());
-        static::restored(fn ($model) => $model->updateSparepartSaleTotal());
+        static::saved(fn ($model) => SparepartDetailUpdate::updateSparepartSaleTotal($model->sparepart_sale_id));
+        static::deleted(fn ($model) => SparepartDetailUpdate::updateSparepartSaleTotal($model->sparepart_sale_id));
+        static::restored(fn ($model) => SparepartDetailUpdate::updateSparepartSaleTotal($model->sparepart_sale_id));
     }
 
     public function sparepartSatuan(): BelongsTo

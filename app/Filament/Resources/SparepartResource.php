@@ -66,6 +66,7 @@ class SparepartResource extends Resource
                     Select::make('is_liquid')
                         ->label('Part Liquid')
                         ->required()
+                        ->default(0)
                         ->options([
                             1 => 'Iya',
                             0 => 'Tidak'

@@ -92,4 +92,9 @@ class ServiceDSparepart extends Model
     {
         return $this->BelongsTo(SparepartSatuans::class)->with('sparepart');
     }
+
+    public function sparepart(): BelongsTo
+    {
+        return $this->BelongsTo(Sparepart::class);
+    }
 }

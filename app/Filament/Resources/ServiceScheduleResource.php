@@ -69,6 +69,7 @@ class ServiceScheduleResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-wrench-screwdriver';
 
+
     public static function getModelLabel(): string
     {
         return 'Pelayanan Service';
@@ -77,6 +78,11 @@ class ServiceScheduleResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return 'Pelayanan Service';
+    }
+
+    public static function createJurnal($data)
+    {
+        PayrollJurnal::create($data);
     }
 
     public static function InsertJurnal($record, $status)
@@ -203,39 +209,206 @@ class ServiceScheduleResource extends Resource
                 $jumlah_unit_terjual = ServiceDSparepart::where('service_schedule_id', $record->id)->sum('jumlah_unit');
                 $jumlah_service_terlayani   = ServiceDServices::where('service_schedule_id', $record->id)->sum('jumlah');
 
-                PayrollJurnal::create([
-                    'transaksi_h_id' => $record->id,
-                    'user_id' => Auth::id(),
-                    'name' => User::find(Auth::id())->name,
-                    'keterangan' => 'Admin',
-                    'transaction_type' => 'Pelayanan Service',
-                    'jumlah_sparepart' => $jumlah_unit_terjual,
-                    'nominal' => max(0, $record->sparepart_total - $record->discount_sparepart_total),
-                ]);
-
-                PayrollJurnal::create([
-                    'transaksi_h_id' => $record->id,
-                    'user_id' => $record->kepala_unit_id,
-                    'name' => User::find($record->kepala_unit_id)->name,
-                    'keterangan' => 'Kepala Unit',
-                    'transaction_type' => 'Pelayanan Service',
-                    'jumlah_service' => $jumlah_service_terlayani,
-                    'nominal' => max(0, $record->service_total - $record->discount_service_total),
-                ]);
-
-                $mekanik = ServiceDMekanik::where('service_schedule_id', $record->id)->get();
-                foreach ($mekanik as $val) {
-                    $nominal = ($val->mekanik_percentage / 100) * max(0, $record->service_total - $record->discount_service_total);
-                    PayrollJurnal::create([
+                // === PAYROLL KEPALA UNIT ===
+                $kepalaUnit = User::find($record->kepala_unit_id);
+                if ($kepalaUnit) {
+                    self::createJurnal([
                         'transaksi_h_id' => $record->id,
-                        'user_id' => $val->mekanik_id,
-                        'name' => User::find($val->mekanik_id)->name,
-                        'keterangan' => 'Mekanik',
+                        'user_id' => $kepalaUnit->id,
+                        'name' => $kepalaUnit->name,
+                        'keterangan' => 'Kepala Unit',
                         'transaction_type' => 'Pelayanan Service',
                         'jumlah_service' => $jumlah_service_terlayani,
-                        'nominal' => $nominal,
+                        'jumlah_sparepart' => $jumlah_unit_terjual,
+                        'nominal' => max(0, $record->harga_subtotal),
+                        'jenis_pendapatan' => 'total'
                     ]);
                 }
+
+                // data jenis payroll admin
+                $adminJurnalData = [
+                    [
+                        'check' => $record->service_total > 0,
+                        'extra' => [
+                            'jumlah_service' => $jumlah_service_terlayani,
+                            'nominal' => max(0, $record->service_total),
+                            'jenis_pendapatan' => 'service',
+                        ],
+                    ],
+                    [
+                        'check' => $record->liquid_total > 0,
+                        'extra' => [
+                            'jumlah_sparepart' => $record->liquid_jumlah,
+                            'nominal' => max(0, $record->liquid_total),
+                            'is_liquid' => 1,
+                            'jenis_pendapatan' => 'liquid',
+                        ],
+                    ],
+                    [
+                        'check' => $record->part_total > 0,
+                        'extra' => [
+                            'jumlah_sparepart' => $record->part_jumlah,
+                            'nominal' => max(0, $record->part_total),
+                            'jenis_pendapatan' => 'part',
+                        ],
+                    ],
+                ];
+
+                // === PAYROLL ADMIN ===
+                foreach ($adminJurnalData as $item) {
+                    if (!$item['check']) continue;
+
+                    self::createJurnal(array_merge([
+                        'transaksi_h_id' => $record->id,
+                        'user_id' => Auth::id(),
+                        'name' => User::find(Auth::id())->name,
+                        'keterangan' => 'Admin',
+                        'transaction_type' => 'Pelayanan Service',
+                    ],
+                        $item['extra']
+                    ));
+                }
+
+                // === PAYROLL MEKANIK ===
+                $mekanikList = ServiceDMekanik::where('service_schedule_id', $record->id)->get();
+                foreach ($mekanikList as $mekanik) {
+                    $mekanikUser = User::find($mekanik->mekanik_id);
+                    if (!$mekanikUser) continue;
+
+                    $mekanikData = [
+                        [
+                            'check' => $record->service_total > 0,
+                            'extra' => [
+                                'jumlah_service' => $jumlah_service_terlayani,
+                                'nominal' => max(0, ($mekanik->mekanik_percentage / 100) * $record->service_total),
+                                'jenis_pendapatan' => 'service',
+                            ],
+                        ],
+                        [
+                            'check' => $record->liquid_total > 0,
+                            'extra' => [
+                                'jumlah_sparepart' => $record->liquid_jumlah,
+                                'nominal' => max(0, ($mekanik->mekanik_percentage / 100) * $record->liquid_total),
+                                'is_liquid' => 1,
+                                'jenis_pendapatan' => 'liquid',
+                            ],
+                        ],
+                        [
+                            'check' => $record->part_total > 0,
+                            'extra' => [
+                                'jumlah_sparepart' => $record->part_jumlah,
+                                'nominal' => max(0, ($mekanik->mekanik_percentage / 100) * $record->part_total),
+                                'jenis_pendapatan' => 'part',
+                            ],
+                        ],
+                    ];
+
+                    foreach ($mekanikData as $item) {
+                        if (!$item['check']) continue;
+
+                        self::createJurnal(array_merge([
+                            'transaksi_h_id' => $record->id,
+                            'user_id' => $mekanikUser->id,
+                            'name' => $mekanikUser->name,
+                            'keterangan' => 'Mekanik',
+                            'transaction_type' => 'Pelayanan Service',
+                        ], $item['extra']));
+                    }
+                }
+
+                // // payroll admin
+                // // service total
+                // if ($record->service_total > 0) {
+                //     PayrollJurnal::create([
+                //         'transaksi_h_id' => $record->id,
+                //         'user_id' => Auth::id(),
+                //         'name' => User::find(Auth::id())->name,
+                //         'keterangan' => 'Admin',
+                //         'transaction_type' => 'Pelayanan Service',
+                //         'jumlah_service' => $jumlah_service_terlayani,
+                //         'nominal' => max(0,  $record->service_total)
+                //     ]);
+                // }
+                // //part total
+                // if ($record->liquid_total > 0) {
+                //     PayrollJurnal::create([
+                //         'transaksi_h_id' => $record->id,
+                //         'user_id' => Auth::id(),
+                //         'name' => User::find(Auth::id())->name,
+                //         'keterangan' => 'Admin',
+                //         'transaction_type' => 'Pelayanan Service',
+                //         'jumlah_sparepart' => $record->liquid_jumlah,
+                //         'nominal' => max(0,  $record->liquid_total),
+                //         'is_liquid' => 1
+                //     ]);
+                // }
+                // // liquid total
+                // if ($record->liquid_total > 0) {
+                //     PayrollJurnal::create([
+                //         'transaksi_h_id' => $record->id,
+                //         'user_id' => Auth::id(),
+                //         'name' => User::find(Auth::id())->name,
+                //         'keterangan' => 'Admin',
+                //         'transaction_type' => 'Pelayanan Service',
+                //         'jumlah_sparepart' => $record->part_jumlah,
+                //         'nominal' => max(0, $record->part_total)
+                //     ]);
+                // }
+
+                // // payroll kepala unit
+                // PayrollJurnal::create([
+                //     'transaksi_h_id' => $record->id,
+                //     'user_id' => $record->kepala_unit_id,
+                //     'name' => User::find($record->kepala_unit_id)->name,
+                //     'keterangan' => 'Kepala Unit',
+                //     'transaction_type' => 'Pelayanan Service',
+                //     'jumlah_service' => $jumlah_service_terlayani,
+                //     'nominal' => max(0, $record->harga_subtotal)
+                // ]);
+
+                // // payroll meknaik
+                // $mekanik = ServiceDMekanik::where('service_schedule_id', $record->id)->get();
+                // foreach ($mekanik as $val) {
+                //     //service
+                //     // $nominal_service = ($val->mekanik_percentage / 100) * max(0, $record->service_total);
+                //     // service total
+                //     if ($record->service_total > 0) {
+                //         PayrollJurnal::create([
+                //             'transaksi_h_id' => $record->id,
+                //             'user_id' => $val->mekanik_id,
+                //             'name' => User::find($val->mekanik_id)->name,
+                //             'keterangan' => 'Meknaik',
+                //             'transaction_type' => 'Pelayanan Service',
+                //             'jumlah_service' => $jumlah_service_terlayani,
+                //             'nominal' => max(0, ($val->mekanik_percentage / 100) * max(0, $record->service_total))
+                //         ]);
+                //     }
+                //     //part total
+                //     if ($record->liquid_total > 0) {
+                //         PayrollJurnal::create([
+                //             'transaksi_h_id' => $record->id,
+                //             'user_id' => $val->mekanik_id,
+                //             'name' => User::find($val->mekanik_id)->name,
+                //             'keterangan' => 'Meknaik',
+                //             'transaction_type' => 'Pelayanan Service',
+                //             'jumlah_sparepart' => $record->liquid_jumlah,
+                //             'nominal' => max(0, ($val->mekanik_percentage / 100) * max(0, $record->liquid_total)),
+                //             'is_liquid' => 1
+                //         ]);
+                //     }
+                //     // liquid total
+                //     if ($record->liquid_total > 0) {
+                //         PayrollJurnal::create([
+                //             'transaksi_h_id' => $record->id,
+                //             'user_id' => $val->mekanik_id,
+                //             'name' => User::find($val->mekanik_id)->name,
+                //             'keterangan' => 'Meknaik',
+                //             'transaction_type' => 'Pelayanan Service',
+                //             'jumlah_sparepart' => $record->part_jumlah,
+                //             'nominal' => max(0, ($val->mekanik_percentage / 100) * max(0, $record->part_total))
+                //         ]);
+                //     }
+                // }
 
                 // HPP
                 $sparepart = ServiceDSparepart::where('service_schedule_id', $record->id)->get();
