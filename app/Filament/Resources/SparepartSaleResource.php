@@ -263,7 +263,7 @@ class SparepartSaleResource extends Resource
                 }
 
                 // Payroll
-                // part total
+                // liquid total
                 if($record->liquid_total > 0){
                     PayrollJurnal::create([
                         'transaksi_h_id' => $record->id,
@@ -278,8 +278,8 @@ class SparepartSaleResource extends Resource
                     ]);
 
                 }
-                // liquid total
-                if($record->liquid_total > 0){
+                // part total
+                if($record->part_total > 0){
                     PayrollJurnal::create([
                         'transaksi_h_id' => $record->id,
                         'user_id' => FacadesAuth::id(),

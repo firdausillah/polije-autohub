@@ -41,27 +41,6 @@ class updateServiceTotal
         $subTotal = $serviceTotal->harga_subtotal + $sparepartTotal->harga_subtotal;
         $discount_total = $serviceTotal->discount_total + $sparepartTotal->discount_total;
 
-        // dd(
-        //     [
-        //         'service_total' => $serviceTotal->harga_subtotal,
-        //         'sparepart_total' => $sparepartTotal->harga_subtotal,
-
-        //         'discount_service_total' => $serviceTotal->discount_total,
-        //         'discount_sparepart_total' => $sparepartTotal->discount_total,
-        //         'discount_total' => $discount_total,
-
-        //         'total_estimasi_waktu' => $estimasi_waktu_pengerjaan,
-        //         'harga_subtotal' => $subTotal,
-        //         'pajak_total' => $totalPajak,
-        //         'total' => $subTotal - $discount_total,
-
-        //         'part_total'    => $part->part_total ?? 0,
-        //         'part_jumlah'   => $part->part_jumlah ?? 0,
-        //         'liquid_total'  => $liquid->liquid_total ?? 0,
-        //         'liquid_jumlah' => $liquid->liquid_jumlah ?? 0,
-        //     ]
-        // );
-
         ServiceSchedule::find($service_schedule_id)
             ->update([
                 'service_total' => $serviceTotal->harga_subtotal,
