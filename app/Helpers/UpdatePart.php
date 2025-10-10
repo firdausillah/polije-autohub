@@ -37,6 +37,8 @@ class UpdatePart
                     'user_id' => $record->approved_by,
                     'name' => User::find($record->approved_by)->name,
                     'keterangan' => 'Admin',
+                    'created_at' => $record->approved_at,
+                    'updated_at' => $record->approved_at,
                     'transaction_type' => 'Pelayanan Service',
                 ];
             
@@ -52,6 +54,8 @@ class UpdatePart
                     'user_id' => $kepalaUnit->id,
                     'name' => $kepalaUnit->name,
                     'keterangan' => 'Kepala Unit',
+                    'created_at' => $record->approved_at,
+                    'updated_at' => $record->approved_at,
                     'transaction_type' => 'Pelayanan Service',
                     'jumlah_service' => $jumlah_service_terlayani,
                     'jumlah_sparepart' => $jumlah_unit_terjual,
@@ -141,6 +145,8 @@ class UpdatePart
                         'user_id' => $mekanikUser->id,
                         'name' => $mekanikUser->name,
                         'keterangan' => 'Mekanik',
+                        'created_at' => $record->approved_at,
+                        'updated_at' => $record->approved_at,
                         'transaction_type' => 'Pelayanan Service',
                     ], $item['extra']));
                 }
@@ -162,6 +168,8 @@ class UpdatePart
                     'transaksi_h_id' => $record->id,
                     'user_id' => $record->approved_by,
                     'name' => User::find($record->approved_by)->name,
+                    'created_at' => $record->approved_at,
+                    'updated_at' => $record->approved_at,
                     'keterangan' => 'Admin',
                     'transaction_type' => 'Penjualan Sparepart',
                     'jumlah_sparepart' => $record->liquid_jumlah,
@@ -176,6 +184,8 @@ class UpdatePart
                     'transaksi_h_id' => $record->id,
                     'user_id' => $record->approved_by,
                     'name' => User::find($record->approved_by)->name,
+                    'created_at' => $record->approved_at,
+                    'updated_at' => $record->approved_at,
                     'keterangan' => 'Admin',
                     'transaction_type' => 'Penjualan Sparepart',
                     'jumlah_sparepart' => $record->part_jumlah,
