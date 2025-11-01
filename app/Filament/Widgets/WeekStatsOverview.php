@@ -16,17 +16,34 @@ class WeekStatsOverview extends BaseWidget
     protected function getStats(): array
     {
         // Minggu ini
-        $startWeekDate = Carbon::now()->startOfWeek();
-        $endWeekDate = Carbon::now()->endOfWeek()->addDay();
+        // $startWeekDate = Carbon::now()->startOfWeek();
+        // $endWeekDate = Carbon::now()->endOfWeek()->addDay();
+
+        // // Minggu lalu
+        // $startLastWeek = Carbon::now()->subWeek()->startOfWeek();
+        // $endLastWeek = Carbon::now()->subWeek()->endOfWeek()->addDay();
+
+        // Gunakan satu waktu acuan
+        $now = Carbon::now();
+
+        // Minggu ini
+        $startWeekDate = $now->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
+        $endWeekDate   = $now->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
 
         // Minggu lalu
-        $startLastWeek = Carbon::now()->subWeek()->startOfWeek();
-        $endLastWeek = Carbon::now()->subWeek()->endOfWeek()->addDay();
+        $startLastWeek = $now->copy()->subWeek()->startOfWeek(Carbon::MONDAY)->startOfDay();
+        $endLastWeek   = $now->copy()->subWeek()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+
+        // Optional: buat string format untuk whereBetween (kalau field di DB bertipe DATE)
+        $startWeekStr = $startWeekDate->toDateTimeString();
+        $endWeekStr = $endWeekDate->toDateTimeString();
+        $startLastWeekStr = $startLastWeek->toDateTimeString();
+        $endLastWeekStr = $endLastWeek->toDateTimeString();
 
         // ==================== //
         //   Data Minggu Lalu   //
         // ==================== //
-        $laba_kotor_minggu_lalu = LabaRugi::getTotalPendapatan($startLastWeek->toDateString(), $endLastWeek->toDateString())[0]->jumlah ?? 0;
+        $laba_kotor_minggu_lalu = LabaRugi::getTotalPendapatan($startLastWeekStr, $endLastWeekStr)[0]->jumlah ?? 0;
 
         $item_terjual_minggu_lalu = DB::table('inventories')
         ->selectRaw('SUM(CASE WHEN movement_type = "OUT-SAL" THEN jumlah_terkecil ELSE 0 END) as total_qty_terjual')
@@ -41,7 +58,7 @@ class WeekStatsOverview extends BaseWidget
         // ==================== //
         //   Data Minggu Ini    //
         // ==================== //
-        $laba_kotor_minggu = LabaRugi::getTotalPendapatan($startWeekDate->toDateString(), $endWeekDate->toDateString())[0]->jumlah ?? 0;
+        $laba_kotor_minggu = LabaRugi::getTotalPendapatan($startWeekStr, $endWeekStr)[0]->jumlah ?? 0;
 
         $item_terjual_minggu = DB::table('inventories')
         ->selectRaw('SUM(CASE WHEN movement_type = "OUT-SAL" THEN jumlah_terkecil ELSE 0 END) as total_qty_terjual')
