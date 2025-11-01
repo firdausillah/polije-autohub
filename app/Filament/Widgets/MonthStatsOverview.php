@@ -16,18 +16,38 @@ class MonthStatsOverview extends BaseWidget
 
     protected function getStats(): array
     {
-        $startDate = Carbon::now()->startOfMonth();
-        $endDate = Carbon::now()->endOfMonth();
+        // $startDate = Carbon::now()->startOfMonth();
+        // $endDate = Carbon::now()->endOfMonth();
 
-        $today = Carbon::now();
+        // $today = Carbon::now();
 
-        $startLastMonth = Carbon::now()->subMonth()->startOfMonth();
-        $endLastMonth = Carbon::now()->subMonth()->endOfMonth();
+        // $startLastMonth = Carbon::now()->subMonth()->startOfMonth();
+        // $endLastMonth = Carbon::now()->subMonth()->endOfMonth();
+
+        // Base waktu tetap
+        $now = Carbon::now();
+
+        // Bulan ini
+        $startDate = $now->copy()->startOfMonth()->startOfDay();
+        $endDate = $now->copy()->endOfMonth()->endOfDay();
+
+        // Bulan lalu
+        $startLastMonth = $now->copy()->subMonthNoOverflow()->startOfMonth()->startOfDay();
+        $endLastMonth = $now->copy()->subMonthNoOverflow()->endOfMonth()->endOfDay();
+
+        // Hari ini (opsional)
+        $today = $now->copy();
+
+        // (Opsional) versi string jika perlu untuk query ke DB
+        $startDateStr = $startDate->toDateTimeString();
+        $endDateStr = $endDate->toDateTimeString();
+        $startLastMonthStr = $startLastMonth->toDateTimeString();
+        $endLastMonthStr = $endLastMonth->toDateTimeString();
 
         // ==================== //
         //   Data Bulan Lalu    //
         // ==================== //
-        $laba_kotor_bulan_lalu = LabaRugi::getTotalPendapatan($startLastMonth->toDateString(), $endLastMonth->toDateString())[0]->jumlah ?? 0;
+        $laba_kotor_bulan_lalu = LabaRugi::getTotalPendapatan($startLastMonthStr, $endLastMonthStr)[0]->jumlah ?? 0;
         $item_terjual_bulan_lalu = DB::table('inventories')
         ->where('movement_type', 'OUT-SAL')
         ->whereBetween('tanggal_transaksi', [$startLastMonth, $endLastMonth])
@@ -40,14 +60,14 @@ class MonthStatsOverview extends BaseWidget
         // ==================== //
         //   Data  Bulan Ini    //
         // ==================== //
-        $laba_kotor_bulan = LabaRugi::getTotalPendapatan($startDate->toDateString(), $endDate->toDateString()  . ' 23:59:59')[0]->jumlah ?? 0;
+        $laba_kotor_bulan = LabaRugi::getTotalPendapatan($startDateStr, $endDateStr)[0]->jumlah ?? 0;
         $item_terjual_bulan = DB::table('inventories')
         ->where('movement_type', 'OUT-SAL')
-        ->whereBetween('tanggal_transaksi', [$startDate, $endDate  . ' 23:59:59'])
+        ->whereBetween('tanggal_transaksi', [$startDate, $endDate])
             ->sum('jumlah_terkecil') ?? 0;
         $service_selesai_bulan = DB::table('service_schedules')
         ->where('is_approve', 'approved')
-        ->whereBetween('approved_at', [$startDate, $endDate  . ' 23:59:59'])
+        ->whereBetween('approved_at', [$startDate, $endDate])
             ->count();
 
         // ==================== //
