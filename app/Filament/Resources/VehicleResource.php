@@ -142,11 +142,14 @@ class VehicleResource extends Resource
             ->query(Vehicle::withCount('serviceHistories'))
             ->columns([
                 TextColumn::make('registration_number')
+                    ->sortable()
                     ->label('Nomor Polisi')
                     ->searchable(),
                 TextColumn::make('kode')
+                    ->sortable()
                     ->searchable(),
-                TextColumn::make('nomor_telepon')
+                TextColumn::make('serviceHistor.nomor_telepon')
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('service_histories_count')
                     ->label('Jumlah Kedatangan')
