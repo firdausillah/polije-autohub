@@ -149,6 +149,7 @@ class VehicleResource extends Resource
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('serviceHistor.nomor_telepon')
+                    ->label('Nomor Telepon')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('service_histories_count')
