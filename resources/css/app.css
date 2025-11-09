@@ -1,3 +1,29 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* === FILAMENT CHROME DROPDOWN CLICK FIX === */
+.fi-dropdown-panel[style*="display: none"] {
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+/* ensure container bisa di klik normal */
+.fi-ta-actions {
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+.fi-ta-actions-cell {
+    overflow: visible !important;
+}
+
+.fi-dropdown {
+    z-index: 50 !important;
+}
+
+.fi-dropdown-trigger {
+    position: relative;
+    z-index: 60;
+}

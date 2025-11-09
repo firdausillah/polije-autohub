@@ -810,7 +810,7 @@ class ServiceScheduleResource extends Resource
                 // $query->where('created_at','like', (now()->toDateString().'%'));
             })
             ->deferLoading()
-            ->poll('2s')
+            ->poll('3s')
             ->columns([
                 TextColumn::make('vehicle.registration_number')
                 ->label('Nopol')

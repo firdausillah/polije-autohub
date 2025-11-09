@@ -8,6 +8,8 @@ use App\Filament\Reports\LaporanPenjualan;
 use App\Filament\Reports\PemasukanPengeluaran;
 use Filament\Facades\Filament;
 use Filament\Navigation\NavigationItem;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -62,5 +64,11 @@ class AppServiceProvider extends ServiceProvider
                 ]);
             }
         });
+
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::BODY_END,
+            fn (): string => view('partials.session-expired-auto-reload')->render()
+        );
+        
     }
 }
