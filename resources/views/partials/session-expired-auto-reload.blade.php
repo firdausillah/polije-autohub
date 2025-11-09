@@ -1,6 +1,6 @@
 <script>
     document.addEventListener("livewire:init", () => {
-        console.log("[SessionHandler] Livewire initialized");
+        // console.log("[SessionHandler] Livewire initialized");
 
         let handled = false;
 
@@ -10,7 +10,7 @@
             fail((response) => {
                 if (response.status === 419 && !handled) {
                     handled = true;
-                    console.warn("[SessionHandler] Session expired detected — disabling Livewire & showing popup patch");
+                    // console.warn("[SessionHandler] Session expired detected — disabling Livewire & showing popup patch");
 
                     // Hentikan semua Livewire request berikutnya
                     try {
@@ -35,7 +35,7 @@
                     const observer = new MutationObserver(() => {
                         const reloadBtn = document.querySelector('button[wire\\:click="reloadPage"]');
                         if (reloadBtn) {
-                            console.log("[SessionHandler] Patched reload button");
+                            // console.log("[SessionHandler] Patched reload button");
                             reloadBtn.addEventListener('click', (e) => {
                                 e.preventDefault();
                                 window.location.reload();
