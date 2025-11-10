@@ -129,7 +129,7 @@ class ServiceDServicesRelationManager extends RelationManager
             ->recordTitleAttribute('service_name')
             ->poll('2s')
             ->columns([
-                Tables\Columns\TextColumn::make('serviceMType.name')
+                Tables\Columns\TextColumn::make('service_m_type.name')
                 ->label('Tipe Service'),
                 Tables\Columns\TextColumn::make('service_name')
                 ->label('Service'),
