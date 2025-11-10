@@ -89,6 +89,11 @@ class ServiceDServices extends Model
     {
         return $this->belongsTo(ServiceMType::class)->where('service_m_category_id', Payroll::find(auth()->user()->payroll_id)->service_m_category_id);
     }
+
+    public function service_m_type(): BelongsTo
+    {
+        return $this->belongsTo(ServiceMType::class, 'service_m_type_id');
+    }
     
     // public function services(): HasMany
     // {

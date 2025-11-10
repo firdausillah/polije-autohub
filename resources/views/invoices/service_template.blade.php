@@ -134,7 +134,7 @@
                     <?php foreach ($transaction_d_service as $key => $value) : ?>
                         <tr>
                             <td>{{$key+1}}</td>
-                            <td>{{$value->service_name}}</td>
+                            <td>{{$value->service_m_type->name}} <br> {{$value->service_name}}</td>
                             <td>{{$value->jumlah}}</td>
                             <td>{{"Rp " . number_format($value->harga_unit, 2, ",", ".")}}</td>
                             <td>{{"Rp " . number_format($value->harga_subtotal, 2, ",", ".")}}</td>

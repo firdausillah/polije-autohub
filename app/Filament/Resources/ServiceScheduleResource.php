@@ -503,10 +503,10 @@ class ServiceScheduleResource extends Resource
                     'invoices.service_template',
                     [
                         'transaction' => $record,
-                        'transaction_d_service' => ServiceDServices::where(['service_schedule_id' => $record->id])->get(),
+                        'transaction_d_service' => ServiceDServices::with('service_m_type')->where(['service_schedule_id' => $record->id])->get(),
                         'transaction_d_sparepart' => ServiceDSparepart::where(['service_schedule_id' => $record->id])->get()
                     ]
-                )
+                    )
                 ->render();
                 $filename = 'invoice-' . \Illuminate\Support\Str::random(15) . $record->id . \Illuminate\Support\Str::random(15) . '.pdf';
                 $path = storage_path("app/invoices/service/{$filename}");

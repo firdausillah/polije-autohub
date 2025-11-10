@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ServiceScheduleResource\RelationManagers;
 
 use App\Models\Service;
 use App\Models\ServiceDServices;
+use App\Models\ServiceMType;
 use App\Models\ServiceSchedule;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
@@ -128,7 +129,10 @@ class ServiceDServicesRelationManager extends RelationManager
             ->recordTitleAttribute('service_name')
             ->poll('2s')
             ->columns([
-                Tables\Columns\TextColumn::make('service_name'),
+                Tables\Columns\TextColumn::make('serviceMType.name')
+                ->label('Tipe Service'),
+                Tables\Columns\TextColumn::make('service_name')
+                ->label('Service'),
                 Tables\Columns\TextColumn::make('jumlah'),
                 Tables\Columns\CheckboxColumn::make('checklist_hasil'),
                 Tables\Columns\TextInputColumn::make('keterangan')
