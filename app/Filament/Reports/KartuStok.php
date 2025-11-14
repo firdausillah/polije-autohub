@@ -121,14 +121,19 @@ class KartuStok extends Report
     public function filterForm(Form $form): Form
     {
 
+        $data = \App\Models\Sparepart::orderBy('name')->pluck('name', 'id')->toArray();
+        // dd($data);
         return $form
             ->schema([
                 Select::make('sparepart_id')
                 ->label('Sparepart')
-                // ->searchable()
-                ->options(function () {
-                    return \App\Models\Sparepart::orderBy('name')->pluck('name', 'id');
-                })
+                ->searchable()
+                ->options([
+                    $data
+                ])
+                // ->options(function () {
+                //     return \App\Models\Sparepart::orderBy('name')->pluck('name', 'id');
+                // })
                 ->preload(),
                 DatePicker::make('start')
                 ->label('Rentang Tanggal')
