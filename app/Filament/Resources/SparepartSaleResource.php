@@ -686,7 +686,7 @@ class SparepartSaleResource extends Resource
 
                             $message = "Polije Autohub \nJl. Mastrip No.164, Sumbersari, Jember.\n\nPelanggan Yth,\n$record->customer_name\nTanggal : $record->approved_at\n\nBerikut adalah invoice Anda:\n{$downloadUrl}\n\n====================\nDetail Biaya :\nTotal Tagihan : " . FormatRupiah::rupiah($record->sub_total, true) . "\nDiscount : " . FormatRupiah::rupiah($record->discount_total, true) . "\nTotal : " . FormatRupiah::rupiah($record->total, true) . "\n-------------------------------\nTotal Bayar : " . FormatRupiah::rupiah($total_bayar, true) . "\nKembalian : " . FormatRupiah::rupiah($record->payment_change, true) . "\n\nJika ada pertanyaan, silakan hubungi kami kembali.\nContact Person : 081132211515";
 
-                            return 'https://wa.me/' . $record->nomor_telepon . '?text=' . rawurlencode($message);
+                            return 'https://wa.me/' . $record->customer_nomor_telepon . '?text=' . rawurlencode($message);
                         }
                     })
                     ->openUrlInNewTab()
