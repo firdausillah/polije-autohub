@@ -35,14 +35,21 @@ class ServiceDPaymentRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        return $ownerRecord->service_status === 'Menunggu Pembayaran' && auth()->user()->hasRole(['super_admin', 'Admin', 'Manager']);
+        return ($ownerRecord->service_status === 'Menunggu Pembayaran' OR $ownerRecord->service_status === 'Selesai') && auth()->user()->hasRole(['super_admin', 'Admin', 'Manager']);
     }
 
+    public function canCreate(): bool
+    {
+        $ownerRecord = $this->getOwnerRecord();
+        return $ownerRecord->service_status != 'Selesai';
+    }
+    
     public function form(Form $form): Form
     {
         return $form
             ->schema([
                 Select::make('account_id')
+                ->disabled(fn ($context) => $context === 'edit')
                 ->relationship('account', 'name')
                 ->live()
                 ->required()
@@ -57,6 +64,7 @@ class ServiceDPaymentRelationManager extends RelationManager
                 Hidden::make('account_name'),
                 Hidden::make('account_kode'),
                 TextInput::make('jumlah_bayar')
+                ->disabled(fn ($context) => $context === 'edit')
                 ->currencyMask(',')
                 ->required()
                 ->label('Jumlah Bayar')
@@ -80,6 +88,7 @@ class ServiceDPaymentRelationManager extends RelationManager
                     }
                 ),
                 TextInput::make('total_payable')
+                ->disabled(fn ($context) => $context === 'edit')
                 ->prefix('Rp ')
                 ->currencyMask(',')
                 // ->required()
@@ -97,6 +106,7 @@ class ServiceDPaymentRelationManager extends RelationManager
                 }
                 ),
                 TextInput::make('payment_change')
+                ->disabled(fn ($context) => $context === 'edit')
                 ->prefix('Rp ')
                 ->currencyMask(',')
                 ->label('kembalian')
@@ -146,7 +156,7 @@ class ServiceDPaymentRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make()
             ])
             ->actions([
-                // Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
@@ -155,4 +165,7 @@ class ServiceDPaymentRelationManager extends RelationManager
                 ]),
             ]);
     }
+
+
+
 }
