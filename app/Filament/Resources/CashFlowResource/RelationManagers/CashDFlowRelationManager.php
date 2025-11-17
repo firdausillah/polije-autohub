@@ -52,6 +52,7 @@ class CashDFlowRelationManager extends RelationManager
                 ->required(),
             Textarea::make('keterangan'),
             FileUpload::make('photo')
+                ->label('Bukti Transaksi')
                 ->image()
                 ->resize(50),
             ]);
@@ -71,6 +72,8 @@ class CashDFlowRelationManager extends RelationManager
                 )
                 ->money('IDR', locale: 'id_ID')
                 ->label('Total'),
+                tables\Columns\ImageColumn::make('photo')
+                ->label('Bukti Transaksi'),
                 Tables\Columns\TextColumn::make('keterangan'),
             ])
             ->filters([
