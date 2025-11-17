@@ -28,9 +28,16 @@ class PemasukanPengeluaran extends Model
             ->where('tanggal_transaksi', '<', $startDate)
             ->where('account_id', '=', $accountId)
             ->selectRaw("
-                COALESCE(SUM(debit)-SUM(kredit), 0) AS saldo_awal
+                0 AS saldo_awal
             ")
             ->first();
+        // $saldo_awal = DB::table('jurnals')
+        //     ->where('tanggal_transaksi', '<', $startDate)
+        //     ->where('account_id', '=', $accountId)
+        //     ->selectRaw("
+        //         COALESCE(SUM(debit)-SUM(kredit), 0) AS saldo_awal
+        //     ")
+        //     ->first();
 
 
         $transaksi = DB::table('jurnals')
