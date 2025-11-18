@@ -17,6 +17,8 @@ class ListServiceSchedules extends ListRecords
 
     public SupportCollection $serviceScheduleByStatuses;
 
+    protected $cachedSchedules;
+
     public function __construct()
     {
         $this->serviceScheduleByStatuses = ServiceSchedule::select('service_status', DB::raw('count(*) as status_count'))
@@ -30,6 +32,17 @@ class ListServiceSchedules extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    protected function loadSchedules()
+    {
+        if ($this->cachedSchedules === null) {
+            $this->cachedSchedules = $this->baseQueryWithRoleFilter(
+                ServiceSchedule::query()
+            )->get(); // Query sekali untuk badges
+        }
+
+        return $this->cachedSchedules;
     }
 
     protected function baseQueryWithRoleFilter(): Builder
@@ -52,36 +65,68 @@ class ListServiceSchedules extends ListRecords
         return $query;
     }
 
+    // protected function generateTab(string $status, string $color): Tab
+    // {
+    //     $query = ServiceSchedule::query()
+    //         ->where('service_status', $status);
+    //         // ->whereDate('created_at', now()->toDateString());
+    //     if (!in_array($status, ['Daftar', 'Selesai'])) {
+
+    //         if (auth()->user()->hasRole('Kepala Unit')) {
+    //             $query->where('kepala_unit_id', auth()->id());
+    //         }
+    //     }
+
+    //     return Tab::make()
+    //         ->badgeColor($color)
+    //         ->badge($query->count())
+    //         ->modifyQueryUsing(
+    //             fn (Builder $query) => $query->where('service_status', $status)
+    //         );
+    // }
+
     protected function generateTab(string $status, string $color): Tab
     {
-        $query = ServiceSchedule::query()
-            ->where('service_status', $status);
-            // ->whereDate('created_at', now()->toDateString());
-        if (!in_array($status, ['Daftar', 'Selesai'])) {
-
-            if (auth()->user()->hasRole('Kepala Unit')) {
-                $query->where('kepala_unit_id', auth()->id());
-            }
-        }
+        // badge memakai cache
+        $count = $this->loadSchedules()
+            ->where('service_status', $status)
+            ->count();
 
         return Tab::make()
             ->badgeColor($color)
-            ->badge($query->count())
+            ->badge($count)
             ->modifyQueryUsing(
-                fn (Builder $query) => $query->where('service_status', $status)
+                fn (Builder $query) =>
+                $query->where('service_status', $status) // ini query realtime
             );
     }
 
+
+    // public function getTabs(): array
+    // {
+    //     return [
+    //         'daftar' => $this->generateTab('Daftar', 'info'),
+    //         'proses_pengerjaan' => $this->generateTab('Proses Pengerjaan', 'warning'),
+    //         'batal' => $this->generateTab('Batal', 'danger'),
+    //         'pembayaran' => $this->generateTab('Menunggu Pembayaran', 'warning'),
+    //         'selesai' => $this->generateTab('Selesai', 'success'),
+    //         'semua' => Tab::make()
+    //             ->badge($this->baseQueryWithRoleFilter()->count()),
+    //     ];
+    // }
+
     public function getTabs(): array
     {
+        $data = $this->loadSchedules();
+
         return [
-            'daftar' => $this->generateTab('Daftar', 'info'),
-            'proses_pengerjaan' => $this->generateTab('Proses Pengerjaan', 'warning'),
-            'batal' => $this->generateTab('Batal', 'danger'),
-            'pembayaran' => $this->generateTab('Menunggu Pembayaran', 'warning'),
-            'selesai' => $this->generateTab('Selesai', 'success'),
-            'semua' => Tab::make()
-                ->badge($this->baseQueryWithRoleFilter()->count()),
+            'daftar'              => $this->generateTab('Daftar', 'info'),
+            'proses_pengerjaan'  => $this->generateTab('Proses Pengerjaan', 'warning'),
+            'batal'              => $this->generateTab('Batal', 'danger'),
+            'pembayaran'         => $this->generateTab('Menunggu Pembayaran', 'warning'),
+            'selesai'            => $this->generateTab('Selesai', 'success'),
+            'semua'              => Tab::make()->badge($data->count()),
         ];
     }
+
 }
