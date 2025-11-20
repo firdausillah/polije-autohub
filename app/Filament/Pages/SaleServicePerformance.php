@@ -42,43 +42,74 @@ class SaleServicePerformance extends Page implements Tables\Contracts\HasTable
         return $table
             ->query(
                 fn (): Builder => UserPayroll::query()
+                // ->select([
+                //     'user_payroll.id',
+                //     'user_payroll.user_name',
+                //     'user_payroll.payrole_name',
+                //     DB::raw("SUM(IFNULL(payroll_jurnals.nominal, 0)) as pendapatan_rp"),
+                //     DB::raw("SUM(
+                //         IF(
+                //             IFNULL(payroll_jurnals.nominal, 0) <= user_payroll.min_gaji,
+                //             IFNULL(payroll_jurnals.nominal, 0) / 2,
+                //             user_payroll.gaji_pokok
+                //         )
+                //     ) as gaji_rp"),
+                //     DB::raw("SUM(
+                //         IF(
+                //             IFNULL(payroll_jurnals.nominal, 0) <= user_payroll.min_bonus,
+                //             0,
+                //             IFNULL(payroll_jurnals.nominal, 0) * user_payroll.persentase_bonus / 100
+                //         )
+                //     ) as bonus_rp"),
+                //     DB::raw("COUNT(IFNULL(payroll_jurnals.id, 0)) as total_unit"),
+                //     DB::raw("SUM(IFNULL(payroll_jurnals.jumlah_service, 0)) as total_jasa"),
+                //     DB::raw("SUM(IFNULL(payroll_jurnals.jumlah_sparepart, 0)) as total_sparepart"),
+                // ])
+                // ->leftJoin('payroll_jurnals', function ($join) {
+                //     $join->on('user_payroll.id', '=', 'payroll_jurnals.user_id')
+                //         ->where('payroll_jurnals.is_dibayar', '=', 0);
+                //         // ->whereBetween('payroll_jurnals.created_at', [request('tanggal_awal'), request('tanggal_akhir')]);
+                // })
+                // ->groupBy(
+                //     'user_payroll.id',
+                //     'user_payroll.user_name',
+                //     'user_payroll.payrole_name',
+                //     'user_payroll.min_gaji',
+                //     'user_payroll.gaji_pokok',
+                //     'user_payroll.min_bonus',
+                //     'user_payroll.persentase_bonus'
+                // )
                 ->select([
-                    'user_payroll.id',
-                    'user_payroll.user_name',
-                    'user_payroll.payrole_name',
-                    DB::raw("SUM(IFNULL(payroll_jurnals.nominal, 0)) as pendapatan_rp"),
-                    DB::raw("SUM(
-                        IF(
-                            IFNULL(payroll_jurnals.nominal, 0) <= user_payroll.min_gaji,
-                            IFNULL(payroll_jurnals.nominal, 0) / 2,
-                            user_payroll.gaji_pokok
-                        )
-                    ) as gaji_rp"),
-                    DB::raw("SUM(
-                        IF(
-                            IFNULL(payroll_jurnals.nominal, 0) <= user_payroll.min_bonus,
-                            0,
-                            IFNULL(payroll_jurnals.nominal, 0) * user_payroll.persentase_bonus / 100
-                        )
-                    ) as bonus_rp"),
-                    DB::raw("COUNT(IFNULL(payroll_jurnals.id, 0)) as total_unit"),
-                    DB::raw("SUM(IFNULL(payroll_jurnals.jumlah_service, 0)) as total_jasa"),
-                    DB::raw("SUM(IFNULL(payroll_jurnals.jumlah_sparepart, 0)) as total_sparepart"),
+                    'up.id',
+                    'up.user_name',
+                    'up.payrole_name',
+                    DB::raw("SUM(IFNULL(pj.nominal, 0)) as pendapatan_rp"),
+                    DB::raw("up.gaji_pokok as gaji_rp"),
+                    DB::raw("
+                        CASE
+                            WHEN SUM(IFNULL(pj.nominal, 0)) <= up.min_bonus THEN 0
+                            ELSE SUM(IFNULL(pj.nominal, 0)) * up.persentase_bonus / 100
+                        END as bonus_rp
+                    "),
+                    DB::raw("COUNT(pj.id) as total_unit"),
+                    DB::raw("SUM(IFNULL(pj.jumlah_service, 0)) as total_jasa"),
+                    DB::raw("SUM(IFNULL(pj.jumlah_sparepart, 0)) as total_sparepart"),
                 ])
-                ->leftJoin('payroll_jurnals', function ($join) {
-                    $join->on('user_payroll.id', '=', 'payroll_jurnals.user_id')
-                        ->where('payroll_jurnals.is_dibayar', '=', 0);
-                        // ->whereBetween('payroll_jurnals.created_at', [request('tanggal_awal'), request('tanggal_akhir')]);
+                ->leftJoin('payroll_jurnals as pj', function ($join) {
+                    $join->on('up.id', '=', 'pj.user_id')
+                        ->where('pj.is_dibayar', '=', 0);
+                        // ->whereBetween('pj.created_at', [request('tanggal_awal'), request('tanggal_akhir')]);
                 })
                 ->groupBy(
-                    'user_payroll.id',
-                    'user_payroll.user_name',
-                    'user_payroll.payrole_name',
-                    'user_payroll.min_gaji',
-                    'user_payroll.gaji_pokok',
-                    'user_payroll.min_bonus',
-                    'user_payroll.persentase_bonus'
+                    'up.id',
+                    'up.user_name',
+                    'up.payrole_name',
+                    'up.gaji_pokok',
+                    'up.min_bonus',
+                    'up.persentase_bonus'
                 )
+                ->get()
+
 
                 // fn (): Builder => UserPayroll::query()
                 //     ->select(
@@ -144,11 +175,11 @@ class SaleServicePerformance extends Page implements Tables\Contracts\HasTable
                         fn ($query, array $data): Builder => $query
                             ->when(
                                 $data['tanggal_awal'] ?? false,
-                                fn ($query) => $query->whereDate('payroll_jurnals.created_at', '>=', $data['tanggal_awal'])
+                                fn ($query) => $query->whereDate('pj.created_at', '>=', $data['tanggal_awal'])
                             )
                             ->when(
                                 $data['tanggal_akhir'] ?? false,
-                                fn ($query) => $query->whereDate('payroll_jurnals.created_at', '<=', $data['tanggal_akhir'])
+                                fn ($query) => $query->whereDate('pj.created_at', '<=', $data['tanggal_akhir'])
                             )
                     ),
             ]);
