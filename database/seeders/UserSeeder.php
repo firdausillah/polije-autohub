@@ -38,14 +38,14 @@ class UserSeeder extends Seeder
         );
         $mekanikUser->assignRole('mekanik');
 
-        $kepalaMekanikUser = User::firstOrCreate(
+        $kepalaUnitUser = User::firstOrCreate(
             ['email' => 'kepala_mekanik@kepala_mekanik.com'],
             [
                 'name' => 'Kepala Unit User',
                 'password' => bcrypt('password'),
             ]
         );
-        $kepalaMekanikUser->assignRole('kepala_mekanik');
+        $kepalaUnitUser->assignRole('kepala_mekanik');
 
         echo "User default berhasil ditambahkan beserta role-nya.\n";
     }

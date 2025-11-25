@@ -22,6 +22,7 @@ use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Hidden;
@@ -128,11 +129,15 @@ class SparepartSaleResource extends Resource
         $set('payment_change', $payment_change);
     }
 
+    public static function createPayrollJurnal($data)
+    {
+        PayrollJurnal::create($data);
+    }
+
     public static function InsertJurnal($record, $status): void
     {
         try {
             if ($status == 'approved') {
-                // dd('ini');
                 // jurnal begin
 
                 // Jurnal Penjualan Sparepart
@@ -263,35 +268,104 @@ class SparepartSaleResource extends Resource
                 }
 
                 // Payroll
-                // liquid total
-                if($record->liquid_total > 0){
-                    PayrollJurnal::create([
-                        'transaksi_h_id' => $record->id,
-                        'user_id' => FacadesAuth::id(),
-                        'name' => User::find(FacadesAuth::id())->name,
-                        'keterangan' => 'Admin',
-                        'transaction_type' => 'Penjualan Sparepart',
-                        'jumlah_sparepart' => $record->liquid_jumlah,
-                        'nominal' => max(0,  $record->liquid_total),
-                        'is_liquid' => 1,
-                        'jenis_pendapatan' => 'liquid',
-                    ]);
+                // data jenis payroll admin
+                $adminJurnalData = [
+                    [
+                        'check' => $record->liquid_total > 0,
+                        'extra' => [
+                            'jumlah_sparepart' => $record->liquid_jumlah,
+                            'nominal' => max(0, $record->liquid_total),
+                            'is_liquid' => 1,
+                            'jenis_pendapatan' => 'liquid',
+                        ],
+                    ],
+                    [
+                        'check' => $record->part_total > 0,
+                        'extra' => [
+                            'jumlah_sparepart' => $record->part_jumlah,
+                            'nominal' => max(0, $record->part_total),
+                            'jenis_pendapatan' => 'part',
+                        ],
+                    ],
+                ];
 
+                // === PAYROLL ADMIN & KEPALA UNIT ===
+                $kepalaUnit = null;
+                if($record->kepala_unit_id!=0){
+                    $kepalaUnit = User::find($record->kepala_unit_id);
                 }
-                // part total
-                if($record->part_total > 0){
-                    PayrollJurnal::create([
-                        'transaksi_h_id' => $record->id,
-                        'user_id' => FacadesAuth::id(),
-                        'name' => User::find(FacadesAuth::id())->name,
-                        'keterangan' => 'Admin',
-                        'transaction_type' => 'Penjualan Sparepart',
-                        'jumlah_sparepart' => $record->part_jumlah,
-                        'nominal' => max(0, $record->part_total),
-                        'jenis_pendapatan' => 'part',
-                    ]);
+                foreach ($adminJurnalData as $item) {
+                    if (!$item['check']) continue;
+
+                    // ADMIN
+                    self::createPayrollJurnal(array_merge(
+                        [
+                            'transaksi_h_id' => $record->id,
+                            'kepala_unit_id' => $record->kepala_unit_id,
+                            'user_id' => FacadesAuth::id(),
+                            'name' => User::find(FacadesAuth::id())->name,
+                            'keterangan' => 'Admin',
+                            'transaction_type' => 'Penjualan Sparepart',
+                        ],
+                        $item['extra']
+                    ));
+
+                    // KEPALA UNIT
+                    if ($kepalaUnit) {
+                        self::createPayrollJurnal(array_merge(
+                            [
+                                'transaksi_h_id' => $record->id,
+                                'kepala_unit_id' => $record->kepala_unit_id,
+                                'user_id' => $kepalaUnit->id,
+                                'name' => $kepalaUnit->name,
+                                'keterangan' => 'Kepala Unit',
+                                'transaction_type' => 'Penjualan Sparepart',
+                            ],
+                            $item['extra']
+                        ));
+                    }
                 }
 
+                // === PAYROLL MEKANIK ===
+                $mekanik = null;
+                if ($record->mekanik_id != 0) {
+                    $mekanik = User::find($record->mekanik_id);
+                }
+                if ($mekanik) {
+
+                    $mekanikData = [
+                        [
+                            'check' => $record->liquid_total > 0,
+                            'extra' => [
+                                'jumlah_sparepart' => $record->liquid_jumlah,
+                                'nominal' => $record->liquid_total,
+                                'is_liquid' => 1,
+                                'jenis_pendapatan' => 'liquid',
+                            ],
+                        ],
+                        [
+                            'check' => $record->part_total > 0,
+                            'extra' => [
+                                'jumlah_sparepart' => $record->part_jumlah,
+                                'nominal' => $record->part_total,
+                                'jenis_pendapatan' => 'part',
+                            ],
+                        ],
+                    ];
+
+                    foreach ($mekanikData as $item) {
+                        if (!$item['check']) continue;
+
+                        self::createPayrollJurnal(array_merge([
+                            'transaksi_h_id' => $record->id,
+                            'kepala_unit_id' => $record->kepala_unit_id,
+                            'user_id' => $mekanik->id,
+                            'name' => $mekanik->name,
+                            'keterangan' => 'Mekanik',
+                            'transaction_type' => 'Penjualan Sparepart',
+                        ], $item['extra']));
+                    }
+                }
 
                 // Inventory OUT
                 $sparepartDSales = SparepartDSale::where('sparepart_sale_id', $record->id)->get();
@@ -496,16 +570,38 @@ class SparepartSaleResource extends Resource
                                     // ->readOnly()
                             ])
                     ]),
-                    Wizard\Step::make('Data Pelanggan')
+                    Wizard\Step::make('Data Pelanggan & Mekanik')
                         ->schema([
-                            TextInput::make('customer_name')
-                            ->required()
-                            ->label('Nama pelanggan'),
-                            TextInput::make('customer_nomor_telepon')
-                            ->default('+62')
-                            ->required()
-                            ->helperText('tambahkan kode negara (+62)')
-                            ->label('Nomor Telepon Pelanggan')
+                            Fieldset::make('Pelanggan')
+                            ->schema([
+                                TextInput::make('customer_name')
+                                    ->required()
+                                    ->label('Nama pelanggan'),
+                                TextInput::make('customer_nomor_telepon')
+                                    ->default('+62')
+                                    ->required()
+                                    ->helperText('tambahkan kode negara (+62)')
+                                    ->label('Nomor Telepon Pelanggan')
+                            ]),
+                            Fieldset::make('Mekanik')
+                                ->schema([
+                                    Select::make('kepala_unit_id')
+                                        ->label('Kepala Unit')
+                                        ->relationship('kepalaUnit', 'user_name')
+                                        ->reactive(), // Menandakan field ini bersifat reaktif
+                                    Select::make('mekanik_id')
+                                        ->label('Mekanik')
+                                        ->searchable()
+                                        ->preload()
+                                        ->relationship('mekanik', 'user_name')
+                                        ->disabled(fn ($get) => !$get('kepala_unit_id')) // Disable until kepala_unit_id is selected
+                                        ->afterStateUpdated(function ($state, $get) {
+                                            // Set mekanik_id to disabled when kepala_unit_id is not selected
+                                            if (!$get('kepala_unit_id')) {
+                                                $state->disabled = true;
+                                            }
+                                        }),
+                                ])
                         ]),
                     Wizard\Step::make('Pembayaran')
                     ->schema([

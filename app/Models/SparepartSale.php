@@ -26,6 +26,8 @@ class SparepartSale extends Model
             ->logOnly([
                 'id',
                 'name',
+                'mekanik_id',
+                'kepala_unit_id',
                 'kode',
                 'keterangan',
                 'created_by',
@@ -82,5 +84,15 @@ class SparepartSale extends Model
     public function sparepartDSalePayment(): HasMany
     {
         return $this->hasMany(SparepartDSalePayment::class);
+    }
+
+    public function kepalaUnit(): BelongsTo
+    {
+        return $this->belongsTo(UserRole::class)->where('role_name', 'like', 'Kepala Unit%');
+    }
+
+    public function mekanik(): BelongsTo
+    {
+        return $this->belongsTo(UserRole::class)->where('role_name', 'like', 'Mekanik%');
     }
 }
