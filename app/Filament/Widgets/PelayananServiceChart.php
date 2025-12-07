@@ -9,7 +9,18 @@ class PelayananServiceChart extends ChartWidget
 {
     protected static ?string $heading = 'Grafik Jumlah Pelanggan';
 
-    protected static ?int $sort = 5;
+    protected static ?int $sort = 50;
+
+    // public static function canView(): bool
+    // {
+    //     return auth()->check() && auth()->user()->hasRole(['Admin']);
+    // }
+
+    protected function getPollingInterval(): ?string
+    {
+        return '30s';
+    }
+
 
     // protected int | string | array $columnSpan = 'full';
 

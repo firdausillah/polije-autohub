@@ -11,17 +11,20 @@ use Illuminate\Support\Facades\DB;
 
 class WeekStatsOverview extends BaseWidget
 {
-    protected static ?int $sort = 1;
+    protected static ?int $sort = 30;
+
+    public static function canView(): bool
+    {
+        return auth()->check() && auth()->user()->hasRole(['Admin']);
+    }
+
+    protected function getPollingInterval(): ?string
+    {
+        return '30s';
+    }
 
     protected function getStats(): array
     {
-        // Minggu ini
-        // $startWeekDate = Carbon::now()->startOfWeek();
-        // $endWeekDate = Carbon::now()->endOfWeek()->addDay();
-
-        // // Minggu lalu
-        // $startLastWeek = Carbon::now()->subWeek()->startOfWeek();
-        // $endLastWeek = Carbon::now()->subWeek()->endOfWeek()->addDay();
 
         // Gunakan satu waktu acuan
         $now = Carbon::now();

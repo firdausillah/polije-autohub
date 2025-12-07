@@ -11,14 +11,20 @@ class PendapatanChart extends ChartWidget
 {
     protected static ?string $heading = 'Grafik Penapatan Bulan Ini';
 
-    protected static ?int $sort = 5;
+    protected static ?int $sort = 50;
 
     // protected int | string | array $columnSpan = 'full';
 
     // public static function canView(): bool
     // {
-    //     return false;
+    //     return auth()->check() && auth()->user()->hasRole(['Kepala Unit']);
     // }
+
+    protected function getPollingInterval(): ?string
+    {
+        return '30s';
+    }
+
 
     protected function getData(): array
     {

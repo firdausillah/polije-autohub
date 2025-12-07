@@ -35,6 +35,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Illuminate\Support\Facades\Date;
+use Saade\FilamentAutograph\Forms\Components\SignaturePad;
 
 class CashFlowResource extends Resource
 {
@@ -157,6 +158,12 @@ class CashFlowResource extends Resource
                 // FileUpload::make('photo')
                 // ->image()
                 // ->resize(50),
+                        //                     SignaturePad::make('signature_path')
+                        // ->backgroundColor('rgba(0,0,0,0)')  // Background color on light mode
+                        // ->backgroundColorOnDark('#000')     // Background color on dark mode (defaults to backgroundColor)
+                        // ->penColor('#000')                  // Pen color on light mode
+                        // ->penColorOnDark('#fff')            // Pen color on dark mode (defaults to penColor)
+                        // ->exportPenColor('#000'),
 
                 Hidden::make('account_name')
                 ->required(),

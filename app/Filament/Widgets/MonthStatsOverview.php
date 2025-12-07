@@ -11,18 +11,21 @@ use Illuminate\Support\Facades\DB;
 
 class MonthStatsOverview extends BaseWidget
 {
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 30;
+
+    public static function canView(): bool
+    {
+        return auth()->check() && auth()->user()->hasRole(['Admin']);
+    }
+
+    protected function getPollingInterval(): ?string
+    {
+        return '30s';
+    }
 
 
     protected function getStats(): array
     {
-        // $startDate = Carbon::now()->startOfMonth();
-        // $endDate = Carbon::now()->endOfMonth();
-
-        // $today = Carbon::now();
-
-        // $startLastMonth = Carbon::now()->subMonth()->startOfMonth();
-        // $endLastMonth = Carbon::now()->subMonth()->endOfMonth();
 
         // Base waktu tetap
         $now = Carbon::now();

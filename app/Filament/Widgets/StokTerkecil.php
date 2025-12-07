@@ -10,11 +10,21 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class StokTerkecil extends BaseWidget
 {
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 40;
+
+    protected function getPollingInterval(): ?string
+    {
+        return '30s';
+    }
+
+    // public static function canView(): bool
+    // {
+    //     return auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager', 'Admin', 'Kepala Unit']);
+    // }
 
     public static function canView(): bool
     {
-        return auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager', 'Admin', 'Kepala Unit']);
+        return auth()->check() && auth()->user()->hasRole(['Admin']);
     }
 
     public function table(Table $table): Table

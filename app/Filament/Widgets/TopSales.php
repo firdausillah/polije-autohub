@@ -11,11 +11,21 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class TopSales extends BaseWidget
 {
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 40;
+
+    // public static function canView(): bool
+    // {
+    //     return auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager','Admin', 'Kepala Unit']);
+    // }
 
     public static function canView(): bool
     {
-        return auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager','Admin', 'Kepala Unit']);
+        return auth()->check() && auth()->user()->hasRole(['Admin']);
+    }
+
+    protected function getPollingInterval(): ?string
+    {
+        return '30s';
     }
 
     public function table(Table $table): Table
