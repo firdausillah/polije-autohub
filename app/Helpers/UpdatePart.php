@@ -25,14 +25,24 @@ class UpdatePart
     public static function Service()
     {
 
-        $services = ServiceSchedule::where(['is_approve' => 'approved'])->get();
-        
-        foreach ($services as $key => $record) {
+        $services = ServiceSchedule::where(['is_approve' => 'approved'])
+        ->with([
+            'kepalaUnit',
+            'adminUser' => fn ($q) => $q->select('id', 'name'),
+            'serviceDServices',
+            'mekanikList.user:id,name'
+        ])
+        ->get();
+
+        // cache user lookup (avoid repetitive find)
+        $userCache = User::select('id', 'name')->get()->keyBy('id');
+
+        foreach ($services as $record) {
 
             // Payroll
-            $jumlah_service_terlayani   = ServiceDServices::where('service_schedule_id', $record->id)->sum('jumlah');
+            $jumlah_service_terlayani = $record->serviceDServices->sum('jumlah');
 
-            // data jenis payroll admin
+            // admin + kepala unit payroll data
             $adminJurnalData = [
                 [
                     'check' => $record->service_total > 0,
@@ -61,24 +71,29 @@ class UpdatePart
                 ],
             ];
 
-            // === PAYROLL ADMIN & KEPALA UNIT ===
-            $kepalaUnit = User::find($record->kepala_unit_id);
+
+            // === ADMIN + KEPALA UNIT PAYROLL ===
+            $adminUser = $userCache[$record->approved_by] ?? null;
+            $kepalaUnit = $record->kepalaUnit;
+
             foreach ($adminJurnalData as $item) {
                 if (!$item['check']) continue;
 
                 // ADMIN
-                self::createPayrollJurnal(array_merge(
-                    [
-                        'transaksi_h_id' => $record->id,
-                        'kepala_unit_id' => $record->kepala_unit_id,
-                        'user_id' => $record->approved_by,
-                        'name' => User::find($record->approved_by)->name,
-                        'keterangan' => 'Admin',
-                        'created_at' => $record->approved_at,
-                        'transaction_type' => 'Pelayanan Service',
-                    ],
-                    $item['extra']
-                ));
+                if ($adminUser) {
+                    self::createPayrollJurnal(array_merge(
+                        [
+                            'transaksi_h_id' => $record->id,
+                            'kepala_unit_id' => $record->kepala_unit_id,
+                            'user_id' => $adminUser->id,
+                            'name' => $adminUser->name,
+                            'keterangan' => 'Admin',
+                            'created_at' => $record->approved_at,
+                            'transaction_type' => 'Pelayanan Service',
+                        ],
+                        $item['extra']
+                    ));
+                }
 
                 // KEPALA UNIT
                 if ($kepalaUnit) {
@@ -96,19 +111,22 @@ class UpdatePart
                     ));
                 }
             }
-    
+
+
             // === PAYROLL MEKANIK ===
-            $mekanikList = ServiceDMekanik::where('service_schedule_id', $record->id)->get();
-            foreach ($mekanikList as $mekanik) {
-                $mekanikUser = User::find($mekanik->mekanik_id);
+            foreach ($record->mekanikList as $mekanik) {
+
+                $mekanikUser = $mekanik->user;
                 if (!$mekanikUser) continue;
-    
+
+                $mekanikPercentage = ($mekanik->mekanik_percentage / 100);
+
                 $mekanikData = [
                     [
                         'check' => $record->service_total > 0,
                         'extra' => [
                             'jumlah_service' => $jumlah_service_terlayani,
-                            'nominal' => max(0, ($mekanik->mekanik_percentage / 100) * $record->service_total),
+                            'nominal' => max(0, $mekanikPercentage * $record->service_total),
                             'jenis_pendapatan' => 'service',
                         ],
                     ],
@@ -116,7 +134,7 @@ class UpdatePart
                         'check' => $record->liquid_total > 0,
                         'extra' => [
                             'jumlah_sparepart' => $record->liquid_jumlah,
-                            'nominal' => max(0, ($mekanik->mekanik_percentage / 100) * $record->liquid_total),
+                            'nominal' => max(0, $mekanikPercentage * $record->liquid_total),
                             'is_liquid' => 1,
                             'jenis_pendapatan' => 'liquid',
                         ],
@@ -125,15 +143,15 @@ class UpdatePart
                         'check' => $record->part_total > 0,
                         'extra' => [
                             'jumlah_sparepart' => $record->part_jumlah,
-                            'nominal' => max(0, ($mekanik->mekanik_percentage / 100) * $record->part_total),
+                            'nominal' => max(0, $mekanikPercentage * $record->part_total),
                             'jenis_pendapatan' => 'part',
                         ],
                     ],
                 ];
-    
+
                 foreach ($mekanikData as $item) {
                     if (!$item['check']) continue;
-    
+
                     self::createPayrollJurnal(array_merge([
                         'transaksi_h_id' => $record->id,
                         'kepala_unit_id' => $record->kepala_unit_id,
@@ -148,15 +166,25 @@ class UpdatePart
             }
         }
 
+
     }
 
     public static function Sale()
     {
 
-        $sales = SparepartSale::where(['is_approve' => 'approved'])->get();
-        foreach ($sales as $key => $record){
+        $sales = SparepartSale::where(['is_approve' => 'approved'])
+        ->with([
+            'kepalaUnit:id,name',
+            'mekanik:id,name',
+            'adminUser:id,name' // optional if relation exists
+        ])
+        ->get();
 
-            // Payroll
+        // cache name lookup supaya aman jika relasi tidak ada
+        $userCache = User::select('id', 'name')->get()->keyBy('id');
+
+        foreach ($sales as $record) {
+
             // data jenis payroll admin
             $adminJurnalData = [
                 [
@@ -179,26 +207,27 @@ class UpdatePart
             ];
 
             // === PAYROLL ADMIN & KEPALA UNIT ===
-            $kepalaUnit = null;
-            if ($record->kepala_unit_id != 0) {
-                $kepalaUnit = User::find($record->kepala_unit_id);
-            }
+            $adminUser = $userCache[$record->approved_by] ?? null;
+            $kepalaUnit = $record->kepalaUnit ?? ($record->kepala_unit_id ? ($userCache[$record->kepala_unit_id] ?? null) : null);
+
             foreach ($adminJurnalData as $item) {
                 if (!$item['check']) continue;
 
                 // ADMIN
-                self::createPayrollJurnal(array_merge(
-                    [
-                        'transaksi_h_id' => $record->id,
-                        'kepala_unit_id' => $record->kepala_unit_id,
-                        'user_id' => $record->approved_by,
-                        'name' => User::find($record->approved_by)->name,
-                        'keterangan' => 'Admin',
-                        'created_at' => $record->approved_at,
-                        'transaction_type' => 'Penjualan Sparepart',
-                    ],
-                    $item['extra']
-                ));
+                if ($adminUser) {
+                    self::createPayrollJurnal(array_merge(
+                        [
+                            'transaksi_h_id' => $record->id,
+                            'kepala_unit_id' => $record->kepala_unit_id,
+                            'user_id' => $adminUser->id,
+                            'name' => $adminUser->name,
+                            'keterangan' => 'Admin',
+                            'created_at' => $record->approved_at,
+                            'transaction_type' => 'Penjualan Sparepart',
+                        ],
+                        $item['extra']
+                    ));
+                }
 
                 // KEPALA UNIT
                 if ($kepalaUnit) {
@@ -218,18 +247,18 @@ class UpdatePart
             }
 
             // === PAYROLL MEKANIK ===
-            $mekanik = null;
-            if ($record->mekanik_id != 0) {
-                $mekanik = User::find($record->mekanik_id);
-            }
-            if ($mekanik) {
+            $mekanikUser = $record->mekanik_id
+                ? ($record->mekanik ?? ($userCache[$record->mekanik_id] ?? null))
+                : null;
+
+            if ($mekanikUser) {
 
                 $mekanikData = [
                     [
                         'check' => $record->liquid_total > 0,
                         'extra' => [
                             'jumlah_sparepart' => $record->liquid_jumlah,
-                            'nominal' => $record->liquid_total,
+                            'nominal' => max(0, $record->liquid_total),
                             'is_liquid' => 1,
                             'jenis_pendapatan' => 'liquid',
                         ],
@@ -238,7 +267,7 @@ class UpdatePart
                         'check' => $record->part_total > 0,
                         'extra' => [
                             'jumlah_sparepart' => $record->part_jumlah,
-                            'nominal' => $record->part_total,
+                            'nominal' => max(0, $record->part_total),
                             'jenis_pendapatan' => 'part',
                         ],
                     ],
@@ -250,8 +279,8 @@ class UpdatePart
                     self::createPayrollJurnal(array_merge([
                         'transaksi_h_id' => $record->id,
                         'kepala_unit_id' => $record->kepala_unit_id,
-                        'user_id' => $mekanik->id,
-                        'name' => $mekanik->name,
+                        'user_id' => $mekanikUser->id,
+                        'name' => $mekanikUser->name,
                         'keterangan' => 'Mekanik',
                         'created_at' => $record->approved_at,
                         'transaction_type' => 'Penjualan Sparepart',
@@ -259,5 +288,6 @@ class UpdatePart
                 }
             }
         }
+
     }
 }
