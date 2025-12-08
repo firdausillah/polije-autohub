@@ -22,10 +22,10 @@ class StokTerkecil extends BaseWidget
     //     return auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager', 'Admin', 'Kepala Unit']);
     // }
 
-    // public static function canView(): bool
-    // {
-    //     return auth()->check() && auth()->user()->hasRole(['Manager']);
-    // }
+    public static function canView(): bool
+    {
+        return auth()->check() && auth()->user()->hasRole(['Manager']);
+    }
 
     public function table(Table $table): Table
     {
