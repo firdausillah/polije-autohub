@@ -24,7 +24,7 @@ class StokTerkecil extends BaseWidget
 
     public static function canView(): bool
     {
-        return auth()->check() && auth()->user()->hasRole(['Admin']);
+        return auth()->check() && auth()->user()->hasRole(['Manager']);
     }
 
     public function table(Table $table): Table

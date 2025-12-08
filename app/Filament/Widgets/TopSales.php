@@ -20,7 +20,7 @@ class TopSales extends BaseWidget
 
     public static function canView(): bool
     {
-        return auth()->check() && auth()->user()->hasRole(['Admin']);
+        return auth()->check() && auth()->user()->hasRole(['Manager']);
     }
 
     protected function getPollingInterval(): ?string
