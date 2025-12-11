@@ -17,11 +17,10 @@ class EditSparepartSale extends EditRecord
         ];
     }
 
-    private function isCreateDisabled(): bool
-    {
-        // Ambil data terbaru, bisa dari model atau session
-        $latestRecord = $this->getModel()::latest()->first();
+    // private function isCreateDisabled(): bool
+    // {
+    //     $latestRecord = $this->getModel()::latest()->first();
 
-        return $latestRecord?->is_approve === 'approved';
-    }
+    //     return $latestRecord?->is_approve === 'approved';
+    // }
 }

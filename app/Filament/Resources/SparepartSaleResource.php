@@ -470,85 +470,114 @@ class SparepartSaleResource extends Resource
                         Repeater::make('sparepartDSale')
                             ->label('Order Sparepart')
                             ->relationship('sparepartDSale')
-                            ->columns([
-                                'md' =>2,
-                                ])
+                            ->columns(['md' => 2])
                             ->schema([
+                                
                                 Select::make('sparepart_satuan_id')
-                                ->relationship('sparepartSatuan', 'id')
-                                ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->sparepart->name} - {$record->satuan_name} (" . number_format($record->harga, 0, ',', '.') . ")")
-                                ->searchable()
-                                ->preload()
-                                ->afterStateUpdated(
-                                    function (Get $get, Set $set, $state) {
+                                    ->disabled(fn ($get, $set, $state, $livewire) =>
+                                        $livewire->getRecord()?->is_approve === 'approved'
+                                    )
+                                    ->relationship('sparepartSatuan', 'id')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) =>
+                                        "{$record->sparepart->name} - {$record->satuan_name} (" . number_format($record->harga, 0, ',', '.') . ")"
+                                    )
+                                    ->searchable()
+                                    ->preload()
+                                    ->afterStateUpdated(function (Get $get, Set $set, $state) {
                                         ($state != '' ? self::updateSubtotal($get, $set) : 0);
-                                    }
-                                )
-                                ->getSearchResultsUsing(function (string $search) {
-                                    return \App\Models\SparepartSatuans::query()
-                                        ->whereHas('sparepart', fn ($query) => 
-                                            $query->where('name', 'like', "%{$search}%")
-                                        )
-                                        ->get()
-                                        ->mapWithKeys(function ($record) {
-                                            return [$record->id => "{$record->sparepart->name} - {$record->satuan_name} (" . number_format($record->harga, 0, ',', '.') . ")"];
-                                        });
-                                }),
+                                    })
+                                    ->getSearchResultsUsing(function (string $search) {
+                                        return \App\Models\SparepartSatuans::query()
+                                            ->whereHas('sparepart', fn ($query) =>
+                                                $query->where('name', 'like', "%{$search}%")
+                                            )
+                                            ->get()
+                                            ->mapWithKeys(function ($record) {
+                                                return [
+                                                    $record->id =>
+                                                        "{$record->sparepart->name} - {$record->satuan_name} (" .
+                                                        number_format($record->harga, 0, ',', '.') .
+                                                        ")"
+                                                ];
+                                            });
+                                    }),
 
+                                Hidden::make('sparepart_id')
+                                    ->disabled(fn ($get, $set, $state, $livewire) =>
+                                        $livewire->getRecord()?->is_approve === 'approved'
+                                    ),
 
-                                Hidden::make('sparepart_id'),
-                                Hidden::make('satuan_id'),
-                                Hidden::make('harga_unit'),
-                                Hidden::make('pajak'),
+                                Hidden::make('satuan_id')
+                                    ->disabled(fn ($get, $set, $state, $livewire) =>
+                                        $livewire->getRecord()?->is_approve === 'approved'
+                                    ),
+
+                                Hidden::make('harga_unit')
+                                    ->disabled(fn ($get, $set, $state, $livewire) =>
+                                        $livewire->getRecord()?->is_approve === 'approved'
+                                    ),
+
+                                Hidden::make('pajak')
+                                    ->disabled(fn ($get, $set, $state, $livewire) =>
+                                        $livewire->getRecord()?->is_approve === 'approved'
+                                    ),
 
                                 TextInput::make('jumlah_unit')
+                                    ->disabled(function (Get $get, $set, $state, $livewire) {
+                                        $approved = $livewire->getRecord()?->is_approve === 'approved';
+                                        $noSatuan = !$get('sparepart_satuan_id');
+                                        return $approved || $noSatuan;
+                                    })
                                     ->required()
                                     ->default(1)
                                     ->numeric()
                                     ->live(debounce: 500)
-                                    ->afterStateUpdated(
-                                        function (Get $get, Set $set, $state){
-                                            ($state !='' ? self::updateSubtotal($get, $set) : 0);
-
-                                        }
-                                    )
-                                    // ->default(0)
-                                    ->disabled(fn (Get $get) => !$get('sparepart_satuan_id')),
-                                TextInput::make('harga_subtotal')
-                                ->required()
-                                ->live()
-                                ->label('Harga subtotal')
-                                ->default(0)
-                                ->currencyMask(',')
-                                // ->prefix('Rp ')
-                                ->numeric()
-                                ->readOnly(),
-                                TextInput::make('discount')
-                                ->currencyMask(',')
-                                ->numeric()
-                                ->live(debounce: 500)
-                                ->afterStateUpdated(
-                                    function (Get $get, Set $set, $state) {
+                                    ->afterStateUpdated(function (Get $get, Set $set, $state) {
                                         ($state != '' ? self::updateSubtotal($get, $set) : 0);
-                                    }
-                                )
-                                ->default(0)
+                                    }),
+
+                                TextInput::make('harga_subtotal')
+                                    ->disabled(fn ($get, $set, $state, $livewire) =>
+                                        $livewire->getRecord()?->is_approve === 'approved'
+                                    )
+                                    ->required()
+                                    ->live()
+                                    ->label('Harga subtotal')
+                                    ->default(0)
+                                    ->currencyMask(',')
+                                    ->numeric()
+                                    ->readOnly(),
+
+                                TextInput::make('discount')
+                                    ->disabled(fn ($get, $set, $state, $livewire) =>
+                                        $livewire->getRecord()?->is_approve === 'approved'
+                                    )
+                                    ->currencyMask(',')
+                                    ->numeric()
+                                    ->live(debounce: 500)
+                                    ->afterStateUpdated(function (Get $get, Set $set, $state) {
+                                        ($state != '' ? self::updateSubtotal($get, $set) : 0);
+                                    })
+                                    ->default(0)
                             ])
                             ->live()
                             ->afterStateUpdated(function (Set $set, Get $get) {
                                 self::updatedTotals($get, $set);
                             }),
 
+
                         Grid::make()
                             ->columns('3')
                             ->schema([
                                 TextInput::make('sub_total')
+                                ->disabled(fn ($record) => $record && $record->is_approve === 'approved')
                                     ->currencyMask(',')
                                     ->default(0)
                                     ->prefix('Rp ')
                                     ->numeric()
                                     ->readOnly(),
                                 TextInput::make('discount_total')
+                                ->disabled(fn ($record) => $record && $record->is_approve === 'approved')
                                 ->currencyMask(',')
                                     ->default(0)
                                     ->prefix('Rp ')
@@ -559,12 +588,14 @@ class SparepartSaleResource extends Resource
                                     })
                                     ->readOnly(fn($state) => $state!=0),
                                 TextInput::make('total')
+                                ->disabled(fn ($record) => $record && $record->is_approve === 'approved')
                                 ->currencyMask(',')
                                     ->default(0)
                                     ->prefix('Rp ')
                                     ->numeric()
                                     ->readOnly(),
                                 Hidden::make('pajak_total')
+                                ->disabled(fn ($record) => $record && $record->is_approve === 'approved')
                                     ->default(0)
                                     // ->numeric()
                                     // ->readOnly()
@@ -575,39 +606,45 @@ class SparepartSaleResource extends Resource
                             Fieldset::make('Pelanggan')
                             ->schema([
                                 TextInput::make('customer_name')
+                                ->disabled(fn ($record) => $record && $record->is_approve === 'approved')
                                     ->required()
                                     ->label('Nama pelanggan'),
                                 TextInput::make('customer_nomor_telepon')
+                                ->disabled(fn ($record) => $record && $record->is_approve === 'approved')
                                     ->default('+62')
                                     ->required()
                                     ->helperText('tambahkan kode negara (+62)')
                                     ->label('Nomor Telepon Pelanggan')
                             ]),
                             Fieldset::make('Mekanik')
-                                ->schema([
-                                    Select::make('kepala_unit_id')
-                                        ->label('Kepala Unit')
-                                        ->relationship('kepalaUnit', 'user_name')
-                                        ->reactive(), // Menandakan field ini bersifat reaktif
-                                    Select::make('mekanik_id')
-                                        ->label('Mekanik')
-                                        ->searchable()
-                                        ->preload()
-                                        ->relationship('mekanik', 'user_name')
-                                        ->disabled(fn ($get) => !$get('kepala_unit_id')) // Disable until kepala_unit_id is selected
-                                        ->afterStateUpdated(function ($state, $get) {
-                                            // Set mekanik_id to disabled when kepala_unit_id is not selected
-                                            if (!$get('kepala_unit_id')) {
-                                                $state->disabled = true;
-                                            }
-                                        }),
-                                ])
+                            ->schema([
+                                Select::make('kepala_unit_id')
+                                    ->label('Kepala Unit')
+                                    ->relationship('kepalaUnit', 'user_name')
+                                    ->reactive()
+                                    ->disabled(
+                                        fn ($get, $set, $state, $livewire) =>
+                                        $livewire->getRecord()?->is_approve === 'approved'
+                                    ),
+
+                                Select::make('mekanik_id')
+                                    ->label('Mekanik')
+                                    ->searchable()
+                                    ->preload()
+                                    ->relationship('mekanik', 'user_name')
+                                    ->disabled(
+                                        fn ($get, $set, $state, $livewire) =>
+                                        $livewire->getRecord()?->is_approve === 'approved' || !$get('kepala_unit_id')
+                                    ),
+                            ])
+
                         ]),
                     Wizard\Step::make('Pembayaran')
                     ->schema([
                         Grid::make(2)
                         ->schema([
                             TextInput::make('total')
+                            ->disabled(fn ($record) => $record && $record->is_approve === 'approved')
                                 ->currencyMask(',')
                                 ->default(0)
                                 ->prefix('Rp ')
@@ -615,6 +652,7 @@ class SparepartSaleResource extends Resource
                                 ->numeric()
                                 ->readOnly(),
                             TextInput::make('payment_change')
+                            ->disabled(fn ($record) => $record && $record->is_approve === 'approved')
                                 ->currencyMask(',')
                                 ->default(0)
                                 ->prefix('Rp ')
@@ -623,57 +661,62 @@ class SparepartSaleResource extends Resource
                                 ->readOnly()
                         ]),
                         Repeater::make('sparepartDSalePayment')
-                        ->label('Metode Pembayaran')
-                        ->relationship('sparepartDSalePayment')
-                        ->schema([
-                            Grid::make()
-                                ->columns('2')
-                                ->schema([
-                                    Select::make('account_id')
-                                    ->required()
-                                    ->relationship('account', 'name')
-                                    ->live()
-                                    ->afterStateUpdated(function (Set $set, Get $get, $state, $livewire) {
-                                        $account = Account::find($state);
-                                        $set('account_name', $account->name);
-                                        $set('account_kode', $account->kode);
-                                        // dd(count($livewire->data['sparepart_d_sale_payments']));
+                            ->label('Metode Pembayaran')
+                            ->relationship('sparepartDSalePayment')
+                            ->schema([
+                                Grid::make()
+                                    ->columns('2')
+                                    ->schema([
+                                        Select::make('account_id')
+                                            ->required()
+                                            ->relationship('account', 'name')
+                                            ->live()
+                                            ->disabled(fn ($get, $set, $state, $livewire) =>
+                                                $livewire->getRecord()?->is_approve === 'approved'
+                                            )
+                                            ->afterStateUpdated(function (Set $set, Get $get, $state, $livewire) {
+                                                $account = Account::find($state);
+                                                $set('account_name', $account->name);
+                                                $set('account_kode', $account->kode);
 
-                                        if (count($livewire->data['sparepartDSalePayment']) == 1) {
-                                            $set('jumlah_bayar', $livewire->data['total']);
-                                            $set('total_payable', $livewire->data['total']);
-                                        }else{
-                                            $total_payable = $livewire->data['total'] - array_sum(array_column($livewire->data['sparepartDSalePayment'], 'jumlah_bayar'));
-                                            $set('jumlah_bayar', $total_payable);
-                                            $set('total_payable', $total_payable);
-                                            
-                                            // dd($livewire->data['total'], array_sum(array_column($livewire->data['sparepartDSalePayment'], 'jumlah_bayar')));
+                                                if (count($livewire->data['sparepartDSalePayment']) == 1) {
+                                                    $set('jumlah_bayar', $livewire->data['total']);
+                                                    $set('total_payable', $livewire->data['total']);
+                                                } else {
+                                                    $total_payable = $livewire->data['total'] - array_sum(array_column($livewire->data['sparepartDSalePayment'], 'jumlah_bayar'));
+                                                    $set('jumlah_bayar', $total_payable);
+                                                    $set('total_payable', $total_payable);
+                                                }
+                                            }),
 
+                                        TextInput::make('jumlah_bayar')
+                                            ->currencyMask(',')
+                                            ->required()
+                                            ->disabled(fn ($get, $set, $state, $livewire) =>
+                                                $livewire->getRecord()?->is_approve === 'approved'
+                                            ),
 
-                                        }
-                                        
-                                    }),
-                                    TextInput::make('jumlah_bayar')
-                                    ->currencyMask(',')
-                                    ->required(),
-                                    FileUpload::make('photo')
-                                        ->label('Bukti pembayaran')
-                                        ->image()
-                                        ->resize(50),
-                                    Hidden::make('total_payable'),
-                                    Hidden::make('account_name'),
-                                    Hidden::make('account_kode'),
-                                ])
-                        ])
-                        ->live(debounce:500)
-                        ->afterStateUpdated(function (Set $set, Get $get) {
-                            self::updatePaymentChange($get, $set);
-                        }),
+                                        FileUpload::make('photo')
+                                            ->label('Bukti pembayaran')
+                                            ->disabled(false) // tetap aktif
+                                            ->image()
+                                            ->resize(50),
+
+                                        Hidden::make('total_payable'),
+                                        Hidden::make('account_name'),
+                                        Hidden::make('account_kode'),
+                                    ])
+                            ])
+                            ->live(debounce: 500)
+                            ->afterStateUpdated(function (Set $set, Get $get) {
+                                self::updatePaymentChange($get, $set);
+                            })
+
                     ]),
                 ])
                 ->columnSpan('full')
                 ->skippable()
-            ])->disabled(fn ($record) => $record && $record->is_approve === 'approved');
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -757,8 +800,8 @@ class SparepartSaleResource extends Resource
                         ->requiresConfirmation()
                         ->label(fn (SparepartSale $record) => $record->is_approve === 'approved' ? 'Reject' : 'Approve'),
 
-                    Tables\Actions\EditAction::make()
-                    ->visible(fn (SparepartSale $record) => $record->is_approve !== 'approved'),
+                    Tables\Actions\EditAction::make(),
+                    // ->visible(fn (SparepartSale $record) => $record->is_approve !== 'approved'),
                     Tables\Actions\Action::make('kirimInvoice')
                     ->label('Kirim Invoice')
                     ->icon('heroicon-o-paper-airplane')
