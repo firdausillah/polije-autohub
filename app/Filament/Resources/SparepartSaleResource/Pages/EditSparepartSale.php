@@ -13,14 +13,14 @@ class EditSparepartSale extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make()->disabled(fn () => $this->isCreateDisabled()),
+            // Actions\DeleteAction::make()->disabled(fn () => $this->isCreateDisabled()),
         ];
     }
 
-    // private function isCreateDisabled(): bool
-    // {
-    //     $latestRecord = $this->getModel()::latest()->first();
+    private function isCreateDisabled(): bool
+    {
+        $latestRecord = $this->getModel()::latest()->first();
 
-    //     return $latestRecord?->is_approve === 'approved';
-    // }
+        return $latestRecord?->is_approve === 'approved';
+    }
 }
