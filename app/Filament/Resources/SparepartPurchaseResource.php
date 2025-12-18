@@ -248,15 +248,15 @@ class SparepartPurchaseResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
-                FiltersFilter::make('created_at')
+                FiltersFilter::make('tanggal_transaksi')
                 ->form([
                     DatePicker::make('from')->default(Carbon::now()->startOfMonth()),
                     DatePicker::make('to')->default(Carbon::now()->endOfMonth()),
                 ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when($data['from'], fn ($query) => $query->whereDate('created_at', '>=', $data['from']))
-                            ->when($data['to'], fn ($query) => $query->whereDate('created_at', '<=', $data['to']));
+                            ->when($data['from'], fn ($query) => $query->whereDate('tanggal_transaksi', '>=', $data['from']))
+                            ->when($data['to'], fn ($query) => $query->whereDate('tanggal_transaksi', '<=', $data['to']));
                     })
                     ->indicateUsing(function (array $data) {
                         return 'Data Bulan Ini';
