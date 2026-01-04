@@ -14,6 +14,7 @@ use Filament\Forms\Form;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Carbon\Carbon;
 use EightyNine\Reports\Components\Body\TextColumn;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Infolists\Components\TextEntry;
 use Illuminate\Support\Facades\Auth;
 
@@ -219,10 +220,10 @@ class LabaRugi extends Report
     {
         return $form
             ->schema([
-                DatePicker::make('start')
+                DateTimePicker::make('start')
                 ->label('Mulai Tanggal')
                 ->default(now()->startOfMonth()), // Default ke 1 bulan terakhir
-                DatePicker::make('end')
+                DateTimePicker::make('end')
                 ->label('Sampai Tanggal')
                 ->default(now()->endOfMonth())
             ]);

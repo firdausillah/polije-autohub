@@ -6,6 +6,7 @@ use App\Filament\Reports\KartuStok;
 use App\Filament\Reports\LabaRugi;
 use App\Filament\Reports\LaporanPenjualan;
 use App\Filament\Reports\PemasukanPengeluaran;
+use App\Filament\Reports\UserIncomeReport;
 use Filament\Facades\Filament;
 use Filament\Navigation\NavigationItem;
 use Filament\Support\Facades\FilamentView;
@@ -42,16 +43,19 @@ class AppServiceProvider extends ServiceProvider
                         ->label('Laba Rugi')
                         ->url(LabaRugi::getUrl())
                         ->icon('heroicon-o-document-text')
+                        ->isActiveWhen(fn () => request()->routeIs(LabaRugi::getRouteName()))
                         ->group('Laporan'),
                     NavigationItem::make()
                         ->label('Pemasukan & Pengeluaran')
                         ->url(PemasukanPengeluaran::getUrl())
                         ->icon('heroicon-o-document-text')
+                        ->isActiveWhen(fn () => request()->routeIs(PemasukanPengeluaran::getRouteName()))
                         ->group('Laporan'),
                     NavigationItem::make()
                         ->label('Laporan Penjualan')
                         ->url(LaporanPenjualan::getUrl())
                         ->icon('heroicon-o-document-text')
+                        ->isActiveWhen(fn () => request()->routeIs(LaporanPenjualan::getRouteName()))
                         ->group('Laporan'),
                 ]);
             }
@@ -62,46 +66,22 @@ class AppServiceProvider extends ServiceProvider
                         ->label('Kartu Stok')
                         ->url(KartuStok::getUrl())
                         ->icon('heroicon-o-document-text')
+                        ->isActiveWhen(fn () => request()->routeIs(KartuStok::getRouteName()))
+                        ->group('Laporan'),
+                ]);
+            }
+
+            if ($user->hasAnyRole(['super_admin', 'Manager', 'Admin', 'Kepala Unit'])) {
+                Filament::registerNavigationItems([
+                    NavigationItem::make()
+                        ->label('Perbandingan Pendapatan')
+                        ->url(UserIncomeReport::getUrl())
+                        ->icon('heroicon-o-document-text')
+                        ->isActiveWhen(fn () => request()->routeIs(UserIncomeReport::getRouteName()))
                         ->group('Laporan'),
                 ]);
             }
         });
-
-        // Filament::serving(function () {
-        //     // Pastikan user login & punya role super_admin
-        //     if (auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager', 'Admin', 'pimpinan'])) {
-        //         Filament::registerNavigationItems([
-        //             NavigationItem::make()
-        //                 ->label('Laba Rugi')
-        //                 ->url(LabaRugi::getUrl())
-        //                 ->icon('heroicon-o-document-text')
-        //                 ->group('Laporan')
-        //                 ->isActiveWhen(fn () => str_contains(request()->url(), LabaRugi::getUrl())),
-        //             NavigationItem::make()
-        //                 ->label('Pemasukan & Pengeluaran')
-        //                 ->url(PemasukanPengeluaran::getUrl())
-        //                 ->icon('heroicon-o-document-text')
-        //                 ->group('Laporan')
-        //                 ->isActiveWhen(fn () => str_contains(request()->url(), PemasukanPengeluaran::getUrl())),
-        //             NavigationItem::make()
-        //                 ->label('Laporan Penjualan')
-        //                 ->url(LaporanPenjualan::getUrl())
-        //                 ->icon('heroicon-o-document-text')
-        //                 ->group('Laporan')
-        //                 ->isActiveWhen(fn () => str_contains(request()->url(), LaporanPenjualan::getUrl())),
-        //         ]);
-        //     }
-        //     if (auth()->check() && auth()->user()->hasRole(['super_admin', 'Manager', 'Admin'])) {
-        //         Filament::registerNavigationItems([
-        //             NavigationItem::make()
-        //                 ->label('Kartu Stok')
-        //                 ->url(KartuStok::getUrl())
-        //                 ->icon('heroicon-o-document-text')
-        //                 ->group('Laporan')
-        //                 ->isActiveWhen(fn () => str_contains(request()->url(), KartuStok::getUrl())),
-        //         ]);
-        //     }
-        // });
 
         FilamentView::registerRenderHook(
             PanelsRenderHook::BODY_END,
