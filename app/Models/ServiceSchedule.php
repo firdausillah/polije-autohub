@@ -156,7 +156,7 @@ class ServiceSchedule extends Model
                 imagesavealpha($croppedImage, true);
                 $transparent = imagecolorallocatealpha($croppedImage, 0, 0, 0, 127);
                 imagefill($croppedImage, 0, 0, $transparent);
-
+ 
                 imagecopy(
                     $croppedImage,
                     $image,
