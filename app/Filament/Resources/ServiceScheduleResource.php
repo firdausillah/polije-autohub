@@ -34,11 +34,13 @@ use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\Wizard;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -62,6 +64,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Saade\FilamentAutograph\Forms\Components\SignaturePad;
 
 class ServiceScheduleResource extends Resource
 {    
@@ -80,7 +83,7 @@ class ServiceScheduleResource extends Resource
         return 'Pelayanan Service';
     }
 
-    public static function createJurnal($data)
+    public static function createPayrollJurnal($data)
     {
         PayrollJurnal::create($data);
     }
@@ -206,24 +209,7 @@ class ServiceScheduleResource extends Resource
                 }
 
                 // Payroll
-                $jumlah_unit_terjual = ServiceDSparepart::where('service_schedule_id', $record->id)->sum('jumlah_unit');
                 $jumlah_service_terlayani   = ServiceDServices::where('service_schedule_id', $record->id)->sum('jumlah');
-
-                // === PAYROLL KEPALA UNIT ===
-                $kepalaUnit = User::find($record->kepala_unit_id);
-                if ($kepalaUnit) {
-                    self::createJurnal([
-                        'transaksi_h_id' => $record->id,
-                        'user_id' => $kepalaUnit->id,
-                        'name' => $kepalaUnit->name,
-                        'keterangan' => 'Kepala Unit',
-                        'transaction_type' => 'Pelayanan Service',
-                        'jumlah_service' => $jumlah_service_terlayani,
-                        'jumlah_sparepart' => $jumlah_unit_terjual,
-                        'nominal' => max(0, $record->harga_subtotal),
-                        'jenis_pendapatan' => 'total'
-                    ]);
-                }
 
                 // data jenis payroll admin
                 $adminJurnalData = [
@@ -254,12 +240,15 @@ class ServiceScheduleResource extends Resource
                     ],
                 ];
 
-                // === PAYROLL ADMIN ===
+                // === PAYROLL ADMIN & KEPALA UNIT ===
+                $kepalaUnit = User::find($record->kepala_unit_id);
                 foreach ($adminJurnalData as $item) {
                     if (!$item['check']) continue;
 
-                    self::createJurnal(array_merge([
+                    // ADMIN
+                    self::createPayrollJurnal(array_merge([
                         'transaksi_h_id' => $record->id,
+                        'kepala_unit_id' => $record->kepala_unit_id,
                         'user_id' => Auth::id(),
                         'name' => User::find(Auth::id())->name,
                         'keterangan' => 'Admin',
@@ -267,6 +256,21 @@ class ServiceScheduleResource extends Resource
                     ],
                         $item['extra']
                     ));
+
+                    // KEPALA UNIT
+                    if ($kepalaUnit) {
+                        self::createPayrollJurnal(array_merge(
+                            [
+                                'transaksi_h_id' => $record->id,
+                                'kepala_unit_id' => $record->kepala_unit_id,
+                                'user_id' => $kepalaUnit->id,
+                                'name' => $kepalaUnit->name,
+                                'keterangan' => 'Kepala Unit',
+                                'transaction_type' => 'Pelayanan Service',
+                            ],
+                            $item['extra']
+                        ));
+                    }
                 }
 
                 // === PAYROLL MEKANIK ===
@@ -306,8 +310,9 @@ class ServiceScheduleResource extends Resource
                     foreach ($mekanikData as $item) {
                         if (!$item['check']) continue;
 
-                        self::createJurnal(array_merge([
+                        self::createPayrollJurnal(array_merge([
                             'transaksi_h_id' => $record->id,
+                            'kepala_unit_id' => $record->kepala_unit_id,
                             'user_id' => $mekanikUser->id,
                             'name' => $mekanikUser->name,
                             'keterangan' => 'Mekanik',
@@ -673,12 +678,34 @@ class ServiceScheduleResource extends Resource
                                     ->readOnly(),
                             ])
                             ->columns(['sm' => 2]),
+                            SignaturePad::make('signature_path')
+                            ->label('Tanda tangan')
+                            // ->backgroundColor('rgba(0,0,0,0')
+                            // ->backgroundColorOnDark('#000')
+                            ->penColor('#000')
+                            ->penColorOnDark('#fff')
+                            ->exportPenColor('#000'),
+                            Placeholder::make('signature_preview')
+                            ->label('Preview Tanda Tangan')
+                            ->content(function ($record) {
+                                if (!$record?->signature_path) {
+                                    return 'Belum ada tanda tangan';
+                                }
+
+                                return new \Illuminate\Support\HtmlString(
+                                    '<img 
+                                        src="' . asset('storage/' . $record->signature_path) . '" 
+                                        style="max-height:120px;border:1px solid #e5e7eb;padding:6px;background:#fff"
+                                    >'
+                                );
+                            })
+                            ->visible(fn ($record) => filled($record?->signature_path)),
                         ]),
                     Tabs\Tab::make('Mekanik')
                         ->schema([
                             Select::make('kepala_unit_id')
                                 ->label('Kepala Unit')
-                                ->relationship('kepalaMekanik', 'user_name')
+                                ->relationship('kepalaUnit', 'user_name')
                                 ->disabled(),
                             Repeater::make('serviceDMekanik')
                             ->label('Mekanik')
@@ -714,7 +741,7 @@ class ServiceScheduleResource extends Resource
                 // $query->where('created_at','like', (now()->toDateString().'%'));
             })
             ->deferLoading()
-            ->poll('3s')
+            ->poll('5s')
             ->columns([
                 TextColumn::make('vehicle.registration_number')
                 ->label('Nopol')

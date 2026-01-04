@@ -12,6 +12,7 @@ use Filament\Navigation\NavigationItem;
 use Filament\Pages; 
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Support\Assets\Js;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -65,8 +66,12 @@ class AdminPanelProvider extends PanelProvider
                 EasyFooterPlugin::make()
                 ->withSentence(new HtmlString('<i>Alfanani</i>')),
             ])
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->assets([
+                Js::make('fix-autograph', asset('js/saade/filament-autograph/components/fix-autograph.js')),
             ]);
     }
 }

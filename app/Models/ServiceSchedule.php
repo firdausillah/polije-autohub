@@ -101,11 +101,94 @@ class ServiceSchedule extends Model
                 ]);
             }
         });
+
+        static::saving(function ($model) {
+
+            if ($model->signature_path && str_contains($model->signature_path, 'base64,')) {
+
+                // ========= 1. Extract Base64 =========
+                $data = explode('base64,', $model->signature_path)[1] ?? null;
+                if (!$data) return;
+
+                $binary = base64_decode($data);
+                if (!$binary) return;
+
+                // Buat image dari base64
+                $image = imagecreatefromstring($binary);
+                if (!$image) return;
+
+                $width  = imagesx($image);
+                $height = imagesy($image);
+
+                // ========= 2. Cari bounding box berdasarkan pixel NON-TRANSPARAN =========
+                $minX = $width;
+                $minY = $height;
+                $maxX = 0;
+                $maxY = 0;
+
+                for ($x = 0; $x < $width; $x++) {
+                    for ($y = 0; $y < $height; $y++) {
+
+                        $rgba = imagecolorat($image, $x, $y);
+                        $alpha = ($rgba & 0x7F000000) >> 24; // 0 = opaque, 127 = full transparent
+
+                        // Pixel dianggap "terpakai" jika tidak terlalu transparan
+                        if ($alpha < 120) { // threshold aman untuk canvas signature
+                            if ($x < $minX) $minX = $x;
+                            if ($y < $minY) $minY = $y;
+                            if ($x > $maxX) $maxX = $x;
+                            if ($y > $maxY) $maxY = $y;
+                        }
+                    }
+                }
+
+                // Jika kosong (tidak ada coretan)
+                if ($minX > $maxX || $minY > $maxY) {
+                    return;
+                }
+
+                // ========= 3. Hitung ukuran crop =========
+                $cropWidth  = $maxX - $minX + 1;
+                $cropHeight = $maxY - $minY + 1;
+
+                // ========= 4. Buat image baru transparan =========
+                $croppedImage = imagecreatetruecolor($cropWidth, $cropHeight);
+                imagesavealpha($croppedImage, true);
+                $transparent = imagecolorallocatealpha($croppedImage, 0, 0, 0, 127);
+                imagefill($croppedImage, 0, 0, $transparent);
+
+                imagecopy(
+                    $croppedImage,
+                    $image,
+                    0,
+                    0,
+                    $minX,
+                    $minY,
+                    $cropWidth,
+                    $cropHeight
+                );
+
+                // ========= 5. Simpan PNG =========
+                $fileName = 'signature-' . $model->id.'.png';
+                // $fileName = 'signature-' . $model->id . '-' . time() . '.png';
+                $path = storage_path('app/public/signatures/' . $fileName);
+
+                imagepng($croppedImage, $path);
+
+                // Simpan path di database
+                $model->signature_path = 'signatures/' . $fileName;
+
+                // Cleanup
+                imagedestroy($image);
+                imagedestroy($croppedImage);
+            }
+        });
+
     }
 
     public function deleteFile()
     {
-        dd($this);
+        // dd($this);
         if ($this->path && Storage::exists($this->path)) {
             Storage::delete($this->path);
         }
@@ -140,7 +223,7 @@ class ServiceSchedule extends Model
     //     return $this->belongsTo(UserRole::class, 'mekanik3_id')->where('role_name', 'like', 'Mekanik%');
     // }
 
-    public function kepalaMekanik(): BelongsTo
+    public function kepalaUnit(): BelongsTo
     {
         return $this->belongsTo(UserRole::class)->where('role_name', 'like', 'Kepala Unit%');
     }
