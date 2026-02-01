@@ -34,7 +34,7 @@ class TotalStatsOverviewComparison extends BaseWidget
 
     protected function getStats(): array
     {
-        $pendapatan_per_bulan_lalu = IncomeOverviews::where(['id' => Auth::id()])->first()->total_perbandingan_persen;
+        // $pendapatan_per_bulan_lalu = IncomeOverviews::where(['id' => Auth::id()])->first()->total_perbandingan_persen;
 
 
         // $startLastMonth = Carbon::now()->startOfMonth()->subMonth();
@@ -71,7 +71,10 @@ class TotalStatsOverviewComparison extends BaseWidget
             $pendapatan_per_bulan = Round((($nominalBulanIni / $nominalBulanLalu) * 100), 2);
         }
 
-        $pendapatan_per_tanggal = IncomeOverviews::where(['id' => Auth::id()])->first()->total_perbandingan_persen;
+        $pendapatan_per_tanggal = optional(IncomeOverviews::where('id', Auth::id())->first())->total_perbandingan_persen ?? 0;
+        // dd($pendapatan_per_tanggal);
+
+        // $pendapatan_per_tanggal = IncomeOverviews::where(['id' => Auth::id()])->first()->total_perbandingan_persen;
 
         return [
 

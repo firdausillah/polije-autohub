@@ -32,7 +32,7 @@ class KepalaUnitStatsOverview extends BaseWidget
         // Base waktu tetap
         // $now = Carbon::now();
 
-        $pendapatan_total = IncomeOverviews::where(['id' => Auth::id()])->first();
+        $pendapatan_total = optional(IncomeOverviews::where(['id' => Auth::id()])->first())??0;
         // dd($pendapatan_total);
 
         // $description = 
