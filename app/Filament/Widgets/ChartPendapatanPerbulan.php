@@ -2,8 +2,11 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\LabaRugi;
+use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
+
 
 class ChartPendapatanPerbulan extends ChartWidget
 {
@@ -11,9 +14,11 @@ class ChartPendapatanPerbulan extends ChartWidget
 
     protected static ?int $sort = 50;
 
+    // protected int | string | array $columnSpan = 'full';
+
     // public static function canView(): bool
     // {
-    //     return auth()->check() && auth()->user()->hasRole(['Admin']);
+    //     return auth()->check() && auth()->user()->hasRole(['Kepala Unit']);
     // }
 
     protected function getPollingInterval(): ?string
@@ -21,69 +26,46 @@ class ChartPendapatanPerbulan extends ChartWidget
         return '30s';
     }
 
+    public ?string $filter = null;
 
-    // protected int | string | array $columnSpan = 'full';
+    public function mount(): void
+    {
+        parent::mount();
+
+        $this->filter = now()->format('Y-m');
+    }
 
     protected function getData(): array
     {
+        $filter = $this->filter ?? now()->format('Y-m');
 
-        $data = DB::select("
-                    SELECT
-                        SUM(
-                            CASE WHEN ss.debit = 0 THEN ss.kredit ELSE ss.debit
-                        END
-                    ) AS jumlah
-                    FROM 
-                    (
-                    SELECT 1 AS month_number UNION
-                    SELECT 2 UNION
-                    SELECT 3 UNION
-                    SELECT 4 UNION
-                    SELECT 5 UNION
-                    SELECT 6 UNION
-                    SELECT 7 UNION
-                    SELECT 8 UNION
-                    SELECT 9 UNION
-                    SELECT 10 UNION
-                    SELECT 11 UNION
-                    SELECT 12) m
-                    left join 
-                        (
-                        SELECT
-                            jurnals.id AS jurnal_id,
-                            jurnals.debit,
-                            jurnals.kredit,
-                            jurnals.tanggal_transaksi
-                        FROM
-                            jurnals
-                        LEFT JOIN accounts ON jurnals.account_id = accounts.id
-                        WHERE
-                            accounts.type IN(
-                                'Pendapatan',
-                                'Pendapatan Lain-lain'
-                            ) AND YEAR(jurnals.tanggal_transaksi) = YEAR(CURDATE())) ss -- YEAR(CURDATE())) ss
-                        on
-                            MONTH(ss.tanggal_transaksi) = m.month_number
-                            GROUP BY 
-                    m.month_number
-                    ORDER BY 
-                    m.month_number
-                ");
-                
-                foreach ($data as  $value) {
-                    $jumlah[] = $value->jumlah;
-                }
-                // dd($jumlah);
-            
+        $month = Carbon::createFromFormat('Y-m', $filter);
+
+        $startDate = $month->copy()->startOfMonth();
+        $endDate   = $month->copy()->endOfMonth();
+
+        $tanggalArray = collect(range(1, $endDate->day))
+            ->map(fn ($day) => $startDate->copy()->day($day)->format('Y-m-d'));
+
+        $labaChart = $tanggalArray->map(function ($date) {
+            return (float) (
+                LabaRugi::getTotalPendapatan(
+                    $date . ' 00:00:00',
+                    $date . ' 23:59:59'
+                )[0]->jumlah ?? 0
+            );
+        })->toArray();
+
         return [
             'datasets' => [
                 [
-                    'label' => 'Pendapatan',
-                    'data' => $jumlah,
-                    // 'data' => [0, 10, 5, 2, 21, 32, 45, 74, 65, 45, 77, 89],
+                    'label' => 'Jumlah Pendapatan ',
+                    'data'  => $labaChart,
                 ],
             ],
-            'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            'labels' => $tanggalArray
+                ->map(fn ($d) => Carbon::parse($d)->day)
+                ->toArray(),
         ];
     }
 
@@ -91,4 +73,26 @@ class ChartPendapatanPerbulan extends ChartWidget
     {
         return 'line';
     }
+
+
+    protected function getFilters(): ?array
+    {
+        $start = now()->startOfMonth();               // bulan sekarang
+        $end   = Carbon::create(2025, 6, 1);           // FIX END (terlama)
+
+        $filters = [];
+
+        while ($start >= $end) {
+            $value = $start->format('Y-m');            // 2025-09
+            $label = $start->translatedFormat('F Y');  // September 2025
+
+            $filters[$value] = $label;
+
+            $start->subMonth();
+        }
+
+        return $filters;
+    }
+    
+
 }
