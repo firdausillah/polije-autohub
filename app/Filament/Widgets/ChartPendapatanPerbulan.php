@@ -38,36 +38,45 @@ class ChartPendapatanPerbulan extends ChartWidget
     protected function getData(): array
     {
         $filter = $this->filter ?? now()->format('Y-m');
+        $month  = Carbon::createFromFormat('Y-m', $filter);
 
-        $month = Carbon::createFromFormat('Y-m', $filter);
+        $startDate = $month->copy()->startOfMonth()->format('Y-m-d');
+        $endDate   = $month->copy()->endOfMonth()->format('Y-m-d');
 
-        $startDate = $month->copy()->startOfMonth();
-        $endDate   = $month->copy()->endOfMonth();
+        $rows = DB::table('jurnals')
+        ->select(
+            DB::raw('CEIL(DAY(jurnals.tanggal_transaksi) / 7) as week_of_month'),
+            DB::raw('SUM(CASE WHEN jurnals.debit = 0 THEN jurnals.kredit ELSE jurnals.debit END) as jumlah')
+        )
+            ->leftJoin('accounts', 'jurnals.account_id', '=', 'accounts.id')
+            ->whereIn('accounts.type', ['Pendapatan', 'Pendapatan Lain-lain'])
+            ->whereBetween('jurnals.tanggal_transaksi', [$startDate, $endDate])
+            ->groupBy(DB::raw('CEIL(DAY(jurnals.tanggal_transaksi) / 7)'))
+            ->orderBy(DB::raw('CEIL(DAY(jurnals.tanggal_transaksi) / 7)'))
+            ->get();
 
-        $tanggalArray = collect(range(1, $endDate->day))
-            ->map(fn ($day) => $startDate->copy()->day($day)->format('Y-m-d'));
+        // mapping hasil query → week => jumlah
+        $data = $rows->pluck('jumlah', 'week_of_month');
 
-        $labaChart = $tanggalArray->map(function ($date) {
-            return (float) (
-                LabaRugi::getTotalPendapatan(
-                    $date . ' 00:00:00',
-                    $date . ' 23:59:59'
-                )[0]->jumlah ?? 0
-            );
-        })->toArray();
+        // jumlah minggu dalam bulan (4 atau 5)
+        $totalWeeks = ceil($month->daysInMonth / 7);
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Jumlah Pendapatan ',
-                    'data'  => $labaChart,
+                    'label' => 'Pendapatan Mingguan ' . $month->translatedFormat('F Y'),
+                    'data' => collect(range(1, $totalWeeks))
+                        ->map(fn ($week) => (float) ($data[$week] ?? 0))
+                        ->toArray(),
                 ],
             ],
-            'labels' => $tanggalArray
-                ->map(fn ($d) => Carbon::parse($d)->day)
+            'labels' => collect(range(1, $totalWeeks))
+                ->map(fn ($week) => 'Minggu ' . $week)
                 ->toArray(),
         ];
     }
+
+
 
     protected function getType(): string
     {
