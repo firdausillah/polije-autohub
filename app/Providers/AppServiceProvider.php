@@ -45,18 +45,7 @@ class AppServiceProvider extends ServiceProvider
                         ->icon('heroicon-o-document-text')
                         ->isActiveWhen(fn () => request()->routeIs(LabaRugi::getRouteName()))
                         ->group('Laporan'),
-                    NavigationItem::make()
-                        ->label('Pemasukan & Pengeluaran')
-                        ->url(PemasukanPengeluaran::getUrl())
-                        ->icon('heroicon-o-document-text')
-                        ->isActiveWhen(fn () => request()->routeIs(PemasukanPengeluaran::getRouteName()))
-                        ->group('Laporan'),
-                    NavigationItem::make()
-                        ->label('Laporan Penjualan')
-                        ->url(LaporanPenjualan::getUrl())
-                        ->icon('heroicon-o-document-text')
-                        ->isActiveWhen(fn () => request()->routeIs(LaporanPenjualan::getRouteName()))
-                        ->group('Laporan'),
+
                 ]);
             }
 
@@ -78,6 +67,18 @@ class AppServiceProvider extends ServiceProvider
                         ->url(UserIncomeReport::getUrl())
                         ->icon('heroicon-o-document-text')
                         ->isActiveWhen(fn () => request()->routeIs(UserIncomeReport::getRouteName()))
+                        ->group('Laporan'),
+                    NavigationItem::make()
+                        ->label('Pemasukan & Pengeluaran')
+                        ->url(PemasukanPengeluaran::getUrl())
+                        ->icon('heroicon-o-document-text')
+                        ->isActiveWhen(fn () => request()->routeIs(PemasukanPengeluaran::getRouteName()))
+                        ->group('Laporan'),
+                    NavigationItem::make()
+                        ->label('Laporan Penjualan')
+                        ->url(LaporanPenjualan::getUrl())
+                        ->icon('heroicon-o-document-text')
+                        ->isActiveWhen(fn () => request()->routeIs(LaporanPenjualan::getRouteName()))
                         ->group('Laporan'),
                 ]);
             }
