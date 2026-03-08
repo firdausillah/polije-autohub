@@ -10,6 +10,7 @@ use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
 
 class KepalaUnitStatsOverview extends BaseWidget
 {
@@ -42,7 +43,20 @@ class KepalaUnitStatsOverview extends BaseWidget
         $naik_turun_liquid = ($pendapatan_total->liquid_perbandingan_persen >= 100 ? 'Naik ' : 'Turun ');
 
         return [
-            Stat::make('Pendapatan Service', $pendapatan_total->service_perbandingan_persen.'%')
+            Stat::make('Pendapatan Service',
+                new HtmlString('
+                    <div class="flex flex-col">
+                        <div class="text-3xl font-bold">
+                            '.$pendapatan_total->service_perbandingan_persen . '%
+                        </div>
+
+                        <div class="text-sm text-gray-400">
+                            <div>LM : Rp '.number_format($pendapatan_total->service_pendapatan_lalu, 0, ',', '.').'</div>
+                            <div>TM : Rp '.number_format($pendapatan_total->service_pendapatan_ini, 0, ',', '.').'</div>
+                        </div>
+                    </div>
+                ')
+                )
             ->description(
                     $naik_turun_service. ($pendapatan_total->service_perbandingan_persen - 100) .'%'
                 )
@@ -50,7 +64,20 @@ class KepalaUnitStatsOverview extends BaseWidget
             ->color($pendapatan_total->service_perbandingan_persen >= 100 ? 'success' : 'danger'),
             // ->chart($labaChart),
 
-            Stat::make('Pendapatan Sparepart', $pendapatan_total->part_perbandingan_persen . '%')
+            Stat::make('Pendapatan Sparepart', 
+                new HtmlString('
+                    <div class="flex flex-col">
+                        <div class="text-3xl font-bold">
+                            '.$pendapatan_total->part_perbandingan_persen . '%
+                        </div>
+
+                        <div class="text-sm text-gray-400">
+                            <div>LM : Rp '.number_format($pendapatan_total->part_pendapatan_lalu, 0, ',', '.').'</div>
+                            <div>TM : Rp '.number_format($pendapatan_total->part_pendapatan_ini, 0, ',', '.').'</div>
+                        </div>
+                    </div>
+                ')
+            )
             ->description(
                     $naik_turun_sparepart. ($pendapatan_total->part_perbandingan_persen - 100) .'%'
                 )
@@ -58,7 +85,20 @@ class KepalaUnitStatsOverview extends BaseWidget
             ->color($pendapatan_total->part_perbandingan_persen >= 100 ? 'success' : 'danger'),
             // ->chart($itemChart),
 
-            Stat::make('Pendapatan Liquid', $pendapatan_total->liquid_perbandingan_persen . '%')
+            Stat::make('Pendapatan Liquid', 
+                new HtmlString('
+                    <div class="flex flex-col">
+                        <div class="text-3xl font-bold">
+                            '.$pendapatan_total->liquid_perbandingan_persen . '%
+                        </div>
+
+                        <div class="text-sm text-gray-400">
+                            <div>LM : Rp '.number_format($pendapatan_total->liquid_pendapatan_lalu, 0, ',', '.').'</div>
+                            <div>TM : Rp '.number_format($pendapatan_total->liquid_pendapatan_ini, 0, ',', '.').'</div>
+                        </div>
+                    </div>
+                ')
+            )
             ->description(
                     $naik_turun_liquid. ($pendapatan_total->liquid_perbandingan_persen - 100) .'%'
                 )

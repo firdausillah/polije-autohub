@@ -13,6 +13,7 @@ use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
 
 class TotalStatsOverviewComparison extends BaseWidget
 {
@@ -71,22 +72,48 @@ class TotalStatsOverviewComparison extends BaseWidget
             $pendapatan_per_bulan = Round((($nominalBulanIni / $nominalBulanLalu) * 100), 2);
         }
 
-        $pendapatan_per_tanggal = optional(IncomeOverviews::where('id', Auth::id())->first())->total_perbandingan_persen ?? 0;
-        // dd($pendapatan_per_tanggal);
+        $pendapatan_per_tanggal = optional(IncomeOverviews::where('id', Auth::id())->first()) ?? 0;
+        // dd($pendapatan_per_tanggal->total_perbandingan_persen);
 
         // $pendapatan_per_tanggal = IncomeOverviews::where(['id' => Auth::id()])->first()->total_perbandingan_persen;
 
         return [
 
-            Stat::make('Perbandingan Per Tanggal', $pendapatan_per_tanggal . '%')
+            Stat::make('Perbandingan Per Tanggal', 
+                new HtmlString('
+                    <div class="flex flex-row justify-between gap-4 items-center">
+                        <div class="text-3xl font-bold">
+                            '.$pendapatan_per_tanggal->total_perbandingan_persen . '%
+                        </div>
+
+                        <div class="text-sm text-gray-400">
+                            <div>LM : Rp '.number_format($pendapatan_per_tanggal->total_lalu, 0, ',', '.').'</div>
+                            <div>TM : Rp '.number_format($pendapatan_per_tanggal->total_ini, 0, ',', '.').'</div>
+                        </div>
+                    </div>
+                ')
+            )
             ->description(
-                ($pendapatan_per_tanggal >= 100 ? 'Naik ' : 'Turun ') . ($pendapatan_per_tanggal - 100) . '%'
+                ($pendapatan_per_tanggal->total_perbandingan_persen >= 100 ? 'Naik ' : 'Turun ') . ($pendapatan_per_tanggal->total_perbandingan_persen - 100) . '%'
             )
 
-            ->descriptionIcon($pendapatan_per_tanggal >= 100 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-            ->color($pendapatan_per_tanggal >= 100 ? 'success' : 'danger'),
+            ->descriptionIcon($pendapatan_per_tanggal->total_perbandingan_persen >= 100 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
+            ->color($pendapatan_per_tanggal->total_perbandingan_persen >= 100 ? 'success' : 'danger'),
 
-            Stat::make('Perbandingan Per Bulan', $pendapatan_per_bulan . '%')
+            Stat::make('Perbandingan Per Bulan',
+                new HtmlString('
+                    <div class="flex flex-row justify-between gap-4 items-center">
+                        <div class="text-3xl font-bold">
+                            '.$pendapatan_per_bulan . '%
+                        </div>
+
+                        <div class="text-sm text-gray-400">
+                        <div>TM : Rp '.number_format($nominalBulanIni, 0, ',', '.').'</div>
+                        <div>LM : Rp '.number_format($nominalBulanLalu, 0, ',', '.').'</div>
+                        </div>
+                    </div>
+                ')
+            )
             ->description(
                 ($pendapatan_per_bulan >= 100 ? 'Naik ' : 'Turun ') . ($pendapatan_per_bulan - 100) . '%'
             )

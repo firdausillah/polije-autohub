@@ -39,21 +39,45 @@ class IncomeOverviewTable extends TableWidget
             )
             ->columns([
                 TextColumn::make('name'),
-                TextColumn::make('service_perbandingan_persen')
-                ->suffix('%')
-                ->color(fn($state)=> $state <= 100 ? 'danger' : 'success')
+                TextColumn::make('service_pendapatan_ini')
+                ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.'))
+                ->color(fn($record)=> $record->service_perbandingan_persen <= 100 ? 'danger' : 'success')
+                ->description(function ($record) {
+                    // $arrow = $record->service_perbandingan_persen >= 100 ? '▲' : '▼';
+
+                    return "L: Rp " . number_format($record->service_pendapatan_lalu) .
+                        " | {$record->service_perbandingan_persen}%";
+                })
                 ->label('Service'),
-                TextColumn::make('part_perbandingan_persen')
-                ->suffix('%')
-                ->color(fn($state)=> $state <= 100 ? 'danger' : 'success')
+                TextColumn::make('part_pendapatan_ini')
+                ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.'))
+                ->color(fn($record)=> $record->part_perbandingan_persen <= 100 ? 'danger' : 'success')
+                ->description(function ($record) {
+                    // $arrow = $record->part_perbandingan_persen >= 100 ? '▲' : '▼';
+
+                    return "L: Rp " . number_format($record->part_pendapatan_lalu) .
+                        " | {$record->part_perbandingan_persen}%";
+                })
                 ->label('Sparepart'),
-                TextColumn::make('liquid_perbandingan_persen')
-                ->suffix('%')
-                ->color(fn($state)=> $state <= 100 ? 'danger' : 'success')
+                TextColumn::make('liquid_pendapatan_ini')
+                ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.'))
+                ->color(fn($record)=> $record->liquid_perbandingan_persen <= 100 ? 'danger' : 'success')
+                ->description(function ($record) {
+                    // $arrow = $record->liquid_perbandingan_persen >= 100 ? '▲' : '▼';
+
+                    return "L: Rp " . number_format($record->liquid_pendapatan_lalu) .
+                        " | {$record->liquid_perbandingan_persen}%";
+                })
                 ->label('Liquid'),
-                TextColumn::make('total_perbandingan_persen')
-                ->suffix('%')
-                ->color(fn($state)=> $state <= 100 ? 'danger' : 'success')
+                TextColumn::make('total_ini')
+                ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.'))
+                ->color(fn($record)=> $record->total_perbandingan_persen <= 100 ? 'danger' : 'success')
+                ->description(function ($record) {
+                    // $arrow = $record->total_perbandingan_persen >= 100 ? '▲' : '▼';
+
+                    return "L: Rp " . number_format($record->total_lalu) .
+                        " | {$record->total_perbandingan_persen}%";
+                })
                 ->label('Total'),
             ]);
     }
