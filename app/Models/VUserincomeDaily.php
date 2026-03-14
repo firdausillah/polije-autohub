@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-class VUserincomeDaily extends Model
+class VUserIncomeDaily extends Model
 {
     public static function getIncomeComparisonReport(
         ?string $tanggalAkhir = null,
@@ -22,7 +22,7 @@ class VUserincomeDaily extends Model
         $akhirBulanLalu = date('Y-m-d', strtotime($awalBulanLalu . ' +' . (date('d', strtotime($tanggalAkhir)) - 1) . ' days'));
 
         // Base query untuk bulan ini
-        $queryIni = DB::table('v_user_income_daily')
+        $queryIni = DB::table('v_user_income_dailies')
             ->select(
                 'user_id',
                 'user_name',
@@ -35,7 +35,7 @@ class VUserincomeDaily extends Model
             ->groupBy('user_id', 'user_name', 'jenis_pendapatan', 'keterangan');
 
         // Base query untuk bulan lalu
-        $queryLalu = DB::table('v_user_income_daily')
+        $queryLalu = DB::table('v_user_income_dailies')
             ->select(
                 'user_id',
                 'user_name',

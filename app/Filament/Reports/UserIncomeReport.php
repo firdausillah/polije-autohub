@@ -3,7 +3,7 @@
 namespace App\Filament\Reports;
 
 use App\Models\SalesReport;
-use App\Models\VUserincomeDaily;
+use App\Models\VUserIncomeDaily;
 use EightyNine\Reports\Report;
 use EightyNine\Reports\Components\Body;
 use EightyNine\Reports\Components\Footer;
@@ -83,7 +83,7 @@ class UserIncomeReport extends Report
                                     // $sort_by = $filters['sort_by']??null;
                                     $tanggalAkhir = $filters['tanggalAkhir'] ?? now();
 
-                                    $data = VUserincomeDaily::getIncomeComparisonReport($tanggalAkhir);
+                                    $data = VUserIncomeDaily::getIncomeComparisonReport($tanggalAkhir);
 
                                     return collect($data);
                                 }
