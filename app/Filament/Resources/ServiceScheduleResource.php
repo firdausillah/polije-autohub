@@ -30,12 +30,14 @@ use App\Models\UserRole;
 use Filament\Forms;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\Textarea;
@@ -628,11 +630,81 @@ class ServiceScheduleResource extends Resource
                                         1 => 'Umum',
                                         0 => 'Mahasiswa / Karyawan / Ojol'
                                     ]),
-                                TextInput::make('km_datang')
-                                    ->required()
-                                    ->label('KM datang')
-                                    ->numeric()
-                                    ->suffix('KM'),
+
+                                Section::make()
+                                    ->columns(['sm' => 3])
+                                    ->schema([
+                                    TextInput::make('km_datang')
+                                        ->required()
+                                        ->label('KM datang')
+                                        ->numeric()
+                                        ->suffix('KM'),
+                                    Select::make('is_diantar')
+                                        ->label('Apakah kendaraan diantar?')
+                                        ->required()
+                                        ->default(0)
+                                        ->options([
+                                            1 => 'Ya',
+                                            0 => 'Tidak'
+                                        ]),
+                                    Select::make('fuel_level')
+                                        ->label('Level Bahan Bakar (1-5)')
+                                        ->required()
+                                        ->default(0)
+                                        ->options([
+                                            1 => '1',
+                                            2 => '2',
+                                            3 => '3',
+                                            4 => '4',
+                                            5 => '5'
+                                        ]),
+                                    Select::make('vehicle_condition')
+                                        ->label('kondisi kendaraan saat datang (1-5)')
+                                        ->required()
+                                        ->default(0)
+                                        ->options([
+                                            1 => '1',
+                                            2 => '2',
+                                            3 => '3',
+                                            4 => '4',
+                                            5 => '5'
+                                        ]),
+                                    Select::make('cleanliness')
+                                        ->label('Tingkat Kebersihan (1-5)')
+                                        ->required()
+                                        ->default(0)
+                                        ->options([
+                                            1 => '1',
+                                            2 => '2',
+                                            3 => '3',
+                                            4 => '4',
+                                            5 => '5'
+                                        ]),
+                                    Select::make('antrian_ke')
+                                        ->label('Antrian ke-')
+                                        ->required()
+                                        ->default(0)
+                                        ->options([
+                                            1 => '1',
+                                            2 => '2',
+                                            3 => '3',
+                                            4 => '4',
+                                            5 => '5',
+                                            6 => '6',
+                                            7 => '7',
+                                            8 => '8',
+                                            9 => '9',
+                                            10 => '10',
+                                            
+                                        ]),
+                                    DateTimePicker::make('arrived_at')
+                                    ->label('Waktu Datang'),
+                                    DateTimePicker::make('working_start')
+                                    ->label('Waktu Mulai Pengerjaan'),
+                                    DateTimePicker::make('working_end')
+                                    ->label('Waktu Selesai Pengerjaan'),
+                                    
+                                    ]),
                                 Textarea::make('keluhan')
                                 ->required(),
                                 TextInput::make('total_estimasi_waktu')
