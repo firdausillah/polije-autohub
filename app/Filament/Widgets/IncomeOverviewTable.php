@@ -35,7 +35,10 @@ class IncomeOverviewTable extends TableWidget
             ->paginated(false)
             ->query(
                 // SalesReport::query()->limit(5)->orderBy('saldo', 'asc')
-                IncomeOverviews::query()->where('keterangan', 'Mekanik')->whereNot('id', Auth::id())
+                // IncomeOverviews::query()->where('keterangan', 'Mekanik')->whereNot('id', Auth::id())
+                IncomeOverviews::join('users', 'users.id', '=', 'income_overviews.id')
+                ->where('users.kepala_unit_id', Auth::id())
+                ->select('income_overviews.*')
             )
             ->columns([
                 TextColumn::make('name'),

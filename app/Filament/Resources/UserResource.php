@@ -6,6 +6,7 @@ use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\Payroll;
 use App\Models\User;
+use App\Models\UserRole;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -46,9 +47,11 @@ class UserResource extends Resource
                 ->afterStateUpdated(
                     function (Set $set, $state) {
                         $set('payroll_id', null); // Reset satuan_id saat sparepart berubah
+                        $set('kepala_unit_id', null);
                     }
                 ),
                 Select::make('payroll_id')
+                ->label('Payroll')
                 ->options(
                     fn (Get $get) =>
                     Payroll::where('role_id', $get('role'))?->pluck('name', 'id') ?? [],
@@ -57,6 +60,16 @@ class UserResource extends Resource
                 ->searchable()
                 ->required()
                 ->disabled(fn (Get $get) => !$get('role')),
+                Select::make('kepala_unit_id')
+                ->label('Kepala Unit')
+                ->options(
+                    fn (Get $get) =>
+                    UserRole::where('role_name', 'Kepala Unit')->pluck('user_name', 'id') ?? [],
+                )
+                ->live()
+                ->searchable()
+                ->required(fn (Get $get) => (int) $get('role')[0] == 9)
+                ->disabled(fn (Get $get) => (int) $get('role')[0] != 9)
             ]);
     }
 

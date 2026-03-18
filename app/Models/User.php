@@ -25,6 +25,7 @@ class User extends Authenticatable
         'email',
         'password',
         'payroll_id',
+        'kepala_unit_id',
     ];
 
     /**
