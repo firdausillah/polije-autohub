@@ -175,7 +175,8 @@ class StockAdjustmentResource extends Resource
                 ->default(NOW()),
                 TextInput::make('kode')
                 ->readOnly(),
-                Textarea::make('keterangan'),
+                Textarea::make('keterangan')
+                ->maxLength(200),
             ])->disabled(fn ($record) => $record && $record->is_approve === 'approved');
     }
 

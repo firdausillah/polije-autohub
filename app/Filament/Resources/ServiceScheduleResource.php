@@ -586,7 +586,8 @@ class ServiceScheduleResource extends Resource
                                                         "Gas" => "Gas",
                                                         "Listrik" => "Listrik",
                                                     ]),
-                                                Textarea::make('keterangan'),
+                                                Textarea::make('keterangan')
+                                                ->maxLength(200),
                                             ])
                                     ])
                                     ->live()
@@ -706,6 +707,7 @@ class ServiceScheduleResource extends Resource
                                     
                                     ]),
                                 Textarea::make('keluhan')
+                                ->maxLength(200)
                                 ->required(),
                                 TextInput::make('total_estimasi_waktu')
                                     ->suffix(' Menit')

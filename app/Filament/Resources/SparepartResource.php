@@ -77,7 +77,8 @@ class SparepartResource extends Resource
                     ->suffix('%')
                     ->required(),
                 ]),
-                Textarea::make('keterangan'),
+                Textarea::make('keterangan')
+                ->maxLength(200),
             ]);
     }
 
