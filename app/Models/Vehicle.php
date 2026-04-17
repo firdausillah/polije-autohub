@@ -30,6 +30,11 @@ class Vehicle extends Model
         return $this->hasMany(ServiceSchedule::class)->where('service_schedules.is_approve', 'approved');
     }
 
+    public function getServiceHistories()
+    {
+        return $this->hasMany(ServiceSchedule::class);
+    }
+
     //perubahan ini
     public function serviceHistor()
     {
