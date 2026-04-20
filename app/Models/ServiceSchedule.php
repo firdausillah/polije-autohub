@@ -228,6 +228,11 @@ class ServiceSchedule extends Model
         return $this->belongsTo(UserRole::class)->where('role_name', 'like', 'Kepala Unit%');
     }
 
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
     public function getChecklistStatusAttribute()
     {
         return [$this->serviceDChecklist->sum('checklist_hasil') == $this->serviceDChecklist->count()];

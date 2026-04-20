@@ -29,7 +29,7 @@ class VehicleResource extends JsonResource
             'bahan_bakar' => $this->bahan_bakar,
             'has_history' => $this->getServiceHistories->isNotEmpty(),
 
-            'histories' => ServiceHistoryResource::collection(
+            'histories' => ServiceHistoriesResource::collection(
                 $this->whenLoaded('getServiceHistories')
             ),
         ];

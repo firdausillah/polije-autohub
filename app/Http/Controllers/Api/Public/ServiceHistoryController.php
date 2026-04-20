@@ -4,12 +4,11 @@ namespace App\Http\Controllers\Api\Public;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Public\VehicleResource;
+use App\Http\Resources\Public\ServiceHistoryResource;
 use App\Models\ServiceSchedule;
-use App\Models\Vehicle;
 use Illuminate\Http\Request;
 
-class VehicleController extends Controller
+class ServiceHistoryController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -30,24 +29,25 @@ class VehicleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $kode)
+    public function show()
     {
-        $vehicle = Vehicle::with('getServiceHistories.approvedBy')->where('kode', $kode)->first();
+        $serviceCode = request()->query('kode');
+        $serviceHistory = ServiceSchedule::with('serviceDServices.service_m_type', 'serviceDChecklist.checklist','serviceDSparepart','serviceDPayment')->where('kode', $serviceCode)->first();
 
-        if (!$vehicle) {
-            return ApiResponse::error('Vehicle not found', 404);
+        if (!$serviceHistory) {
+            return ApiResponse::error('Service history not found', 404);
         }
 
         return ApiResponse::success(
-            new VehicleResource($vehicle),
-            'Vehicle retrieved successfully'
+            new ServiceHistoryResource($serviceHistory),
+            'Service history retrieved successfully'
         );
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $kode)
+    public function update(Request $request, string $id)
     {
         //
     }
@@ -55,7 +55,7 @@ class VehicleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $kode)
+    public function destroy(string $id)
     {
         //
     }
