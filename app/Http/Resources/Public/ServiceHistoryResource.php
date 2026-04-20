@@ -16,8 +16,8 @@ class ServiceHistoryResource extends JsonResource
     {
         return [
             'kode' => $this->kode,
-            'created_by' => $this->created_by,
-            'approved_by' => $this->approved_by,
+            // 'created_by' => $this->created_by,
+            'admin_name' => $this->approvedBy?->name,
             'approved_at' => $this->approved_at,
             'is_approve' => $this->is_approve,
             'kepala_unit_name' => $this->kepala_unit_name,
