@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Models\Vehicle;
 use Illuminate\Support\Facades\DB;
 
 class CodeGenerator
@@ -51,5 +52,22 @@ class CodeGenerator
         return $newCode;
     }
 
+    public static function generateCustomerAccessCode()
+    {
+        $characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+        do {
+            $random = '';
+            for ($i = 0; $i < 8; $i++) {
+                $random .= $characters[random_int(0, strlen($characters) - 1)];
+            }
+
+            $code = 'CUST-' . substr($random, 0, 4) . '-' . substr($random, 4, 4);
+
+            $exists = Vehicle::where('access_code', $code)->exists();
+        } while ($exists);
+
+        return $code;
+    }
 
 }
