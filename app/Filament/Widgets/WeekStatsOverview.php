@@ -29,19 +29,36 @@ class WeekStatsOverview extends BaseWidget
         // Gunakan satu waktu acuan
         $now = Carbon::now();
 
-        // Minggu ini
-        $startWeekDate = $now->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
-        $endWeekDate   = $now->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+        // // Minggu ini
+        // $startWeekDate = $now->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
+        // $endWeekDate   = $now->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+
+        // // Minggu lalu
+        // $startLastWeek = $now->copy()->subWeek()->startOfWeek(Carbon::MONDAY)->startOfDay();
+        // $endLastWeek   = $now->copy()->subWeek()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+
+        // Minggu ini (berdasarkan bulan, bukan calendar week)
+        $startWeekDate = $now->copy()->startOfMonth()
+            ->addDays(floor(($now->day - 1) / 7) * 7)
+            ->startOfDay();
+
+        $endWeekDate = $startWeekDate->copy()
+            ->addDays(6)
+            ->endOfDay();
 
         // Minggu lalu
-        $startLastWeek = $now->copy()->subWeek()->startOfWeek(Carbon::MONDAY)->startOfDay();
-        $endLastWeek   = $now->copy()->subWeek()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+        $startLastWeek = $startWeekDate->copy()->subWeek();
+        $endLastWeek   = $endWeekDate->copy()->subWeek();
 
         // Optional: buat string format untuk whereBetween (kalau field di DB bertipe DATE)
         $startWeekStr = $startWeekDate->toDateTimeString();
         $endWeekStr = $endWeekDate->toDateTimeString();
         $startLastWeekStr = $startLastWeek->toDateTimeString();
         $endLastWeekStr = $endLastWeek->toDateTimeString();
+
+        // $startWeek = $startWeekDate->copy()->startOfDay();
+        // $endWeek   = $endWeekDate->copy()->endOfDay();
+        // dd($startWeekStr, $endWeekStr, $startWeek, $endWeek);
 
         // ==================== //
         //   Data Minggu Lalu   //
