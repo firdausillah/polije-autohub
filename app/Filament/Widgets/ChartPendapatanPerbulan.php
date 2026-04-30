@@ -40,8 +40,10 @@ class ChartPendapatanPerbulan extends ChartWidget
         $filter = $this->filter ?? now()->format('Y-m');
         $month  = Carbon::createFromFormat('Y-m', $filter);
 
-        $startDate = $month->copy()->startOfMonth()->format('Y-m-d');
-        $endDate   = $month->copy()->endOfMonth()->format('Y-m-d');
+        $startDate = $month->copy()->startOfMonth();
+        $endDate   = $month->copy()->endOfMonth();
+        // $startDate = $month->copy()->startOfMonth()->format('Y-m-d');
+        // $endDate   = $month->copy()->endOfMonth()->format('Y-m-d');
 
         $rows = DB::table('jurnals')
         ->select(
