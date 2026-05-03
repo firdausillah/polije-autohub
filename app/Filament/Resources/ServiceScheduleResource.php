@@ -227,7 +227,7 @@ class ServiceScheduleResource extends Resource
                         'check' => $record->liquid_total > 0,
                         'extra' => [
                             'jumlah_sparepart' => $record->liquid_jumlah,
-                            'nominal' => max(0, $record->liquid_total),
+                            'nominal' => max(0, $record->liquid_total - $record->liquid_discount),
                             'is_liquid' => 1,
                             'jenis_pendapatan' => 'liquid',
                         ],
@@ -236,7 +236,7 @@ class ServiceScheduleResource extends Resource
                         'check' => $record->part_total > 0,
                         'extra' => [
                             'jumlah_sparepart' => $record->part_jumlah,
-                            'nominal' => max(0, $record->part_total),
+                            'nominal' => max(0, $record->part_total - $record->part_discount),
                             'jenis_pendapatan' => 'part',
                         ],
                     ],
@@ -294,7 +294,7 @@ class ServiceScheduleResource extends Resource
                             'check' => $record->liquid_total > 0,
                             'extra' => [
                                 'jumlah_sparepart' => $record->liquid_jumlah,
-                                'nominal' => max(0, ($mekanik->mekanik_percentage / 100) * $record->liquid_total),
+                                'nominal' => max(0, ($mekanik->mekanik_percentage / 100) * $record->liquid_total- $record->liquid_discount),
                                 'is_liquid' => 1,
                                 'jenis_pendapatan' => 'liquid',
                             ],
@@ -303,7 +303,7 @@ class ServiceScheduleResource extends Resource
                             'check' => $record->part_total > 0,
                             'extra' => [
                                 'jumlah_sparepart' => $record->part_jumlah,
-                                'nominal' => max(0, ($mekanik->mekanik_percentage / 100) * $record->part_total),
+                                'nominal' => max(0, ($mekanik->mekanik_percentage / 100) * $record->part_total - $record->part_discount),
                                 'jenis_pendapatan' => 'part',
                             ],
                         ],
