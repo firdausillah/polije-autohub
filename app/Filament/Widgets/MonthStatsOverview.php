@@ -13,10 +13,11 @@ class MonthStatsOverview extends BaseWidget
 {
     protected static ?int $sort = 30;
 
-    // public static function canView(): bool
-    // {
-    //     return auth()->check() && auth()->user()->hasRole(['Admin', 'Pimpinan']);
-    // }
+    public static function canView(): bool
+    {
+        return false;
+        // return auth()->check() && auth()->user()->hasRole(['Admin', 'Pimpinan']);
+    }
 
     protected function getPollingInterval(): ?string
     {

@@ -40,6 +40,18 @@ class LabaRugi extends Model
         return $data;
     }
 
+    public static function getTotalDiscount($startDate, $endDate)
+    {
+        $data = DB::table('jurnals')
+        ->select(DB::raw("'Total' as name"), DB::raw("'' as kode"), DB::raw('SUM(CASE WHEN jurnals.debit = 0 THEN jurnals.kredit ELSE jurnals.debit END) as jumlah'))
+        ->where('jurnals.account_kode', 5012)
+        ->whereBetween('jurnals.tanggal_transaksi', [$startDate, $endDate])
+            ->get()
+            ->toArray();
+            
+        return $data;
+    }
+
     public static function getHpp($startDate, $endDate)
     {
         $data = DB::table('jurnals')
