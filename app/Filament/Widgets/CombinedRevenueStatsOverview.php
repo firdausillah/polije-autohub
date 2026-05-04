@@ -77,7 +77,7 @@ class CombinedRevenueStatsOverview extends BaseWidget
             Stat::make('Discount Bulan Ini', 'Rp ' . number_format($discountBulanIni, 0, ',', '.'))
                 ->description('Perubahan: Rp ' . number_format($growthDiscountBulan, 0, ',', '.'))
                 ->descriptionIcon($growthDiscountBulan >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-                ->color($growthDiscountBulan >= 0 ? 'success' : 'danger')
+                ->color($growthDiscountBulan >= 0 ? 'danger' : 'success') // Discount naik itu buruk, jadi warnanya dibalik
                 ->chart($monthlyDiscountChart),
         ];
     }
