@@ -219,7 +219,7 @@ class ServiceScheduleResource extends Resource
                         'check' => $record->service_total > 0,
                         'extra' => [
                             'jumlah_service' => $jumlah_service_terlayani,
-                            'nominal' => max(0, $record->service_total),
+                            'nominal' => max(0, $record->service_total - $record->discount_service_total),
                             'jenis_pendapatan' => 'service',
                         ],
                     ],
@@ -286,7 +286,7 @@ class ServiceScheduleResource extends Resource
                             'check' => $record->service_total > 0,
                             'extra' => [
                                 'jumlah_service' => $jumlah_service_terlayani,
-                                'nominal' => max(0, ($mekanik->mekanik_percentage / 100) * $record->service_total),
+                                'nominal' => max(0, ($mekanik->mekanik_percentage / 100) * $record->service_total - $record->discount_service_total),
                                 'jenis_pendapatan' => 'service',
                             ],
                         ],
