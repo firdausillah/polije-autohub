@@ -503,6 +503,10 @@ class ServiceScheduleResource extends Resource
                                                 TextInput::make('kode')
                                                     ->default(fn () => CodeGenerator::generateSimpleCode('V', 'vehicles', 'kode'))
                                                     ->readOnly(),
+                                                TextInput::make('access_code')
+                                                     ->label('Kode Akses')
+                                                    ->default(fn () => CodeGenerator::generateCustomerAccessCode())
+                                                    ->readOnly(),
                                                 TextInput::make('nomor_rangka'),
                                                 TextInput::make('nomor_mesin'),
                                                 Select::make('category')

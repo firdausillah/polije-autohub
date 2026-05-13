@@ -49,6 +49,10 @@ class VehicleResource extends Resource
                 TextInput::make('kode')
                     ->default(fn () => CodeGenerator::generateSimpleCode('V', 'vehicles', 'kode'))
                     ->readOnly(),
+                TextInput::make('access_code')
+                    ->label('Kode Akses')
+                    ->default(fn () => CodeGenerator::generateCustomerAccessCode())
+                    ->readOnly(),
                 Select::make('category')
                 ->required()
                     ->options([

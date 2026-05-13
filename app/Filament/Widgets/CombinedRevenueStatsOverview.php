@@ -9,12 +9,13 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class CombinedRevenueStatsOverview extends BaseWidget
 {
-    protected static ?int $sort = 20;
+    protected static ?int $sort = 30;
 
     protected function getPollingInterval(): ?string
     {
         return '30s';
     }
+    protected ?string $heading = 'Total Pendapatan dan Discount Overview';
 
     protected function getStats(): array
     {

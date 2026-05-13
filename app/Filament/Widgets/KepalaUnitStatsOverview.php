@@ -14,7 +14,7 @@ use Illuminate\Support\HtmlString;
 
 class KepalaUnitStatsOverview extends BaseWidget
 {
-    protected static ?int $sort = 30;
+    protected static ?int $sort = 20;
 
     public static function canView(): bool
     {
@@ -25,7 +25,6 @@ class KepalaUnitStatsOverview extends BaseWidget
     {
         return '30s';
     }
-
 
     protected function getStats(): array
     {

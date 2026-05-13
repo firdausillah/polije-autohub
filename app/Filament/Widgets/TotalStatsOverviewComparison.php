@@ -34,16 +34,10 @@ class TotalStatsOverviewComparison extends BaseWidget
         return '30s';
     }
 
+    protected ?string $heading = 'Pendapatan Kepala Unit';
+
     protected function getStats(): array
     {
-        // $pendapatan_per_bulan_lalu = IncomeOverviews::where(['id' => Auth::id()])->first()->total_perbandingan_persen;
-
-
-        // $startLastMonth = Carbon::now()->startOfMonth()->subMonth();
-        // $endLastMonth   = Carbon::now()->startOfMonth();
-        // $startThisMonth = Carbon::now()->startOfMonth();
-        // $endThisMonth   = Carbon::now()->startOfMonth()->addMonth();
-
         $dataBulanIni = VUserIncomeDaily::selectRaw('user_id, SUM(total_nominal) as nominal')
         ->whereBetween('tanggal', [
             now()->startOfMonth(),

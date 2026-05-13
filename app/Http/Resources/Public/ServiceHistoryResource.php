@@ -4,6 +4,10 @@ namespace App\Http\Resources\Public;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\Public\ServiceDetails\ServiceDServicesResource;
+use App\Http\Resources\Public\ServiceDetails\ServiceDChecklistResource;
+use App\Http\Resources\Public\ServiceDetails\ServiceDSparepartResource;
+use App\Http\Resources\Public\ServiceDetails\ServiceDPaymentResource;
 
 class ServiceHistoryResource extends JsonResource
 {
