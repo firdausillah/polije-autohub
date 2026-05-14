@@ -62,7 +62,7 @@ class CodeGenerator
                 $random .= $characters[random_int(0, strlen($characters) - 1)];
             }
 
-            $code = 'CUST-' . substr($random, 0, 4) . '-' . substr($random, 4, 4);
+            $code = 'VH-' . substr($random, 0, 4) . '-' . substr($random, 4, 4);
 
             $exists = Vehicle::where('access_code', $code)->exists();
         } while ($exists);
