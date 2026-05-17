@@ -32,6 +32,7 @@ class ServiceHistoryController extends Controller
     public function show()
     {
         $serviceCode = request()->query('kode');
+        // dd($serviceCode);
         $serviceHistory = ServiceSchedule::with('serviceDServices.service_m_type', 'serviceDChecklist.checklist','serviceDSparepart','serviceDPayment')->where('kode', $serviceCode)->first();
 
         if (!$serviceHistory) {

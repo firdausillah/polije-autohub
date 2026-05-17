@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Vehicle extends Model
+class Vehicle extends Authenticatable
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasApiTokens;
     protected $guarded;
 
     protected static function boot()

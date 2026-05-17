@@ -16,6 +16,7 @@
         "guava/filament-modal-relation-managers": "^1.2",
         "joshembling/image-optimizer": "^1.5",
         "laravel/framework": "^11.31",
+        "laravel/sanctum": "^4.3",
         "laravel/tinker": "^2.9",
         "mpdf/mpdf": "^8.2",
         "saade/filament-autograph": "^3.2",
