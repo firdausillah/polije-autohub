@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Public\VehicleController;
 
-
 Route::middleware('throttle:10,1')->group(function () {
     Route::post('/service-booking-requests', [ServiceBookingRequests::class, 'store']);
     Route::post('/login', [CustomerAuthController::class, 'login']);

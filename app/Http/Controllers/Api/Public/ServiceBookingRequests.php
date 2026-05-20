@@ -20,8 +20,8 @@ class ServiceBookingRequests extends Controller
             'brand'               => 'required|string|max:50',
             'type'                => 'required|string|max:50',
             'keluhan'             => 'required|string',
-            'booking_date'        => 'required|date',
-            'booking_time'        => 'required',
+            // 'booking_date'        => 'required|date',
+            // 'booking_time'        => 'required',
         ]);
 
         // STORE
