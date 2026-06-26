@@ -22,6 +22,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
@@ -249,9 +250,33 @@ class StockAdjustmentResource extends Resource
                     ->visible(fn (StockAdjustment $record) => $record->is_approve !== 'approved'),
                 ])
             ])
+            // ->bulkActions([
+            //     Tables\Actions\BulkActionGroup::make([
+            //         Tables\Actions\DeleteBulkAction::make(),
+            //     ]),
+            // ]);
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            if ($records->contains(fn ($record) => $record->is_approve === 'approved')) {
+                                Notification::make()
+                                    ->title('Gagal menghapus')
+                                    ->body('Terdapat data yang sudah di-approve. Hapus hanya data yang masih pending atau rejected.')
+                                    ->danger()
+                                    ->send();
+
+                                return;
+                            }
+
+                            $records->each->delete();
+
+                            Notification::make()
+                                ->title('Berhasil')
+                                ->body('Data berhasil dihapus.')
+                                ->success()
+                                ->send();
+                        }),
                 ]),
             ]);
     }
@@ -286,4 +311,5 @@ class StockAdjustmentResource extends Resource
     {
         return $record->is_approve !== 'approved';
     }
+    
 }
