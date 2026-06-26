@@ -45,14 +45,22 @@ class StockDAdjustmentRelationManager extends RelationManager
             ->first();
         // dd($sparepart_inventory);
 
+        if($sparepart_inventory == null){
+            $set('jumlah_terkecil_inventory', 0);
+            $set('jumlah_unit', 0);
+            $set('jumlah_terkecil_selisih', 0);
+            $set('sparepart_id', $sparepart_satuan->sparepart->id);
+            $set('satuan_id', $sparepart_satuan->id);
+        }else{
+            $set('jumlah_terkecil_selisih', 0);
+            $set('jumlah_unit', $sparepart_inventory->saldo);
+            $set('jumlah_terkecil_inventory', $sparepart_inventory->saldo);
+            $set('sparepart_id', $sparepart_inventory->sparepart_id);
+            $set('satuan_id', $sparepart_inventory->satuan_id);
+        }
 
         $set('harga_unit', $sparepart_satuan->harga);
 
-        $set('jumlah_unit', $sparepart_inventory->saldo);
-        $set('jumlah_terkecil_selisih', 0);
-        $set('jumlah_terkecil_inventory', $sparepart_inventory->saldo);
-        $set('sparepart_id', $sparepart_inventory->sparepart_id);
-        $set('satuan_id', $sparepart_inventory->satuan_id);
     }
 
     // public static function updateJumlahSelisih($get, $set){
