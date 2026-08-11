@@ -18,7 +18,7 @@ class CombinedRevenueStatsOverview extends BaseWidget
     public static function canView(): bool
     {
         // return false;
-        return auth()->check() && auth()->user()->hasRole(['Admin', 'Pimpinan']);
+        return auth()->check() && auth()->user()->hasRole(['Admin', 'pimpinan', 'Manager']);
     }
     protected ?string $heading = 'Total Pendapatan dan Discount Overview';
 
