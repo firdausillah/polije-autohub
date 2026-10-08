@@ -94,6 +94,9 @@ class ServiceScheduleResource extends Resource
     {
         try {
             if ($status == 'approved') {
+
+                $approvalDate = $record->approval_date ?? now();
+
                 // Validasi jumlah bayar
                 $payment = ServiceDPayment::where('service_schedule_id', $record->id)->get();
                 if ($record->total > $payment->sum('jumlah_bayar')) {
@@ -124,7 +127,7 @@ class ServiceScheduleResource extends Resource
                         'account_id' => $val->account_id,
                         'keterangan' => $val->keterangan,
                         'kode' => $record->kode,
-                        'tanggal_transaksi' => now(),
+                        'tanggal_transaksi' => $approvalDate,
                         'relation_name' => $record->customer_name,
                         'relation_nomor_telepon' => $record->nomor_telepon,
                         'account_name' => $val->account_name,
@@ -144,7 +147,7 @@ class ServiceScheduleResource extends Resource
                         'account_id' => $account_debit_discount->id,
                         'keterangan' => $record->keterangan,
                         'kode' => $record->kode,
-                        'tanggal_transaksi' => now(),
+                        'tanggal_transaksi' => $approvalDate,
                         'relation_name' => $record->customer_name,
                         'relation_nomor_telepon' => $record->nomor_telepon,
                         'account_name' => $account_debit_discount->name,
@@ -166,7 +169,7 @@ class ServiceScheduleResource extends Resource
                     'account_id' => $account_kredit_service->id,
                     'keterangan' => $record->keterangan,
                     'kode' => $record->kode,
-                    'tanggal_transaksi' => now(),
+                    'tanggal_transaksi' => $approvalDate,
                     'relation_name' => $record->customer_name,
                     'relation_nomor_telepon' => $record->nomor_telepon,
                     'account_name' => $account_kredit_service->name,
@@ -182,7 +185,7 @@ class ServiceScheduleResource extends Resource
                     'account_id' => $account_kredit_sparepart->id,
                     'keterangan' => $record->keterangan,
                     'kode' => $record->kode,
-                    'tanggal_transaksi' => now(),
+                    'tanggal_transaksi' => $approvalDate,
                     'relation_name' => $record->customer_name,
                     'relation_nomor_telepon' => $record->nomor_telepon,
                     'account_name' => $account_kredit_sparepart->name,
@@ -199,7 +202,7 @@ class ServiceScheduleResource extends Resource
                         'account_id' => $account_kredit_pajak->id,
                         'keterangan' => $record->keterangan,
                         'kode' => $record->kode,
-                        'tanggal_transaksi' => now(),
+                        'tanggal_transaksi' => $approvalDate,
                         'relation_name' => $record->customer_name,
                         'relation_nomor_telepon' => $record->nomor_telepon,
                         'account_name' => $account_kredit_pajak->name,
@@ -255,6 +258,7 @@ class ServiceScheduleResource extends Resource
                         'name' => User::find(Auth::id())->name,
                         'keterangan' => 'Admin',
                         'transaction_type' => 'Pelayanan Service',
+                        'created_at' => $approvalDate,
                     ],
                         $item['extra']
                     ));
@@ -269,6 +273,7 @@ class ServiceScheduleResource extends Resource
                                 'name' => $kepalaUnit->name,
                                 'keterangan' => 'Kepala Unit',
                                 'transaction_type' => 'Pelayanan Service',
+                                'created_at' => $approvalDate,
                             ],
                             $item['extra']
                         ));
@@ -319,6 +324,7 @@ class ServiceScheduleResource extends Resource
                             'name' => $mekanikUser->name,
                             'keterangan' => 'Mekanik',
                             'transaction_type' => 'Pelayanan Service',
+                            'created_at' => $approvalDate,
                         ], $item['extra']));
                     }
                 }
@@ -337,7 +343,7 @@ class ServiceScheduleResource extends Resource
                         'account_id' => $account_hpp->id,
                         'keterangan' => $val->sparepart_kode . ' - ' . $val->sparepart_name,
                         'kode' => $record->kode,
-                        'tanggal_transaksi' => now(),
+                        'tanggal_transaksi' => $approvalDate,
                         'relation_name' => $record->customer_name,
                         'relation_nomor_telepon' => $record->nomor_telepon,
                         'account_name' => $account_hpp->name,
@@ -353,7 +359,7 @@ class ServiceScheduleResource extends Resource
                         'account_id' => $account_persediaan->id,
                         'keterangan' => $val->sparepart_kode . ' - ' . $val->sparepart_name,
                         'kode' => $record->kode,
-                        'tanggal_transaksi' => now(),
+                        'tanggal_transaksi' => $approvalDate,
                         'relation_name' => $record->customer_name,
                         'relation_nomor_telepon' => $record->nomor_telepon,
                         'account_name' => $account_persediaan->name,
@@ -377,7 +383,7 @@ class ServiceScheduleResource extends Resource
                         'name' => '',
                         'kode' => $record->kode,
                         'keterangan' => $record->keterangan,
-                        'tanggal_transaksi' => date_format(NOW(), 'Y-m-d H:i:s'),
+                        'tanggal_transaksi' => $approvalDate,
                         'transaksi_h_kode' => $record->kode,
 
                         'sparepart_name' => $val->sparepart_name,
@@ -635,6 +641,11 @@ class ServiceScheduleResource extends Resource
                                         1 => 'Umum',
                                         0 => 'Mahasiswa / Karyawan / Ojol'
                                     ]),
+                                DateTimePicker::make('approval_date')
+                                    ->label('Tanggal & Jam Approval')
+                                    ->seconds(false)
+                                    ->nullable()
+                                    ->helperText('Kosongkan jika menggunakan tanggal dan jam saat approval dilakukan.'),
 
                                 Section::make()
                                     ->columns(['sm' => 3])
@@ -936,12 +947,24 @@ class ServiceScheduleResource extends Resource
                             ]);
                         }
 
+                        if ($status === 'approved' && !$record->approval_date) {
+                            $record->approval_date = now();
+                            $record->save();
+                        }
+
                         $message = self::InsertJurnal($record, $status);
                         if ($message['status'] == 'success') {
-                            $record->service_status = $isApproving ? 'Selesai' : 'Menunggu Pembayaran';
+                            $record->service_status = $isApproving
+                                ? 'Selesai'
+                                : 'Menunggu Pembayaran';
+
                             $record->is_approve = $status;
                             $record->approved_by = Auth::id();
-                            $record->approved_at = NOW();
+
+                            if ($status === 'approved') {
+                                $record->approved_at = now();
+                            }
+
                             $record->save();
                         }
 
