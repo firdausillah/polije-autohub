@@ -129,6 +129,29 @@ class SparepartSaleResource extends Resource
         $set('payment_change', $payment_change);
     }
 
+    protected static function validatePaymentAmount(SparepartSale $record): ?array
+{
+    $totalPayment = SparepartDSalePayment::where('sparepart_sale_id', $record->id)
+        ->sum('jumlah_bayar');
+
+    if ($totalPayment < $record->total) {
+        $shortage = $record->total - $totalPayment;
+
+        return [
+            'title' => 'Approval Gagal',
+            'body' =>
+                'Pembayaran belum mencukupi.' . PHP_EOL .
+                'Total Tagihan : Rp ' . number_format($record->total, 0, ',', '.') . PHP_EOL .
+                'Sudah Dibayar : Rp ' . number_format($totalPayment, 0, ',', '.') . PHP_EOL .
+                'Kekurangan : Rp ' . number_format($shortage, 0, ',', '.') . PHP_EOL . PHP_EOL .
+                'Silakan lengkapi pembayaran sebelum melakukan approval.',
+            'status' => 'warning',
+        ];
+    }
+
+    return null;
+}
+
     public static function createPayrollJurnal($data)
     {
         PayrollJurnal::create($data);
@@ -205,7 +228,8 @@ class SparepartSaleResource extends Resource
                     'account_kode'      => $account_kredit->kode,
                     'transaction_type'  => 'penjualan sparepart',
                     'debit'             => 0,
-                    'kredit'            => $record->total + $record->discount_total,
+                    'kredit'            => $record->total,
+                    // 'kredit'            => $record->total + $record->discount_total,
                 ]);
 
                 if ($record->pajak_total) {
@@ -762,44 +786,83 @@ class SparepartSaleResource extends Resource
             ->actions([
                 TablesActionsActionGroup::make([
                     Tables\Actions\Action::make('approve')
-                    ->action(function (SparepartSale $record) {
-                        if (empty($record->kode)) {
-                            $record->kode = CodeGenerator::generateTransactionCode('SSL', 'sparepart_sales', 'kode');
-                        }
+                        ->action(function (SparepartSale $record) {
 
-                        $isApproving = in_array($record->is_approve, ['pending', 'rejected']);
-                        $status = $isApproving ? 'approved' : 'rejected';
-
-                        if ($status == 'rejected') {
-                            // Hapus file jika ada
-                            $filePath = storage_path('app/invoices/sales/' . $record->invoice_file);
-                            if ($record->invoice_file != null && file_exists($filePath)) {
-                                unlink($filePath);
+                            // Generate kode jika belum ada
+                            if (empty($record->kode)) {
+                                $record->kode = CodeGenerator::generateTransactionCode(
+                                    'SSL',
+                                    'sparepart_sales',
+                                    'kode'
+                                );
                             }
 
-                            $record->update([
-                                'invoice_file' => null,
-                            ]);
-                        }
+                            $isApproving = in_array($record->is_approve, ['pending', 'rejected']);
+                            $status = $isApproving ? 'approved' : 'rejected';
 
+                            // Validasi pembayaran hanya saat approve
+                            if ($isApproving) {
+                                $validation = self::validatePaymentAmount($record);
 
-                        self::InsertJurnal($record, $status);
-                        $record->is_approve = $status;
-                        $record->approved_by = FacadesAuth::id();
-                        $record->approved_at = NOW();
-                        $record->save();
+                                if ($validation) {
+                                    Notification::make()
+                                        ->title($validation['title'])
+                                        ->body($validation['body'])
+                                        ->warning()
+                                        ->send();
 
-                        Notification::make()
-                            ->title("Sparepart Sale $status")
-                            ->success()
-                            ->body("Sparepart Sale has been $status.")
-                            ->send();
-                    })
+                                    return;
+                                }
+                            }
+
+                            // Hapus invoice jika reject
+                            if ($status === 'rejected') {
+
+                                $filePath = storage_path('app/invoices/sales/' . $record->invoice_file);
+
+                                if ($record->invoice_file && file_exists($filePath)) {
+                                    unlink($filePath);
+                                }
+
+                                $record->update([
+                                    'invoice_file' => null,
+                                ]);
+                            }
+
+                            // Jalankan proses jurnal / inventory / payroll
+                            $result = self::InsertJurnal($record, $status);
+
+                            // Jika InsertJurnal mengembalikan error
+                            if (is_array($result)) {
+                                Notification::make()
+                                    ->title($result['title'])
+                                    ->body($result['body'])
+                                    ->warning()
+                                    ->send();
+
+                                return;
+                            }
+
+                            // Simpan approval
+                            $record->is_approve = $status;
+                            $record->approved_by = FacadesAuth::id();
+                            $record->approved_at = now();
+                            $record->save();
+
+                            Notification::make()
+                                ->title("Sparepart Sale {$status}")
+                                ->success()
+                                ->body("Sparepart Sale has been {$status}.")
+                                ->send();
+                        })
                         ->color(fn (SparepartSale $record) => $record->is_approve === 'approved' ? 'danger' : 'info')
-                        ->icon(fn (SparepartSale $record) => $record->is_approve === 'approved' ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
+                        ->icon(fn (SparepartSale $record) => $record->is_approve === 'approved'
+                            ? 'heroicon-o-x-circle'
+                            : 'heroicon-o-check-circle')
                         ->requiresConfirmation()
-                        ->label(fn (SparepartSale $record) => $record->is_approve === 'approved' ? 'Reject' : 'Approve'),
-
+                        ->label(fn (SparepartSale $record) => $record->is_approve === 'approved'
+                            ? 'Reject'
+                            : 'Approve'),
                     Tables\Actions\EditAction::make(),
                     // ->visible(fn (SparepartSale $record) => $record->is_approve !== 'approved'),
                     Tables\Actions\Action::make('kirimInvoice')
